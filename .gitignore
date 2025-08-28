@@ -1,0 +1,48 @@
+# Java
+*.class
+*.log
+*.jar
+*.war
+*.ear
+
+# Maven
+target/
+!src/main/resources/static/
+!src/main/resources/public/
+
+# IntelliJ
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# Eclipse
+*.launch
+.settings/
+.project
+.classpath
+
+# VSCode
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Spring Boot dev tools
+.spring-boot-devtools.properties
+
+# Logs e dumps
+*.log
+hs_err_pid*
+
+# Test coverage
+jacoco.exec
+
+# Arquivos temporários
+*.swp
+*.tmp
+
+# Arquivos de ambiente
+.env
