@@ -46,3 +46,6 @@ jacoco.exec
 
 # Arquivos de ambiente
 .env
+
+# Config local
+src/main/resources/application.properties
