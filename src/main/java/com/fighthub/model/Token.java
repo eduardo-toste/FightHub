@@ -4,6 +4,7 @@ import com.fighthub.model.enums.TokenType;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
@@ -26,13 +27,19 @@ public class Token {
     @Column(nullable = false)
     private TokenType tokenType;
 
-    @Column(nullable = false)
+    @Column(name = "revogado", nullable = false)
     private boolean revoked;
 
-    @Column(nullable = false)
+    @Column(name = "expirado", nullable = false)
     private boolean expired;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "usuario_id")
     private Usuario usuario;
+
+    @Column(name = "criado_em", nullable = false, updatable = false)
+    private LocalDateTime criadoEm;
+
+    @Column(name = "expira_em", nullable = false)
+    private LocalDateTime expiraEm;
 }
