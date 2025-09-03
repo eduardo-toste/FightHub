@@ -118,7 +118,7 @@ CREATE TABLE tokens (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     usuario_id UUID NOT NULL,
     token TEXT NOT NULL UNIQUE,
-    refresh_token BOOLEAN DEFAULT FALSE,
+    token_type TEXT NOT NULL,
     expirado BOOLEAN DEFAULT FALSE,
     revogado BOOLEAN DEFAULT FALSE,
     criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
