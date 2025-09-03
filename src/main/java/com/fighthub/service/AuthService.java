@@ -43,7 +43,7 @@ public class AuthService {
         var jwtToken = jwtService.gerarToken(usuario);
         var refreshToken = jwtService.gerarRefreshToken(usuario);
 
-        tokenService.salvarToken(usuario, jwtToken);
+        tokenService.salvarTokens(usuario, jwtToken, refreshToken);
 
         return new AuthResponse(jwtToken, refreshToken);
     }
@@ -61,7 +61,7 @@ public class AuthService {
         var jwtToken = jwtService.gerarToken(usuario);
         var refreshToken = jwtService.gerarRefreshToken(usuario);
 
-        tokenService.salvarToken(usuario, jwtToken);
+        tokenService.salvarTokens(usuario, jwtToken, refreshToken);
 
         return new AuthResponse(jwtToken, refreshToken);
     }
@@ -78,7 +78,7 @@ public class AuthService {
 
         var newAccessToken = jwtService.gerarToken(usuario);
 
-        tokenService.salvarToken(usuario, newAccessToken);
+        tokenService.salvarAccessToken(usuario, newAccessToken);
 
         return new AuthResponse(newAccessToken, refreshToken);
     }
@@ -91,11 +91,20 @@ public class AuthService {
         }
 
         final String jwt = authHeader.substring(7);
-        Token tokenArmazenado = tokenRepository.findByToken(jwt).orElse(null);
-        if (tokenArmazenado != null) {
-            tokenArmazenado.setExpired(true);
-            tokenArmazenado.setRevoked(true);
-            tokenRepository.save(tokenArmazenado);
+        Token accessToken = tokenRepository.findByToken(jwt).orElse(null);
+
+        if (accessToken != null) {
+            Usuario usuario = accessToken.getUsuario();
+
+            tokenRepository.findAllByUsuarioAndExpiredFalseAndRevokedFalse(usuario)
+                    .forEach(token -> {
+                        token.setExpired(true);
+                        token.setRevoked(true);
+                    });
+
+            tokenRepository.saveAll(
+                    tokenRepository.findAllByUsuarioAndExpiredFalseAndRevokedFalse(usuario)
+            );
         }
     }
 
