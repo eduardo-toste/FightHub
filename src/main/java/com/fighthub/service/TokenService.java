@@ -7,19 +7,52 @@ import com.fighthub.repository.TokenRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class TokenService {
 
     private final TokenRepository tokenRepository;
 
-    public void salvarToken(Usuario usuario, String jwt) {
-        Token token = Token.builder()
+    public void salvarTokens(Usuario usuario, String accessToken, String refreshToken) {
+        var agora = LocalDateTime.now();
+
+        Token tokenAccess = Token.builder()
                 .usuario(usuario)
-                .token(jwt)
-                .tokenType(TokenType.BEARER)
+                .token(accessToken)
+                .tokenType(TokenType.ACCESS)
                 .expired(false)
                 .revoked(false)
+                .criadoEm(agora)
+                .expiraEm(agora.plusHours(1))
+                .build();
+
+        Token tokenRefresh = Token.builder()
+                .usuario(usuario)
+                .token(refreshToken)
+                .tokenType(TokenType.REFRESH)
+                .expired(false)
+                .revoked(false)
+                .criadoEm(agora)
+                .expiraEm(agora.plusDays(7))
+                .build();
+
+        tokenRepository.saveAll(List.of(tokenAccess, tokenRefresh));
+    }
+
+    public void salvarAccessToken(Usuario usuario, String accessToken) {
+        var agora = LocalDateTime.now();
+
+        Token token = Token.builder()
+                .usuario(usuario)
+                .token(accessToken)
+                .tokenType(TokenType.ACCESS)
+                .expired(false)
+                .revoked(false)
+                .criadoEm(agora)
+                .expiraEm(agora.plusHours(1))
                 .build();
 
         tokenRepository.save(token);
@@ -35,5 +68,4 @@ public class TokenService {
 
         tokenRepository.saveAll(tokens);
     }
-
 }
