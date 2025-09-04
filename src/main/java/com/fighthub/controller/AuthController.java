@@ -23,15 +23,9 @@ public class AuthController {
 
     private final AuthService authService;
 
-    @PostMapping("/register")
-    public ResponseEntity<AuthResponse> registrar(@RequestBody @Valid RegisterRequest request) {
-        var response = authService.cadastrar(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
-    }
-
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@RequestBody @Valid AuthRequest request) {
-        var response = authService.autenticar(request);
+        var response = authService.login(request);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
