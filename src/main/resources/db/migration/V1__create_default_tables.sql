@@ -18,22 +18,11 @@ CREATE TABLE usuarios (
 );
 
 -- ==========================
--- TABELA MODALIDADES
+-- TABELA RESPONSAVEIS
 -- ==========================
-CREATE TABLE modalidades (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    nome VARCHAR(100) NOT NULL,
-    cor_padrao VARCHAR(20),
-    usa_graduacao BOOLEAN DEFAULT TRUE
-);
-
--- ==========================
--- TABELA PROFESSORES
--- ==========================
-CREATE TABLE professores (
+CREATE TABLE responsaveis (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     usuario_id UUID NOT NULL UNIQUE,
-    especialidades TEXT,
     FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
@@ -48,7 +37,59 @@ CREATE TABLE alunos (
 );
 
 -- ==========================
--- RELAÇÃO ALUNO x MODALIDADE (N:N)
+-- RELAÇÃO N:N ALUNO x RESPONSAVEL
+-- ==========================
+CREATE TABLE alunos_responsaveis (
+    aluno_id UUID NOT NULL,
+    responsavel_id UUID NOT NULL,
+    PRIMARY KEY (aluno_id, responsavel_id),
+    FOREIGN KEY (aluno_id) REFERENCES alunos(id) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (responsavel_id) REFERENCES responsaveis(id) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+-- ==========================
+-- TABELA MODALIDADES
+-- ==========================
+CREATE TABLE modalidades (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    nome VARCHAR(100) NOT NULL UNIQUE,
+    cor_padrao VARCHAR(20),
+    usa_graduacao BOOLEAN DEFAULT TRUE
+);
+
+-- ==========================
+-- TABELA ESPECIALIDADES
+-- ==========================
+CREATE TABLE especialidades (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    nome VARCHAR(100) NOT NULL,
+    modalidade_id UUID NOT NULL,
+    UNIQUE (nome, modalidade_id),
+    FOREIGN KEY (modalidade_id) REFERENCES modalidades(id) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+-- ==========================
+-- TABELA PROFESSORES
+-- ==========================
+CREATE TABLE professores (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    usuario_id UUID NOT NULL UNIQUE,
+    FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+-- ==========================
+-- TABELA PROFESSORES x ESPECIALIDADES (N:N)
+-- ==========================
+CREATE TABLE professores_especialidades (
+    professor_id UUID NOT NULL,
+    especialidade_id UUID NOT NULL,
+    PRIMARY KEY (professor_id, especialidade_id),
+    FOREIGN KEY (professor_id) REFERENCES professores(id) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (especialidade_id) REFERENCES especialidades(id) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+-- ==========================
+-- TABELA ALUNOS x MODALIDADES (N:N)
 -- ==========================
 CREATE TABLE alunos_modalidades (
     aluno_id UUID NOT NULL,
@@ -67,7 +108,7 @@ CREATE TABLE turmas (
     nome VARCHAR(100) NOT NULL,
     modalidade_id UUID NOT NULL,
     professor_id UUID NOT NULL,
-    dias_semana VARCHAR(50), -- Ex: "SEG,QUA,SEX"
+    dias_semana VARCHAR(50),
     horario TIME,
     FOREIGN KEY (modalidade_id) REFERENCES modalidades(id) ON DELETE CASCADE ON UPDATE CASCADE,
     FOREIGN KEY (professor_id) REFERENCES professores(id) ON DELETE CASCADE ON UPDATE CASCADE
