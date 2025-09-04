@@ -2,13 +2,11 @@ package com.fighthub.controller;
 
 import com.fighthub.dto.request.AuthRequest;
 import com.fighthub.dto.request.RefreshTokenRequest;
-import com.fighthub.dto.request.RegisterRequest;
 import com.fighthub.dto.response.AuthResponse;
 import com.fighthub.service.AuthService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
