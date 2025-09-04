@@ -1,7 +1,6 @@
 package com.fighthub.service;
 
 import com.fighthub.dto.request.AuthRequest;
-import com.fighthub.dto.request.RegisterRequest;
 import com.fighthub.dto.response.AuthResponse;
 import com.fighthub.model.Token;
 import com.fighthub.model.Usuario;
@@ -28,28 +27,7 @@ public class AuthService {
     private final TokenService tokenService;
 
     @Transactional
-    public AuthResponse cadastrar(RegisterRequest request) {
-        var usuario = Usuario.builder()
-                .nome(request.nome())
-                .email(request.email())
-                .senha(passwordEncoder.encode(request.senha()))
-                .role(request.role())
-                .ativo(true)
-                .loginSocial(false)
-                .build();
-
-        usuarioRepository.save(usuario);
-
-        var jwtToken = jwtService.gerarToken(usuario);
-        var refreshToken = jwtService.gerarRefreshToken(usuario);
-
-        tokenService.salvarTokens(usuario, jwtToken, refreshToken);
-
-        return new AuthResponse(jwtToken, refreshToken);
-    }
-
-    @Transactional
-    public AuthResponse autenticar(AuthRequest request) {
+    public AuthResponse login(AuthRequest request) {
         var authToken = new UsernamePasswordAuthenticationToken(request.email(), request.senha());
         authenticationManager.authenticate(authToken);
 
