@@ -23,7 +23,6 @@ public class AuthService {
 
     private final UsuarioRepository usuarioRepository;
     private final TokenRepository tokenRepository;
-    private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
     private final TokenService tokenService;
@@ -58,18 +57,26 @@ public class AuthService {
 
     @Transactional
     public AuthResponse atualizarToken(String refreshToken) {
+        log.info("Solicitação de atualização de token recebida");
+
         if (!jwtService.tokenValido(refreshToken)) {
+            log.warn("Refresh token inválido recebido");
             throw new RuntimeException("Refresh token inválido");
         }
 
         var email = jwtService.extrairEmail(refreshToken);
         var usuario = usuarioRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+                .orElseThrow(() -> {
+                    log.warn("Usuário com e-mail {} não encontrado durante atualização de token", email);
+                    return new RuntimeException("Usuário não encontrado");
+                });
+
+        log.debug("Usuário validado para atualização de token: {}", email);
 
         var newAccessToken = jwtService.gerarToken(usuario);
-
         tokenService.salvarAccessToken(usuario, newAccessToken);
 
+        log.info("Token de acesso atualizado com sucesso para o usuário: {}", email);
         return new AuthResponse(newAccessToken, refreshToken);
     }
 
@@ -77,6 +84,7 @@ public class AuthService {
     public void logout(HttpServletRequest request) {
         final String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            log.warn("Tentativa de logout com token ausente ou inválido");
             throw new RuntimeException("Token ausente ou inválido.");
         }
 
@@ -85,16 +93,20 @@ public class AuthService {
 
         if (accessToken != null) {
             Usuario usuario = accessToken.getUsuario();
+            log.info("Logout iniciado para o usuário: {}", usuario.getEmail());
 
-            tokenRepository.findAllByUsuarioAndExpiredFalseAndRevokedFalse(usuario)
-                    .forEach(token -> {
-                        token.setExpired(true);
-                        token.setRevoked(true);
-                    });
+            var tokensAtivos = tokenRepository.findAllByUsuarioAndExpiredFalseAndRevokedFalse(usuario);
 
-            tokenRepository.saveAll(
-                    tokenRepository.findAllByUsuarioAndExpiredFalseAndRevokedFalse(usuario)
-            );
+            tokensAtivos.forEach(token -> {
+                token.setExpired(true);
+                token.setRevoked(true);
+            });
+
+            tokenRepository.saveAll(tokensAtivos);
+
+            log.info("Logout finalizado e tokens revogados para o usuário: {}", usuario.getEmail());
+        } else {
+            log.warn("Token de acesso não encontrado na base: {}", jwt);
         }
     }
 
