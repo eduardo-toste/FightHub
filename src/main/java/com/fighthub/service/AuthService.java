@@ -8,6 +8,7 @@ import com.fighthub.repository.TokenRepository;
 import com.fighthub.repository.UsuarioRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -15,6 +16,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AuthService {
@@ -28,19 +30,29 @@ public class AuthService {
 
     @Transactional
     public AuthResponse login(AuthRequest request) {
+        log.info("Tentando autenticar usuário com e-mail: {}", request.email());
+
         var authToken = new UsernamePasswordAuthenticationToken(request.email(), request.senha());
         authenticationManager.authenticate(authToken);
 
         var usuario = usuarioRepository.findByEmail(request.email())
-                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+                .orElseThrow(() -> {
+                    log.warn("Usuário com e-mail {} não encontrado", request.email());
+                    return new RuntimeException("Usuário não encontrado");
+                });
+
+        log.info("Usuário autenticado com sucesso: {} (ID: {})", usuario.getEmail(), usuario.getId());
 
         tokenService.revogarTokens(usuario);
+        log.debug("Tokens antigos revogados para o usuário: {}", usuario.getEmail());
 
         var jwtToken = jwtService.gerarToken(usuario);
         var refreshToken = jwtService.gerarRefreshToken(usuario);
+        log.debug("Novos tokens gerados para o usuário: {}", usuario.getEmail());
 
         tokenService.salvarTokens(usuario, jwtToken, refreshToken);
 
+        log.info("Login finalizado com sucesso para o usuário: {}", usuario.getEmail());
         return new AuthResponse(jwtToken, refreshToken);
     }
 
