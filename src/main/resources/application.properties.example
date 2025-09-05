@@ -1,7 +1,7 @@
 # ========== DATABASE ==========
 spring.datasource.url=jdbc:postgresql://localhost:5432/fighthub
-spring.datasource.username=SEU_USUARIO
-spring.datasource.password=SUA_SENHA
+spring.datasource.username=admin
+spring.datasource.password=111222333
 spring.datasource.driver-class-name=org.postgresql.Driver
 
 # ========== JPA ==========
@@ -14,10 +14,27 @@ spring.flyway.enabled=true
 spring.flyway.locations=classpath:db/migration
 
 # ========== LOGGING ==========
+# Define o nome da aplicação (usado nos logs)
+spring.application.name=fighthub
+
+# Define o caminho base para salvar os arquivos de log
+logging.file.path=logs
+
+# Ativa log de queries SQL
 logging.level.org.hibernate.SQL=DEBUG
+# Ativa log dos parâmetros das queries
 logging.level.org.hibernate.type.descriptor.sql.BasicBinder=TRACE
 
+# Exibe log das requisições HTTP com payload
+logging.level.org.springframework.web=INFO
+logging.level.org.springframework.security=INFO
+
 # ========== TOKEN JWT ==========
-security.jwt.secret=SEU_SECRET
-security.jwt.expiration=tempo-em-ms
-security.jwt.refresh-expiration=tempo-em-ms
+# Chave secreta usada para assinar o JWT
+security.jwt.secret=f4c818a6d3e94c92bd158e3d76c20455
+
+# Tempo de expiração do access token (em milissegundos): 15 minutos
+security.jwt.expiration=900000
+
+# Tempo de expiração do refresh token (em milissegundos): 7 dias
+security.jwt.refresh-expiration=604800000
