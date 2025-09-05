@@ -1,4 +1,4 @@
-package com.fighthub.dto.request;
+package com.fighthub.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
