@@ -1,8 +1,8 @@
 package com.fighthub.controller;
 
-import com.fighthub.dto.request.AuthRequest;
-import com.fighthub.dto.request.RefreshTokenRequest;
-import com.fighthub.dto.response.AuthResponse;
+import com.fighthub.dto.AuthRequest;
+import com.fighthub.dto.RefreshTokenRequest;
+import com.fighthub.dto.AuthResponse;
 import com.fighthub.service.AuthService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
