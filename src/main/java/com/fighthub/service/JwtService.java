@@ -1,5 +1,7 @@
 package com.fighthub.service;
 
+import com.fighthub.exception.TokenExpiradoException;
+import com.fighthub.exception.TokenInvalidoException;
 import com.fighthub.model.Usuario;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
@@ -55,17 +57,25 @@ public class JwtService {
                     .build()
                     .parseClaimsJws(token);
             return true;
-        } catch (JwtException ex) {
+        } catch (ExpiredJwtException e) {
+            return false;
+        } catch (JwtException e) {
             return false;
         }
     }
 
     public String extrairEmail(String token) {
-        return Jwts.parserBuilder()
-                .setSigningKey(key)
-                .build()
-                .parseClaimsJws(token)
-                .getBody()
-                .getSubject();
+        try {
+            return Jwts.parserBuilder()
+                    .setSigningKey(key)
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody()
+                    .getSubject();
+        } catch (ExpiredJwtException e) {
+            throw new TokenExpiradoException();
+        } catch (JwtException e) {
+            throw new TokenInvalidoException();
+        }
     }
 }
