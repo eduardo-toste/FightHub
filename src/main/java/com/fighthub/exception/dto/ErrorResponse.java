@@ -3,11 +3,10 @@ package com.fighthub.exception.dto;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import org.springframework.http.HttpStatus;
 
-import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 
 public record ErrorResponse(
-        LocalDateTime timestamp,
+        OffsetDateTime timestamp,
         int status,
         String error,
         String message,
@@ -16,7 +15,7 @@ public record ErrorResponse(
 ) {
     public static ErrorResponse from(HttpStatus status, String message, String path) {
         return new ErrorResponse(
-                LocalDateTime.now(),
+                OffsetDateTime.now(),
                 status.value(),
                 status.getReasonPhrase(),
                 message,
