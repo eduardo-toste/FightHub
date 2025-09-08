@@ -41,7 +41,7 @@ public class AuthService {
                     return new UsuarioNaoEncontradoException();
                 });
 
-        log.info("Usuário autenticado com sucesso: {} (ID: {})", usuario.getEmail(), usuario.getId());
+        log.info("Usuário autenticado com sucesso: {}", usuario.getEmail());
 
         tokenService.revogarTokens(usuario);
         log.debug("Tokens antigos revogados para o usuário: {}", usuario.getEmail());
