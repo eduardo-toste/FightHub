@@ -9,7 +9,8 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @OpenAPIDefinition(
-        info = @Info(title = "FightHub", version = "1.0"),
+        info = @Info(title = "FightHub", version = "1.0", description = "FightHub é uma aplicação completa para gerenciamento de academias de artes marciais, " +
+                "sendo esta a API responsável por disponibilizar acesso ao backend."),
         security = @SecurityRequirement(name = "bearerAuth")
 )
 @SecurityScheme(
