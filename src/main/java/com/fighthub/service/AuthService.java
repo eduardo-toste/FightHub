@@ -4,9 +4,7 @@ import com.fighthub.dto.AuthRequest;
 import com.fighthub.dto.AuthResponse;
 import com.fighthub.exception.TokenInvalidoException;
 import com.fighthub.exception.UsuarioNaoEncontradoException;
-import com.fighthub.model.Token;
 import com.fighthub.model.Usuario;
-import com.fighthub.repository.TokenRepository;
 import com.fighthub.repository.UsuarioRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +21,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class AuthService {
 
     private final UsuarioRepository usuarioRepository;
-    private final TokenRepository tokenRepository;
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
     private final TokenService tokenService;
@@ -32,8 +29,9 @@ public class AuthService {
     public AuthResponse login(AuthRequest request) {
         log.info("Tentando autenticar usuário com e-mail: {}", request.email());
 
-        var authToken = new UsernamePasswordAuthenticationToken(request.email(), request.senha());
-        authenticationManager.authenticate(authToken);
+        authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(request.email(), request.senha())
+        );
 
         var usuario = usuarioRepository.findByEmail(request.email())
                 .orElseThrow(() -> {
@@ -41,15 +39,9 @@ public class AuthService {
                     return new UsuarioNaoEncontradoException();
                 });
 
-        log.info("Usuário autenticado com sucesso: {}", usuario.getEmail());
-
         tokenService.revogarTokens(usuario);
-        log.debug("Tokens antigos revogados para o usuário: {}", usuario.getEmail());
-
         var jwtToken = jwtService.gerarToken(usuario);
         var refreshToken = jwtService.gerarRefreshToken(usuario);
-        log.debug("Novos tokens gerados para o usuário: {}", usuario.getEmail());
-
         tokenService.salvarTokens(usuario, jwtToken, refreshToken);
 
         log.info("Login finalizado com sucesso para o usuário: {}", usuario.getEmail());
@@ -72,7 +64,7 @@ public class AuthService {
                     return new UsuarioNaoEncontradoException();
                 });
 
-        log.debug("Usuário validado para atualização de token: {}", email);
+        tokenService.revogarAccessToken(usuario);
 
         var newAccessToken = jwtService.gerarToken(usuario);
         tokenService.salvarAccessToken(usuario, newAccessToken);
@@ -90,25 +82,10 @@ public class AuthService {
         }
 
         final String jwt = authHeader.substring(7);
-        Token accessToken = tokenRepository.findByToken(jwt).orElse(null);
+        log.info("Logout solicitado para token: {}", jwt);
 
-        if (accessToken != null) {
-            Usuario usuario = accessToken.getUsuario();
-            log.info("Logout iniciado para o usuário: {}", usuario.getEmail());
+        tokenService.revogarTokensPorJwt(jwt);
 
-            var tokensAtivos = tokenRepository.findAllByUsuarioAndExpiredFalseAndRevokedFalse(usuario);
-
-            tokensAtivos.forEach(token -> {
-                token.setExpired(true);
-                token.setRevoked(true);
-            });
-
-            tokenRepository.saveAll(tokensAtivos);
-
-            log.info("Logout finalizado e tokens revogados para o usuário: {}", usuario.getEmail());
-        } else {
-            log.warn("Token de acesso não encontrado na base: {}", jwt);
-        }
+        log.info("Logout concluído para token: {}", jwt);
     }
-
 }
