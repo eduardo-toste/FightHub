@@ -178,8 +178,6 @@ class TokenServiceTest {
         verify(tokenRepository, never()).saveAll(any());
     }
 
-    // 🔥 NOVOS TESTES PARA revogarAccessToken
-
     @Test
     void deveRevogarApenasTokensDeAcesso() {
         Token t1 = Token.builder().usuario(usuario).token("a1").tokenType(TokenType.ACCESS).expired(false).revoked(false).build();
