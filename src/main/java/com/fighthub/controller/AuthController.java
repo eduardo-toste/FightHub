@@ -4,6 +4,7 @@ import com.fighthub.docs.SwaggerExamples;
 import com.fighthub.dto.AuthRequest;
 import com.fighthub.dto.RefreshTokenRequest;
 import com.fighthub.dto.AuthResponse;
+import com.fighthub.dto.RefreshTokenResponse;
 import com.fighthub.exception.dto.ErrorResponse;
 import com.fighthub.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -73,7 +74,7 @@ public class AuthController {
             )
     })
     @PostMapping("/refresh")
-    public ResponseEntity<AuthResponse> atualizarToken(@RequestBody @Valid RefreshTokenRequest request) {
+    public ResponseEntity<RefreshTokenResponse> atualizarToken(@RequestBody @Valid RefreshTokenRequest request) {
         var response = authService.atualizarToken(request.refreshToken());
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }

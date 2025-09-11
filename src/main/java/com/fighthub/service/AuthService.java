@@ -2,6 +2,7 @@ package com.fighthub.service;
 
 import com.fighthub.dto.AuthRequest;
 import com.fighthub.dto.AuthResponse;
+import com.fighthub.dto.RefreshTokenResponse;
 import com.fighthub.exception.TokenInvalidoException;
 import com.fighthub.exception.UsuarioNaoEncontradoException;
 import com.fighthub.model.Usuario;
@@ -49,7 +50,7 @@ public class AuthService {
     }
 
     @Transactional
-    public AuthResponse atualizarToken(String refreshToken) {
+    public RefreshTokenResponse atualizarToken(String refreshToken) {
         log.info("Solicitação de atualização de token recebida");
 
         if (!jwtService.tokenValido(refreshToken)) {
@@ -70,7 +71,7 @@ public class AuthService {
         tokenService.salvarAccessToken(usuario, newAccessToken);
 
         log.info("Token de acesso atualizado com sucesso para o usuário: {}", email);
-        return new AuthResponse(newAccessToken, refreshToken);
+        return new RefreshTokenResponse(newAccessToken);
     }
 
     @Transactional
