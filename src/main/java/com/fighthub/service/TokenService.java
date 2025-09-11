@@ -5,11 +5,13 @@ import com.fighthub.model.Usuario;
 import com.fighthub.model.enums.TokenType;
 import com.fighthub.repository.TokenRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class TokenService {
@@ -40,6 +42,7 @@ public class TokenService {
                 .build();
 
         tokenRepository.saveAll(List.of(tokenAccess, tokenRefresh));
+        log.debug("Tokens de acesso e refresh salvos para usuário {}", usuario.getEmail());
     }
 
     public void salvarAccessToken(Usuario usuario, String accessToken) {
@@ -56,6 +59,7 @@ public class TokenService {
                 .build();
 
         tokenRepository.save(token);
+        log.debug("Novo token de acesso salvo para usuário {}", usuario.getEmail());
     }
 
     public void revogarTokens(Usuario usuario) {
@@ -67,5 +71,38 @@ public class TokenService {
         });
 
         tokenRepository.saveAll(tokens);
+        log.debug("{} tokens ativos revogados para usuário {}", tokens.size(), usuario.getEmail());
+    }
+
+    public void revogarTokensPorJwt(String jwt) {
+        tokenRepository.findByToken(jwt).ifPresent(accessToken -> {
+            Usuario usuario = accessToken.getUsuario();
+            var tokensAtivos = tokenRepository.findAllByUsuarioAndExpiredFalseAndRevokedFalse(usuario);
+
+            tokensAtivos.forEach(token -> {
+                token.setExpired(true);
+                token.setRevoked(true);
+            });
+
+            tokenRepository.saveAll(tokensAtivos);
+            log.debug("{} tokens revogados para usuário {} via JWT", tokensAtivos.size(), usuario.getEmail());
+        });
+    }
+
+    public void revogarAccessToken(Usuario usuario) {
+        var tokens = tokenRepository.findAllByUsuarioAndRevokedFalseAndTokenType(usuario, TokenType.ACCESS);
+
+        if (tokens.isEmpty()) {
+            log.debug("Nenhum access token ativo encontrado para o usuário: {}", usuario.getEmail());
+            return;
+        }
+
+        tokens.forEach(token -> {
+            token.setExpired(true);
+            token.setRevoked(true);
+        });
+
+        tokenRepository.saveAll(tokens);
+        log.info("Revogados {} access token(s) para o usuário: {}", tokens.size(), usuario.getEmail());
     }
 }
