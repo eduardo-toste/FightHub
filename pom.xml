@@ -134,6 +134,30 @@
 			<scope>runtime</scope>
 		</dependency>
 
+		<!-- Mockito atualizado para suportar Java 22+ -->
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-core</artifactId>
+			<version>5.12.0</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-junit-jupiter</artifactId>
+			<version>5.12.0</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>net.bytebuddy</groupId>
+			<artifactId>byte-buddy</artifactId>
+			<version>1.14.15</version>
+		</dependency>
+		<dependency>
+			<groupId>net.bytebuddy</groupId>
+			<artifactId>byte-buddy-agent</artifactId>
+			<version>1.14.15</version>
+		</dependency>
+
 	</dependencies>
 
 	<build>
@@ -197,6 +221,17 @@
 						</goals>
 					</execution>
 				</executions>
+			</plugin>
+
+			<!-- Surefire para rodar testes com suporte ao Java 23 -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>3.2.5</version>
+				<configuration>
+					<!-- Mantém JaCoCo + adiciona suporte ao Java 23 para Mockito/ByteBuddy -->
+					<argLine>@{argLine} -Dnet.bytebuddy.experimental=true</argLine>
+				</configuration>
 			</plugin>
 
 		</plugins>
