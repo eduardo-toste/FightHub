@@ -7,6 +7,8 @@
 
 **FightHub** é uma plataforma empresarial para gerenciamento de academias de artes marciais, desenvolvida com arquitetura robusta e segurança avançada. A solução oferece uma API REST completa para administração de usuários, modalidades, turmas, aulas e controle de presenças, atendendo às necessidades de academias de todos os portes.
 
+<img width="1611" height="627" alt="Screenshot 2025-09-12 at 20 46 49" src="https://github.com/user-attachments/assets/bf19c9a3-cf42-46bf-8de2-2223f2c4305c" />
+
 ## Índice
 
 - [Características](#características)
@@ -333,17 +335,6 @@ Encontrou um bug ou tem uma sugestão? Abra uma [issue](https://github.com/seu-u
 ## Licença
 
 Este projeto está licenciado sob a Licença MIT - veja o arquivo [LICENSE](LICENSE) para detalhes.
-
-## Equipe
-
-- **Desenvolvedor Principal**: [Seu Nome](https://github.com/seu-usuario)
-- **Contribuidores**: Veja a lista de [contribuidores](https://github.com/seu-usuario/fighthub/contributors)
-
-## Suporte
-
-- **Email**: suporte@fighthub.com
-- **Documentação**: [Wiki do Projeto](https://github.com/seu-usuario/fighthub/wiki)
-- **Issues**: [GitHub Issues](https://github.com/seu-usuario/fighthub/issues)
 
 ---
 
