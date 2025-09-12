@@ -7,7 +7,7 @@
 
 **FightHub** é uma plataforma empresarial para gerenciamento de academias de artes marciais, desenvolvida com arquitetura robusta e segurança avançada. A solução oferece uma API REST completa para administração de usuários, modalidades, turmas, aulas e controle de presenças, atendendo às necessidades de academias de todos os portes.
 
-<img width="1611" height="627" alt="Screenshot 2025-09-12 at 20 46 49" src="https://github.com/user-attachments/assets/bf19c9a3-cf42-46bf-8de2-2223f2c4305c" />
+<img width="1422" height="374" alt="Screenshot 2025-09-12 at 20 50 36" src="https://github.com/user-attachments/assets/36ce6cea-f519-4c85-8d03-e56c663d158a" />
 
 ## Índice
 
