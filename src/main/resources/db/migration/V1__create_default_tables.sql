@@ -32,6 +32,7 @@ CREATE TABLE responsaveis (
 CREATE TABLE alunos (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     usuario_id UUID NOT NULL UNIQUE,
+    data_nascimento DATE NOT NULL,
     data_matricula DATE,
     FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE ON UPDATE CASCADE
 );
