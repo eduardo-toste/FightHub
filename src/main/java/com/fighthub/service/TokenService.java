@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -60,6 +61,23 @@ public class TokenService {
 
         tokenRepository.save(token);
         log.debug("Novo token de acesso salvo para usuário {}", usuario.getEmail());
+    }
+
+    public String salvarTokenAtivacao(Usuario usuario) {
+        Token token = Token.builder()
+                .token(UUID.randomUUID().toString())
+                .tokenType(TokenType.ATIVACAO)
+                .revoked(false)
+                .expired(false)
+                .usuario(usuario)
+                .criadoEm(LocalDateTime.now())
+                .expiraEm(LocalDateTime.now().plusDays(1))
+                .build();
+
+        tokenRepository.save(token);
+        log.debug("Novo token de ativação salvo para usuário {}", usuario.getEmail());
+
+        return token.getToken();
     }
 
     public void revogarTokens(Usuario usuario) {
