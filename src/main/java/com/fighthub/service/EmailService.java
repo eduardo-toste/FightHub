@@ -7,34 +7,32 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
+import org.thymeleaf.context.Context;
+import org.thymeleaf.spring6.SpringTemplateEngine;
 
 @Service
 @RequiredArgsConstructor
 public class EmailService {
 
     private final JavaMailSender mailSender;
+    private final SpringTemplateEngine templateEngine;
 
     public void enviarEmailAtivacao(Usuario usuario, String token) {
         String link = "http://localhost:8080/ativar?token=" + token;
-        String assunto = "Finalize seu cadastro no FightHub!";
-        String corpo = String.format("""
-                Olá %s,
-                
-                Seu cadastro como aluno foi iniciado por um professor ou coordenador.
-                Para concluir, clique no link abaixo e defina sua senha:
 
-                %s
+        Context context = new Context();
+        context.setVariable("nome", usuario.getNome());
+        context.setVariable("link", link);
 
-                Este link expira em 24 horas.
-                """, usuario.getNome(), link);
+        String htmlContent = templateEngine.process("email-ativacao", context);
 
         try {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, "UTF-8");
 
             helper.setTo(usuario.getEmail());
-            helper.setSubject(assunto);
-            helper.setText(corpo, false);
+            helper.setSubject("Finalize seu cadastro no FightHub!");
+            helper.setText(htmlContent, true);
 
             mailSender.send(message);
         } catch (MessagingException e) {
