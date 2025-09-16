@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Bem-vindo ao FightHub</title>
+</head>
+<body style="margin:0; padding:0; background-color:#0e0e0e;">
+<table cellpadding="0" cellspacing="0" width="100%" bgcolor="#0e0e0e" style="font-family: Arial, sans-serif;">
+    <tr>
+        <td align="center">
+            <table cellpadding="0" cellspacing="0" width="600" bgcolor="#181818" style="margin: 40px auto; border-collapse: collapse; color: #f1f1f1;">
+
+                <!-- Cabeçalho -->
+                <tr>
+                    <td align="center" bgcolor="#222222" style="padding: 24px; border-top-left-radius: 10px; border-top-right-radius: 10px;">
+                        <h1 style="margin: 0; font-size: 28px; color: #e53e3e;">FightHub</h1>
+                        <p style="margin: 4px 0 0; font-size: 14px; color: #aaa;">Disciplina. Evolução. Conquista.</p>
+                    </td>
+                </tr>
+
+                <!-- Corpo -->
+                <tr>
+                    <td style="padding: 30px 40px;">
+
+                        <h2 style="margin: 0 0 20px 0;">Bem-vindo, <span th:text="${nome}">Aluno</span>!</h2>
+
+                        <p style="font-size: 15px; line-height: 1.6; color: #d2d2d2;">
+                            Seu cadastro foi iniciado por um professor ou coordenador da academia.
+                            Para liberar seu acesso à plataforma, clique no botão abaixo e defina sua senha.
+                        </p>
+
+                        <!-- Botão -->
+                        <table cellpadding="0" cellspacing="0" width="100%" style="margin: 30px 0;" role="presentation">
+                            <tr>
+                                <td align="center">
+                                    <a th:href="${link}"
+                                       style="background-color: #e53e3e; padding: 14px 28px; color: #fff; font-size: 16px; text-decoration: none; font-weight: bold; border-radius: 6px; display: inline-block;">
+                                        Finalizar Cadastro
+                                    </a>
+                                </td>
+                            </tr>
+                        </table>
+
+                        <p style="font-size: 13px; color: #888; text-align: center;">
+                            Este link expira em <strong>24 horas</strong>.<br>
+                            Caso você não reconheça este cadastro, apenas ignore este e-mail.
+                        </p>
+
+                        <hr style="border: none; border-top: 1px solid #333; margin: 32px 0;">
+
+                        <p style="font-style: italic; color: #bbb; text-align: center;">
+                            "A luta não está apenas no tatame. Está em cada decisão, todo dia. Bem-vindo à jornada."
+                        </p>
+
+                    </td>
+                </tr>
+
+                <!-- Rodapé -->
+                <tr>
+                    <td align="center" bgcolor="#1a1a1a" style="padding: 16px; font-size: 12px; color: #666; border-bottom-left-radius: 10px; border-bottom-right-radius: 10px;">
+                        © 2025 FightHub. Todos os direitos reservados. <br>
+                        Plataforma de gestão para academias de artes marciais.
+                    </td>
+                </tr>
+
+            </table>
+        </td>
+    </tr>
+</table>
+</body>
+</html>
