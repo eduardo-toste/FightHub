@@ -1,71 +1,104 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>Bem-vindo ao FightHub</title>
+    <title>Ativação de Conta | FightHub</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+        @media only screen and (max-width: 620px) {
+          table[class="container"] {
+            width: 90% !important;
+          }
+          h1 {
+            font-size: 24px !important;
+          }
+          h2 {
+            font-size: 20px !important;
+          }
+          p, a {
+            font-size: 15px !important;
+          }
+          td {
+            padding: 24px !important;
+          }
+          .btn {
+            padding: 12px 24px !important;
+            font-size: 15px !important;
+          }
+        }
+    </style>
 </head>
-<body style="margin:0; padding:0; background-color:#0e0e0e;">
-<table cellpadding="0" cellspacing="0" width="100%" bgcolor="#0e0e0e" style="font-family: Arial, sans-serif;">
+
+<body style="margin: 0; padding: 0; background-color: #f9f9f9; font-family: 'Segoe UI', Arial, sans-serif;">
+
+<table width="100%" cellpadding="0" cellspacing="0" bgcolor="#f9f9f9">
     <tr>
         <td align="center">
-            <table cellpadding="0" cellspacing="0" width="600" bgcolor="#181818" style="margin: 40px auto; border-collapse: collapse; color: #f1f1f1;">
 
-                <!-- Cabeçalho -->
+            <table class="container" width="600" cellpadding="0" cellspacing="0" bgcolor="#ffffff"
+                   style="margin: 40px auto; border-radius: 16px; border: 1px solid #e0e0e0;
+                      box-shadow: 0 6px 24px rgba(0, 0, 0, 0.05); width: 100%; max-width: 600px;">
+
+                <!-- Header -->
                 <tr>
-                    <td align="center" bgcolor="#222222" style="padding: 24px; border-top-left-radius: 10px; border-top-right-radius: 10px;">
-                        <h1 style="margin: 0; font-size: 28px; color: #e53e3e;">FightHub</h1>
-                        <p style="margin: 4px 0 0; font-size: 14px; color: #aaa;">Disciplina. Evolução. Conquista.</p>
+                    <td align="center" style="padding: 32px 24px 16px; border-top-left-radius: 16px; border-top-right-radius: 16px;">
+                        <h1 style="margin: 0; font-size: 32px; color: #d72638;">FightHub</h1>
+                        <p style="margin-top: 8px; font-size: 15px; color: #666;">Disciplina. Evolução. Conquista.</p>
                     </td>
                 </tr>
 
-                <!-- Corpo -->
+                <!-- Body -->
                 <tr>
-                    <td style="padding: 30px 40px;">
+                    <td style="padding: 32px 40px;">
+                        <h2 style="margin: 0 0 20px 0; font-size: 24px; color: #333;">Olá, <span th:text="${nome}">Usuário</span>!</h2>
 
-                        <h2 style="margin: 0 0 20px 0;">Bem-vindo, <span th:text="${nome}">Aluno</span>!</h2>
-
-                        <p style="font-size: 15px; line-height: 1.6; color: #d2d2d2;">
-                            Seu cadastro foi iniciado por um professor ou coordenador da academia.
-                            Para liberar seu acesso à plataforma, clique no botão abaixo e defina sua senha.
+                        <p style="font-size: 16px; line-height: 1.6; color: #444;">
+                            Sua conta foi criada na plataforma <strong>FightHub</strong>.<br>
+                            Para ativá-la e liberar seu acesso, clique no botão abaixo e defina sua senha.
                         </p>
 
-                        <!-- Botão -->
-                        <table cellpadding="0" cellspacing="0" width="100%" style="margin: 30px 0;" role="presentation">
+                        <!-- Button -->
+                        <table width="100%" cellpadding="0" cellspacing="0" style="margin: 32px 0;">
                             <tr>
                                 <td align="center">
-                                    <a th:href="${link}"
-                                       style="background-color: #e53e3e; padding: 14px 28px; color: #fff; font-size: 16px; text-decoration: none; font-weight: bold; border-radius: 6px; display: inline-block;">
-                                        Finalizar Cadastro
+                                    <a th:href="${link}" class="btn"
+                                       style="background-color: #d72638; padding: 14px 28px; color: #ffffff;
+                              font-size: 16px; text-decoration: none; font-weight: bold;
+                              border-radius: 30px; display: inline-block;">
+                                        Ativar Conta
                                     </a>
                                 </td>
                             </tr>
                         </table>
 
-                        <p style="font-size: 13px; color: #888; text-align: center;">
+                        <p style="font-size: 14px; color: #666; text-align: center;">
                             Este link expira em <strong>24 horas</strong>.<br>
-                            Caso você não reconheça este cadastro, apenas ignore este e-mail.
+                            Caso você não tenha solicitado esta conta, apenas ignore este e-mail.
                         </p>
 
-                        <hr style="border: none; border-top: 1px solid #333; margin: 32px 0;">
+                        <hr style="border: none; border-top: 1px solid #eee; margin: 32px 0;">
 
-                        <p style="font-style: italic; color: #bbb; text-align: center;">
+                        <p style="font-style: italic; color: #777; text-align: center; font-size: 14px;">
                             "A luta não está apenas no tatame. Está em cada decisão, todo dia. Bem-vindo à jornada."
                         </p>
-
                     </td>
                 </tr>
 
-                <!-- Rodapé -->
+                <!-- Footer -->
                 <tr>
-                    <td align="center" bgcolor="#1a1a1a" style="padding: 16px; font-size: 12px; color: #666; border-bottom-left-radius: 10px; border-bottom-right-radius: 10px;">
+                    <td align="center" bgcolor="#f1f1f1"
+                        style="padding: 16px; font-size: 12px; color: #666;
+                       border-bottom-left-radius: 16px; border-bottom-right-radius: 16px;">
                         © 2025 FightHub. Todos os direitos reservados. <br>
                         Plataforma de gestão para academias de artes marciais.
                     </td>
                 </tr>
 
             </table>
+
         </td>
     </tr>
 </table>
+
 </body>
 </html>
