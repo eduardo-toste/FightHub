@@ -1,5 +1,6 @@
 package com.fighthub.service;
 
+import com.fighthub.exception.EmailNaoEnviadoException;
 import com.fighthub.model.Usuario;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
@@ -36,7 +37,27 @@ public class EmailService {
 
             mailSender.send(message);
         } catch (MessagingException e) {
-            throw new RuntimeException("Erro ao enviar e-mail de ativação", e);
+            throw new EmailNaoEnviadoException();
+        }
+    }
+
+    public void enviarEmailConfirmacao(Usuario usuario) {
+        Context context = new Context();
+        context.setVariable("nome", usuario.getNome());
+
+        String htmlContent = templateEngine.process("email-confirmacao-cadastro", context);
+
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, "UTF-8");
+
+            helper.setTo(usuario.getEmail());
+            helper.setSubject("Boas vindas ao FightHub!");
+            helper.setText(htmlContent, true);
+
+            mailSender.send(message);
+        } catch (MessagingException e) {
+            throw new EmailNaoEnviadoException();
         }
     }
 }
