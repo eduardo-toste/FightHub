@@ -7,6 +7,7 @@ import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.spring6.SpringTemplateEngine;
@@ -18,6 +19,7 @@ public class EmailService {
     private final JavaMailSender mailSender;
     private final SpringTemplateEngine templateEngine;
 
+    @Async
     public void enviarEmailAtivacao(Usuario usuario, String token) {
         String link = "http://localhost:8080/ativar?token=" + token;
 
@@ -41,6 +43,7 @@ public class EmailService {
         }
     }
 
+    @Async
     public void enviarEmailConfirmacao(Usuario usuario) {
         Context context = new Context();
         context.setVariable("nome", usuario.getNome());
