@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Cadastro Concluído | FightHub</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+        @media only screen and (max-width: 620px) {
+          table[class="container"] {
+            width: 90% !important;
+          }
+          h1 {
+            font-size: 24px !important;
+          }
+          h2 {
+            font-size: 20px !important;
+          }
+          p, a {
+            font-size: 15px !important;
+          }
+          td {
+            padding: 24px !important;
+          }
+        }
+    </style>
+</head>
+
+<body style="margin: 0; padding: 0; background-color: #f9f9f9; font-family: 'Segoe UI', Arial, sans-serif;">
+
+<table width="100%" cellpadding="0" cellspacing="0" bgcolor="#f9f9f9">
+    <tr>
+        <td align="center">
+
+            <table class="container" width="600" cellpadding="0" cellspacing="0" bgcolor="#ffffff"
+                   style="margin: 40px auto; border-radius: 16px; border: 1px solid #e0e0e0;
+                      box-shadow: 0 6px 24px rgba(0, 0, 0, 0.05); width: 100%; max-width: 600px;">
+
+                <!-- Cabeçalho -->
+                <tr>
+                    <td align="center" style="padding: 32px 24px 16px; border-top-left-radius: 16px; border-top-right-radius: 16px;">
+                        <h1 style="margin: 0; font-size: 32px; color: #d72638;">FightHub</h1>
+                        <p style="margin-top: 8px; font-size: 15px; color: #666;">Disciplina. Evolução. Conquista.</p>
+                    </td>
+                </tr>
+
+                <!-- Corpo -->
+                <tr>
+                    <td style="padding: 32px 40px;">
+                        <h2 style="margin: 0 0 20px 0; font-size: 24px; color: #333;">
+                            Cadastro concluído com sucesso, <span th:text="${nome}">Usuário</span>!
+                        </h2>
+
+                        <p style="font-size: 16px; line-height: 1.6; color: #444;">
+                            Seja bem-vindo(a) ao <strong>FightHub</strong>! Agora sua conta está ativa e pronta para ser usada. <br><br>
+                            Acesse a plataforma com seu e-mail e a senha cadastrada, e aproveite todas as funcionalidades que preparamos para você.
+                        </p>
+
+                        <!-- Botão -->
+                        <table width="100%" cellpadding="0" cellspacing="0" style="margin: 32px 0;">
+                            <tr>
+                                <td align="center">
+                                    <a href="http://localhost:8080" target="_blank"
+                                       style="background-color: #d72638; padding: 14px 28px; color: #ffffff;
+                              font-size: 16px; text-decoration: none; font-weight: bold;
+                              border-radius: 30px; display: inline-block;">
+                                        Acessar Plataforma
+                                    </a>
+                                </td>
+                            </tr>
+                        </table>
+
+                        <p style="font-size: 14px; color: #666666; text-align: center;">
+                            Caso não tenha realizado esse cadastro, por favor entre em contato com o suporte da academia.
+                        </p>
+
+                        <hr style="border: none; border-top: 1px solid #eeeeee; margin: 32px 0;">
+
+                        <p style="font-style: italic; color: #777777; text-align: center; font-size: 14px;">
+                            "A disciplina é o que transforma intenção em realização. Bem-vindo à sua nova fase!"
+                        </p>
+                    </td>
+                </tr>
+
+                <!-- Rodapé -->
+                <tr>
+                    <td align="center" bgcolor="#f1f1f1"
+                        style="padding: 16px; font-size: 12px; color: #666;
+                       border-bottom-left-radius: 16px; border-bottom-right-radius: 16px;">
+                        © 2025 FightHub. Todos os direitos reservados. <br>
+                        Plataforma de gestão para academias de artes marciais.
+                    </td>
+                </tr>
+
+            </table>
+
+        </td>
+    </tr>
+</table>
+
+</body>
+</html>
