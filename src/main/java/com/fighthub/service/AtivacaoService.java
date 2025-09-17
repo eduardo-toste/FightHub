@@ -21,6 +21,7 @@ public class AtivacaoService {
     private final TokenRepository tokenRepository;
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
+    private final EmailService emailService;
 
     @Transactional
     public void ativarConta(String tokenStr, String novaSenha) {
@@ -40,5 +41,7 @@ public class AtivacaoService {
         token.setExpired(true);
         token.setRevoked(true);
         tokenRepository.save(token);
+
+        emailService.enviarEmailConfirmacao(usuario);
     }
 }
