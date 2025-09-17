@@ -46,6 +46,14 @@ public class GlobalExceptionHandler {
         return ErrorBuilder.build(HttpStatus.UNAUTHORIZED, "E-mail ou senha incorretos.", request.getRequestURI());
     }
 
+    @ExceptionHandler(EmailNaoEnviadoException.class)
+    public ResponseEntity<ErrorResponse> handleEmailNaoEnviadoException(
+            EmailNaoEnviadoException ex,
+            HttpServletRequest request
+    ) {
+        return ErrorBuilder.build(HttpStatus.CONFLICT, ex.getMessage(), request.getRequestURI());
+    }
+
     @ExceptionHandler(BusinessException.class)
     public ResponseEntity<ErrorResponse> handleBusinessException(
             BusinessException ex,
