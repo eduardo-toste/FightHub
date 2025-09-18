@@ -19,7 +19,7 @@ public class AtivacaoController {
 
     @PostMapping
     public ResponseEntity<Void> ativarConta(@RequestBody AtivacaoRequest request) {
-        ativacaoService.ativarConta(request.token(), request.senha());
+        ativacaoService.ativarConta(request);
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
