@@ -1,9 +1,12 @@
 package com.fighthub.service;
 
+import com.fighthub.dto.AtivacaoRequest;
 import com.fighthub.exception.TokenInvalidoException;
 import com.fighthub.exception.ValidacaoException;
+import com.fighthub.model.Endereco;
 import com.fighthub.model.Token;
 import com.fighthub.model.Usuario;
+import com.fighthub.model.enums.TokenType;
 import com.fighthub.repository.TokenRepository;
 import com.fighthub.repository.UsuarioRepository;
 import jakarta.validation.constraints.NotBlank;
@@ -22,26 +25,44 @@ public class AtivacaoService {
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
+    private final JwtService jwtService;
+    private final TokenService tokenService;
 
     @Transactional
-    public void ativarConta(String tokenStr, String novaSenha) {
-        Token token = tokenRepository.findByToken(tokenStr)
+    public void ativarConta(AtivacaoRequest request) {
+        Token token = tokenRepository.findByToken(request.token())
                 .orElseThrow(TokenInvalidoException::new);
 
-        if (token.isExpired() || token.isRevoked() || token.getExpiraEm().isBefore(LocalDateTime.now())) {
+        if (jwtService.tokenValido(token.getToken())) {
             throw new ValidacaoException("Token expirado ou revogado");
         }
 
         Usuario usuario = token.getUsuario();
-        usuario.setSenha(passwordEncoder.encode(novaSenha));
-        usuario.setAtivo(true);
+        atualizarUsuario(usuario, request);
+
+        tokenService.revogarToken(usuario, TokenType.ATIVACAO);
 
         usuarioRepository.save(usuario);
-
-        token.setExpired(true);
-        token.setRevoked(true);
         tokenRepository.save(token);
 
         emailService.enviarEmailConfirmacao(usuario);
+    }
+
+    private void atualizarUsuario(Usuario usuario, AtivacaoRequest request) {
+        Endereco endereco = Endereco.builder()
+                .cep(request.endereco().cep())
+                .logradouro(request.endereco().logradouro())
+                .numero(request.endereco().numero())
+                .complemento(request.endereco().complemento())
+                .bairro(request.endereco().bairro())
+                .cidade(request.endereco().cidade())
+                .estado(request.endereco().estado())
+                .build();
+
+        usuario.setSenha(passwordEncoder.encode(request.senha()));
+        usuario.setAtivo(true);
+        usuario.setCpf(request.cpf());
+        usuario.setTelefone(request.telefone());
+        usuario.setEndereco(endereco);
     }
 }
