@@ -49,6 +49,18 @@ public class Usuario implements UserDetails {
     @Column(nullable = false)
     private boolean ativo;
 
+    @Setter
+    @Column(length = 15)
+    private String telefone;
+
+    @Setter
+    @Column(nullable = false, unique = true, length = 14)
+    private String cpf;
+
+    @Setter
+    @Embedded
+    private Endereco endereco;
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority("ROLE_" + role.name()));
