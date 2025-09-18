@@ -6,6 +6,7 @@ import com.fighthub.dto.RefreshTokenResponse;
 import com.fighthub.exception.TokenInvalidoException;
 import com.fighthub.exception.UsuarioNaoEncontradoException;
 import com.fighthub.model.Usuario;
+import com.fighthub.model.enums.TokenType;
 import com.fighthub.repository.UsuarioRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -65,7 +66,7 @@ public class AuthService {
                     return new UsuarioNaoEncontradoException();
                 });
 
-        tokenService.revogarAccessToken(usuario);
+        tokenService.revogarToken(usuario, TokenType.ACCESS);
 
         var newAccessToken = jwtService.gerarToken(usuario);
         tokenService.salvarAccessToken(usuario, newAccessToken);
