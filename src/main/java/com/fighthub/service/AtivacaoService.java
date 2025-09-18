@@ -61,7 +61,6 @@ public class AtivacaoService {
 
         usuario.setSenha(passwordEncoder.encode(request.senha()));
         usuario.setAtivo(true);
-        usuario.setCpf(request.cpf());
         usuario.setTelefone(request.telefone());
         usuario.setEndereco(endereco);
     }
