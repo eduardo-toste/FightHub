@@ -107,11 +107,11 @@ public class TokenService {
         });
     }
 
-    public void revogarAccessToken(Usuario usuario) {
-        var tokens = tokenRepository.findAllByUsuarioAndRevokedFalseAndTokenType(usuario, TokenType.ACCESS);
+    public void revogarToken(Usuario usuario, TokenType tipo) {
+        var tokens = tokenRepository.findAllByUsuarioAndRevokedFalseAndTokenType(usuario, tipo);
 
         if (tokens.isEmpty()) {
-            log.debug("Nenhum access token ativo encontrado para o usuário: {}", usuario.getEmail());
+            log.debug("Nenhum token ativo encontrado para o usuário: {}", usuario.getEmail());
             return;
         }
 
@@ -121,6 +121,6 @@ public class TokenService {
         });
 
         tokenRepository.saveAll(tokens);
-        log.info("Revogados {} access token(s) para o usuário: {}", tokens.size(), usuario.getEmail());
+        log.info("Revogados {} token(s) para o usuário: {}", tokens.size(), usuario.getEmail());
     }
 }
