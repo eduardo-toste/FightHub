@@ -41,6 +41,7 @@ public class AlunoService {
         Usuario usuario = usuarioRepository.save(Usuario.builder()
                 .nome(request.nome())
                 .email(request.email())
+                .cpf(request.cpf())
                 .role(Role.ALUNO)
                 .ativo(false)
                 .loginSocial(false)
