@@ -3,8 +3,10 @@ package com.fighthub.service;
 import com.fighthub.dto.AuthRequest;
 import com.fighthub.exception.TokenInvalidoException;
 import com.fighthub.exception.UsuarioNaoEncontradoException;
+import com.fighthub.model.Endereco;
 import com.fighthub.model.Usuario;
 import com.fighthub.model.enums.Role;
+import com.fighthub.model.enums.TokenType;
 import com.fighthub.repository.TokenRepository;
 import com.fighthub.repository.UsuarioRepository;
 import jakarta.servlet.http.HttpServletRequest;
@@ -49,10 +51,29 @@ class AuthServiceTest {
     private Usuario usuario;
 
     @BeforeEach
-    void setUp() {
+    void setup() {
+        Endereco endereco = Endereco.builder()
+                .cep("12345-678")
+                .logradouro("Rua Exemplo")
+                .numero("123")
+                .complemento("Apto 45")
+                .bairro("Centro")
+                .cidade("São Paulo")
+                .estado("SP")
+                .build();
+
         usuario = new Usuario(
-                UUID.randomUUID(), "Teste", "teste@gmail.com", "senhaCriptografada",
-                null, Role.ALUNO, false, true
+                UUID.randomUUID(),
+                "Teste",
+                "teste@gmail.com",
+                "senhaCriptografada",
+                null, // foto
+                Role.ALUNO,
+                false, // loginSocial
+                true,  // ativo
+                "123.456.789-00", // cpf
+                "(11)91234-5678", // telefone
+                endereco
         );
     }
 
@@ -115,7 +136,7 @@ class AuthServiceTest {
         // Assert
         assertNotNull(result);
         assertEquals("jwt-token-gerado", result.newAccessToken());
-        verify(tokenService).revogarAccessToken(usuario);
+        verify(tokenService).revogarToken(usuario, TokenType.ACCESS);
         verify(tokenService).salvarAccessToken(usuario, jwtEsperado);
         verify(jwtService).extrairEmail(refreshToken);
         verify(jwtService).gerarToken(usuario);

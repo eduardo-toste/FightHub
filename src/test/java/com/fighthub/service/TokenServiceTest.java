@@ -1,5 +1,6 @@
 package com.fighthub.service;
 
+import com.fighthub.model.Endereco;
 import com.fighthub.model.Token;
 import com.fighthub.model.Usuario;
 import com.fighthub.model.enums.Role;
@@ -37,9 +38,28 @@ class TokenServiceTest {
 
     @BeforeEach
     void setup() {
+        Endereco endereco = Endereco.builder()
+                .cep("12345-678")
+                .logradouro("Rua Exemplo")
+                .numero("123")
+                .complemento("Apto 45")
+                .bairro("Centro")
+                .cidade("São Paulo")
+                .estado("SP")
+                .build();
+
         usuario = new Usuario(
-                UUID.randomUUID(), "Teste", "teste@gmail.com", "senhaCriptografada",
-                null, Role.ALUNO, false, true
+                UUID.randomUUID(),
+                "Teste",
+                "teste@gmail.com",
+                "senhaCriptografada",
+                null, // foto
+                Role.ALUNO,
+                false, // loginSocial
+                true,  // ativo
+                "123.456.789-00", // cpf
+                "(11)91234-5678", // telefone
+                endereco
         );
     }
 
@@ -186,7 +206,7 @@ class TokenServiceTest {
         when(tokenRepository.findAllByUsuarioAndRevokedFalseAndTokenType(usuario, TokenType.ACCESS))
                 .thenReturn(List.of(t1, t2));
 
-        tokenService.revogarAccessToken(usuario);
+        tokenService.revogarToken(usuario, TokenType.ACCESS);
 
         assertTrue(t1.isExpired());
         assertTrue(t1.isRevoked());
@@ -200,7 +220,7 @@ class TokenServiceTest {
         when(tokenRepository.findAllByUsuarioAndRevokedFalseAndTokenType(usuario, TokenType.ACCESS))
                 .thenReturn(Collections.emptyList());
 
-        tokenService.revogarAccessToken(usuario);
+        tokenService.revogarToken(usuario, TokenType.ACCESS);
 
         verify(tokenRepository, never()).saveAll(anyList());
     }
@@ -216,7 +236,7 @@ class TokenServiceTest {
         when(tokenRepository.findAllByUsuarioAndRevokedFalseAndTokenType(usuario, TokenType.ACCESS))
                 .thenReturn(tokens);
 
-        tokenService.revogarAccessToken(usuario);
+        tokenService.revogarToken(usuario, TokenType.ACCESS);
 
         tokens.forEach(token -> {
             assertTrue(token.isExpired());
