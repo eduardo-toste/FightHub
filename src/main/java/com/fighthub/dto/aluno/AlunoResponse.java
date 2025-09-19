@@ -1,4 +1,4 @@
-package com.fighthub.dto;
+package com.fighthub.dto.aluno;
 
 import java.time.LocalDate;
 import java.util.List;

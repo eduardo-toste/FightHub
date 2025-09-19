@@ -1,4 +1,6 @@
-package com.fighthub.dto;
+package com.fighthub.dto.aluno;
+
+import com.fighthub.dto.endereco.EnderecoResponse;
 
 import java.time.LocalDate;
 import java.util.List;
