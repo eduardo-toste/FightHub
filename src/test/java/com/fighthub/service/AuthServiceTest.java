@@ -1,13 +1,12 @@
 package com.fighthub.service;
 
-import com.fighthub.dto.AuthRequest;
+import com.fighthub.dto.auth.AuthRequest;
 import com.fighthub.exception.TokenInvalidoException;
 import com.fighthub.exception.UsuarioNaoEncontradoException;
 import com.fighthub.model.Endereco;
 import com.fighthub.model.Usuario;
 import com.fighthub.model.enums.Role;
 import com.fighthub.model.enums.TokenType;
-import com.fighthub.repository.TokenRepository;
 import com.fighthub.repository.UsuarioRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;

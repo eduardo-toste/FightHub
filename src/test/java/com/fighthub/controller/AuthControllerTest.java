@@ -2,9 +2,9 @@ package com.fighthub.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fighthub.config.TestSecurityConfig;
-import com.fighthub.dto.AuthRequest;
-import com.fighthub.dto.AuthResponse;
-import com.fighthub.dto.RefreshTokenResponse;
+import com.fighthub.dto.auth.AuthRequest;
+import com.fighthub.dto.auth.AuthResponse;
+import com.fighthub.dto.auth.RefreshTokenResponse;
 import com.fighthub.exception.TokenInvalidoException;
 import com.fighthub.repository.UsuarioRepository;
 import com.fighthub.service.AuthService;

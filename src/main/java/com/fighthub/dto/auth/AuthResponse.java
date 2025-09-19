@@ -1,4 +1,4 @@
-package com.fighthub.dto;
+package com.fighthub.dto.auth;
 
 public record AuthResponse(
 

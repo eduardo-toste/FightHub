@@ -1,6 +1,6 @@
 package com.fighthub.controller;
 
-import com.fighthub.dto.AtivacaoRequest;
+import com.fighthub.dto.auth.AtivacaoRequest;
 import com.fighthub.service.AtivacaoService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

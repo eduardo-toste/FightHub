@@ -1,7 +1,7 @@
 package com.fighthub.integration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fighthub.dto.AuthRequest;
+import com.fighthub.dto.auth.AuthRequest;
 import com.fighthub.model.Endereco;
 import com.fighthub.model.Usuario;
 import com.fighthub.model.enums.Role;

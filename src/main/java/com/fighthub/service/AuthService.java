@@ -1,13 +1,11 @@
 package com.fighthub.service;
 
-import com.fighthub.dto.AuthRequest;
-import com.fighthub.dto.AuthResponse;
-import com.fighthub.dto.RefreshTokenResponse;
+import com.fighthub.dto.auth.AuthRequest;
+import com.fighthub.dto.auth.AuthResponse;
+import com.fighthub.dto.auth.RefreshTokenResponse;
 import com.fighthub.exception.TipoTokenInvalido;
 import com.fighthub.exception.TokenInvalidoException;
 import com.fighthub.exception.UsuarioNaoEncontradoException;
-import com.fighthub.model.Token;
-import com.fighthub.model.Usuario;
 import com.fighthub.model.enums.TokenType;
 import com.fighthub.repository.TokenRepository;
 import com.fighthub.repository.UsuarioRepository;

@@ -1,4 +1,4 @@
-package com.fighthub.dto;
+package com.fighthub.dto.endereco;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;

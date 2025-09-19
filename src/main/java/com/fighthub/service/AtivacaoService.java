@@ -1,6 +1,6 @@
 package com.fighthub.service;
 
-import com.fighthub.dto.AtivacaoRequest;
+import com.fighthub.dto.auth.AtivacaoRequest;
 import com.fighthub.exception.TokenInvalidoException;
 import com.fighthub.exception.ValidacaoException;
 import com.fighthub.model.Endereco;
@@ -9,13 +9,10 @@ import com.fighthub.model.Usuario;
 import com.fighthub.model.enums.TokenType;
 import com.fighthub.repository.TokenRepository;
 import com.fighthub.repository.UsuarioRepository;
-import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor

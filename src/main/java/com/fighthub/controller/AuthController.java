@@ -1,10 +1,10 @@
 package com.fighthub.controller;
 
 import com.fighthub.docs.SwaggerExamples;
-import com.fighthub.dto.AuthRequest;
-import com.fighthub.dto.RefreshTokenRequest;
-import com.fighthub.dto.AuthResponse;
-import com.fighthub.dto.RefreshTokenResponse;
+import com.fighthub.dto.auth.AuthRequest;
+import com.fighthub.dto.auth.RefreshTokenRequest;
+import com.fighthub.dto.auth.AuthResponse;
+import com.fighthub.dto.auth.RefreshTokenResponse;
 import com.fighthub.exception.dto.ErrorResponse;
 import com.fighthub.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;

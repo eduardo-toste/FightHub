@@ -1,9 +1,9 @@
-package com.fighthub.dto;
+package com.fighthub.dto.auth;
 
+import com.fighthub.dto.endereco.EnderecoRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
-import org.hibernate.validator.constraints.br.CPF;
 
 public record AtivacaoRequest(
 

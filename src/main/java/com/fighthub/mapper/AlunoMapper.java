@@ -1,12 +1,10 @@
 package com.fighthub.mapper;
 
-import com.fighthub.dto.AlunoDetalhadoResponse;
-import com.fighthub.dto.AlunoResponse;
-import com.fighthub.dto.EnderecoResponse;
+import com.fighthub.dto.aluno.AlunoDetalhadoResponse;
+import com.fighthub.dto.aluno.AlunoResponse;
+import com.fighthub.dto.endereco.EnderecoResponse;
 import com.fighthub.model.Aluno;
 import org.springframework.data.domain.Page;
-
-import java.util.Optional;
 
 public class AlunoMapper {
 

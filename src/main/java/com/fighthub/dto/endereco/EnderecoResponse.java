@@ -1,4 +1,4 @@
-package com.fighthub.dto;
+package com.fighthub.dto.endereco;
 
 import com.fighthub.model.Endereco;
 
