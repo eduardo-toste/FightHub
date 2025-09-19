@@ -12,7 +12,7 @@ import java.util.UUID;
 public interface AlunoRepository extends JpaRepository<Aluno, UUID> {
 
     @Override
-    @EntityGraph(attributePaths = {"usuario", "responsaveis", "responsaveis.usuario"})
+    @EntityGraph(attributePaths = {"usuario"})
     Page<Aluno> findAll(Pageable pageable);
 
     @Override

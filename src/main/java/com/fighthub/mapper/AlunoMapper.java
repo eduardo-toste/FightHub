@@ -16,14 +16,7 @@ public class AlunoMapper {
                 aluno.getUsuario().getFoto(),
                 aluno.getUsuario().isAtivo(),
                 aluno.getDataNascimento(),
-                aluno.getDataMatricula(),
-                aluno.getResponsaveis().stream()
-                        .map(r -> new AlunoResponse.ResponsavelResumo(
-                                r.getId(),
-                                r.getUsuario().getNome(),
-                                r.getUsuario().getEmail()
-                        ))
-                        .toList()
+                aluno.getDataMatricula()
         );
     }
 
@@ -38,7 +31,7 @@ public class AlunoMapper {
                 aluno.getDataMatricula(),
                 EnderecoResponse.fromEntity(aluno.getUsuario().getEndereco()),
                 aluno.getResponsaveis().stream()
-                        .map(r -> new AlunoResponse.ResponsavelResumo(
+                        .map(r -> new AlunoDetalhadoResponse.ResponsavelResumo(
                                 r.getId(),
                                 r.getUsuario().getNome(),
                                 r.getUsuario().getEmail()

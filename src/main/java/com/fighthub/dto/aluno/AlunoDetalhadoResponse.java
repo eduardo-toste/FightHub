@@ -15,7 +15,7 @@ public record AlunoDetalhadoResponse(
         LocalDate dataNascimento,
         LocalDate dataMatricula,
         EnderecoResponse endereco,
-        List<AlunoResponse.ResponsavelResumo> responsaveis
+        List<AlunoDetalhadoResponse.ResponsavelResumo> responsaveis
 ) {
     public record ResponsavelResumo(
             UUID id,

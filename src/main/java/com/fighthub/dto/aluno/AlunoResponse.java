@@ -11,12 +11,6 @@ public record AlunoResponse(
         String foto,
         boolean ativo,
         LocalDate dataNascimento,
-        LocalDate dataMatricula,
-        List<ResponsavelResumo> responsaveis
+        LocalDate dataMatricula
 ) {
-    public record ResponsavelResumo(
-            UUID id,
-            String nome,
-            String email
-    ) {}
 }
