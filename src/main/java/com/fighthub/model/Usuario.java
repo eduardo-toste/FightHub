@@ -25,9 +25,11 @@ public class Usuario implements UserDetails {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    @Setter
     @Column(nullable = false, length = 100)
     private String nome;
 
+    @Setter
     @Column(nullable = false, unique = true, length = 100)
     private String email;
 
@@ -35,13 +37,16 @@ public class Usuario implements UserDetails {
     @Column(length = 255)
     private String senha;
 
+    @Setter
     @Column(length = 255)
     private String foto;
 
+    @Setter
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 30)
     private Role role;
 
+    @Setter
     @Column(name = "login_social", nullable = false)
     private boolean loginSocial;
 
