@@ -70,4 +70,12 @@ public class GlobalExceptionHandler {
         return ErrorBuilder.build(HttpStatus.UNAUTHORIZED, ex.getMessage(), request.getRequestURI());
     }
 
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorResponse> handleErroInterno(
+            Exception ex,
+            HttpServletRequest request
+    ) {
+        return ErrorBuilder.build(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage(), request.getRequestURI());
+    }
+
 }
