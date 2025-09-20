@@ -1,9 +1,6 @@
 package com.fighthub.controller;
 
-import com.fighthub.dto.aluno.AlunoDetalhadoResponse;
-import com.fighthub.dto.aluno.AlunoResponse;
-import com.fighthub.dto.aluno.AlunoUpdateCompletoRequest;
-import com.fighthub.dto.aluno.CriarAlunoRequest;
+import com.fighthub.dto.aluno.*;
 import com.fighthub.service.AlunoService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -44,8 +41,18 @@ public class AlunoController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<AlunoDetalhadoResponse> updateCompleto(@PathVariable UUID id, @RequestBody @Valid AlunoUpdateCompletoRequest request) {
+    public ResponseEntity<AlunoDetalhadoResponse> updateCompleto(
+            @PathVariable UUID id,
+            @RequestBody @Valid AlunoUpdateCompletoRequest request) {
         var alunoAtualizado = alunoService.updateAlunoCompleto(id, request);
+        return ResponseEntity.status(HttpStatus.OK).body(alunoAtualizado);
+    }
+
+    @PatchMapping("/{id}")
+    public ResponseEntity<AlunoDetalhadoResponse> updateParcial(
+            @PathVariable UUID id,
+            @RequestBody @Valid AlunoUpdateParcialRequest request) {
+        var alunoAtualizado = alunoService.updateAlunoParcial(id, request);
         return ResponseEntity.status(HttpStatus.OK).body(alunoAtualizado);
     }
 
