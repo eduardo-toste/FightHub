@@ -3,6 +3,7 @@ package com.fighthub.service;
 import com.fighthub.dto.auth.AtivacaoRequest;
 import com.fighthub.exception.TokenInvalidoException;
 import com.fighthub.exception.ValidacaoException;
+import com.fighthub.mapper.EnderecoMapper;
 import com.fighthub.model.Endereco;
 import com.fighthub.model.Token;
 import com.fighthub.model.Usuario;
@@ -46,15 +47,7 @@ public class AtivacaoService {
     }
 
     private void atualizarUsuario(Usuario usuario, AtivacaoRequest request) {
-        Endereco endereco = Endereco.builder()
-                .cep(request.endereco().cep())
-                .logradouro(request.endereco().logradouro())
-                .numero(request.endereco().numero())
-                .complemento(request.endereco().complemento())
-                .bairro(request.endereco().bairro())
-                .cidade(request.endereco().cidade())
-                .estado(request.endereco().estado())
-                .build();
+        Endereco endereco = EnderecoMapper.toEntity(request);
 
         usuario.setSenha(passwordEncoder.encode(request.senha()));
         usuario.setAtivo(true);
