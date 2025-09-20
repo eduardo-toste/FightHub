@@ -2,6 +2,7 @@ package com.fighthub.service;
 
 import com.fighthub.dto.aluno.AlunoDetalhadoResponse;
 import com.fighthub.dto.aluno.AlunoResponse;
+import com.fighthub.dto.aluno.AlunoUpdateCompletoRequest;
 import com.fighthub.dto.aluno.CriarAlunoRequest;
 import com.fighthub.exception.UsuarioNaoEncontradoException;
 import com.fighthub.exception.ValidacaoException;
@@ -13,6 +14,7 @@ import com.fighthub.model.enums.Role;
 import com.fighthub.repository.AlunoRepository;
 import com.fighthub.repository.ResponsavelRepository;
 import com.fighthub.repository.UsuarioRepository;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -34,11 +36,7 @@ public class AlunoService {
     private final EmailService emailService;
 
     public void criarAluno(CriarAlunoRequest request) {
-        boolean menorDeIdade = Period.between(request.dataNascimento(), LocalDate.now()).getYears() < 18;
-
-        if (menorDeIdade && (request.idsResponsaveis() == null || request.idsResponsaveis().isEmpty())) {
-            throw new ValidacaoException("Aluno menor de idade deve ter ao menos um responsável");
-        }
+        var menorDeIdade = isMenorDeIdade(request.dataNascimento(), request.idsResponsaveis());
 
         if (usuarioRepository.existsByEmail(request.email())) {
             throw new ValidacaoException("E-mail já cadastrado");
@@ -75,8 +73,55 @@ public class AlunoService {
 
     public AlunoDetalhadoResponse obterAluno(UUID id) {
         var aluno = alunoRepository.findById(id)
-                .orElseThrow(() -> new UsuarioNaoEncontradoException());
+                .orElseThrow(UsuarioNaoEncontradoException::new);
 
         return AlunoMapper.toDetailedDTO(aluno);
+    }
+
+    public AlunoDetalhadoResponse updateAlunoCompleto(UUID id, AlunoUpdateCompletoRequest request) {
+        var aluno = alunoRepository.findById(id)
+                .orElseThrow(UsuarioNaoEncontradoException::new);
+
+        isMenorDeIdade(request.dataNascimento(), request.idsResponsaveis());
+
+        var alunoAtualizado = atualizarAluno(aluno, request);
+        return AlunoMapper.toDetailedDTO(alunoAtualizado);
+    }
+
+    public void desativarAluno(UUID id) {
+        alterarStatusAluno(id, false);
+    }
+
+    public void reativarAluno(UUID id) {
+        alterarStatusAluno(id, true);
+    }
+
+    private void alterarStatusAluno(UUID id, boolean status) {
+        Aluno aluno = alunoRepository.findById(id)
+                .orElseThrow(UsuarioNaoEncontradoException::new);
+
+        aluno.getUsuario().setAtivo(status);
+        usuarioRepository.save(aluno.getUsuario());
+    }
+
+    private Aluno atualizarAluno(Aluno aluno, AlunoUpdateCompletoRequest request) {
+        List<Responsavel> responsaveis = request.idsResponsaveis() != null
+                ? responsavelRepository.findAllById(request.idsResponsaveis())
+                : List.of();
+
+        aluno.updateCompleto(request, responsaveis);
+        usuarioRepository.save(aluno.getUsuario());
+
+        return aluno;
+    }
+
+    private boolean isMenorDeIdade(LocalDate dataNascimento, List<UUID> idsResponsaveis) {
+        boolean menorDeIdade = Period.between(dataNascimento, LocalDate.now()).getYears() < 18;
+
+        if (menorDeIdade && (idsResponsaveis == null || idsResponsaveis.isEmpty())) {
+            throw new ValidacaoException("Aluno menor de idade deve ter ao menos um responsável");
+        }
+
+        return menorDeIdade;
     }
 }
