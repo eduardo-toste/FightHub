@@ -1,9 +1,6 @@
 package com.fighthub.service;
 
-import com.fighthub.dto.aluno.AlunoDetalhadoResponse;
-import com.fighthub.dto.aluno.AlunoResponse;
-import com.fighthub.dto.aluno.AlunoUpdateCompletoRequest;
-import com.fighthub.dto.aluno.CriarAlunoRequest;
+import com.fighthub.dto.aluno.*;
 import com.fighthub.exception.UsuarioNaoEncontradoException;
 import com.fighthub.exception.ValidacaoException;
 import com.fighthub.mapper.AlunoMapper;
@@ -14,7 +11,6 @@ import com.fighthub.model.enums.Role;
 import com.fighthub.repository.AlunoRepository;
 import com.fighthub.repository.ResponsavelRepository;
 import com.fighthub.repository.UsuarioRepository;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -84,7 +80,15 @@ public class AlunoService {
 
         isMenorDeIdade(request.dataNascimento(), request.idsResponsaveis());
 
-        var alunoAtualizado = atualizarAluno(aluno, request);
+        var alunoAtualizado = atualizacaoCompleta(aluno, request);
+        return AlunoMapper.toDetailedDTO(alunoAtualizado);
+    }
+
+    public AlunoDetalhadoResponse updateAlunoParcial(UUID id, AlunoUpdateParcialRequest request) {
+        var aluno = alunoRepository.findById(id)
+                .orElseThrow(UsuarioNaoEncontradoException::new);
+
+        var alunoAtualizado = atualizacaoParcial(aluno, request);
         return AlunoMapper.toDetailedDTO(alunoAtualizado);
     }
 
@@ -104,14 +108,23 @@ public class AlunoService {
         usuarioRepository.save(aluno.getUsuario());
     }
 
-    private Aluno atualizarAluno(Aluno aluno, AlunoUpdateCompletoRequest request) {
+    private Aluno atualizacaoParcial(Aluno aluno, AlunoUpdateParcialRequest request) {
         List<Responsavel> responsaveis = request.idsResponsaveis() != null
                 ? responsavelRepository.findAllById(request.idsResponsaveis())
                 : List.of();
 
-        aluno.updateCompleto(request, responsaveis);
+        aluno.patchUpdate(request, responsaveis);
         usuarioRepository.save(aluno.getUsuario());
+        return aluno;
+    }
 
+    private Aluno atualizacaoCompleta(Aluno aluno, AlunoUpdateCompletoRequest request) {
+        List<Responsavel> responsaveis = request.idsResponsaveis() != null
+                ? responsavelRepository.findAllById(request.idsResponsaveis())
+                : List.of();
+
+        aluno.putUpdate(request, responsaveis);
+        usuarioRepository.save(aluno.getUsuario());
         return aluno;
     }
 
