@@ -1,5 +1,7 @@
 package com.fighthub.model;
 
+import com.fighthub.dto.aluno.AlunoUpdateCompletoRequest;
+import com.fighthub.mapper.EnderecoMapper;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -38,5 +40,18 @@ public class Aluno {
             inverseJoinColumns = @JoinColumn(name = "responsavel_id")
     )
     private List<Responsavel> responsaveis = new ArrayList<>();
+
+    public void updateCompleto(AlunoUpdateCompletoRequest request, List<Responsavel> novosResponsaveis) {
+        this.usuario.setNome(request.nome());
+        this.usuario.setEmail(request.email());
+        this.usuario.setFoto(request.foto());
+        this.usuario.setTelefone(request.telefone());
+        this.usuario.setEndereco(EnderecoMapper.toEntity(request.endereco()));
+        this.dataNascimento = request.dataNascimento();
+        this.responsaveis.clear();
+        if (novosResponsaveis != null && !novosResponsaveis.isEmpty()) {
+            this.responsaveis.addAll(novosResponsaveis);
+        }
+    }
 
 }
