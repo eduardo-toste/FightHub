@@ -1,12 +1,15 @@
 package com.fighthub.service;
 
 import com.fighthub.dto.auth.AuthRequest;
+import com.fighthub.exception.TipoTokenInvalido;
 import com.fighthub.exception.TokenInvalidoException;
 import com.fighthub.exception.UsuarioNaoEncontradoException;
 import com.fighthub.model.Endereco;
+import com.fighthub.model.Token;
 import com.fighthub.model.Usuario;
 import com.fighthub.model.enums.Role;
 import com.fighthub.model.enums.TokenType;
+import com.fighthub.repository.TokenRepository;
 import com.fighthub.repository.UsuarioRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
@@ -19,6 +22,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -36,6 +40,9 @@ class AuthServiceTest {
     private UsuarioRepository usuarioRepository;
 
     @Mock
+    private TokenRepository tokenRepository;
+
+    @Mock
     private AuthenticationManager authenticationManager;
 
     @Mock
@@ -48,9 +55,12 @@ class AuthServiceTest {
     private AuthService authService;
 
     private Usuario usuario;
+    private Token refreshToken;
 
     @BeforeEach
     void setup() {
+        String tokenFake = "refresh-token-fake";
+
         Endereco endereco = Endereco.builder()
                 .cep("12345-678")
                 .logradouro("Rua Exemplo")
@@ -66,14 +76,21 @@ class AuthServiceTest {
                 "Teste",
                 "teste@gmail.com",
                 "senhaCriptografada",
-                null, // foto
-                Role.ALUNO,
-                false, // loginSocial
-                true,  // ativo
-                "123.456.789-00", // cpf
-                "(11)91234-5678", // telefone
-                endereco
+                null, Role.ALUNO,
+                false, true, "123.456.789-00",
+                "(11)91234-5678", endereco
         );
+
+        refreshToken = Token.builder()
+                .id(UUID.randomUUID())
+                .token(tokenFake)
+                .tokenType(TokenType.REFRESH)
+                .revoked(false)
+                .expired(false)
+                .usuario(usuario)
+                .criadoEm(LocalDateTime.now())
+                .expiraEm(LocalDateTime.now().plusHours(1))
+                .build();
     }
 
     @Test
@@ -122,22 +139,22 @@ class AuthServiceTest {
     @Test
     void deveAtualizarTokenComSucesso_QuandoRefreshForValido() {
         // Arrange
-        String refreshToken = jwtService.gerarRefreshToken(usuario);
         String jwtEsperado = "jwt-token-gerado";
-        when(jwtService.tokenValido(refreshToken)).thenReturn(true);
-        when(jwtService.extrairEmail(refreshToken)).thenReturn(usuario.getEmail());
+        when(jwtService.tokenValido(refreshToken.getToken())).thenReturn(true);
+        when(jwtService.extrairEmail(refreshToken.getToken())).thenReturn(usuario.getEmail());
         when(usuarioRepository.findByEmail(usuario.getEmail())).thenReturn(Optional.of(usuario));
         when(jwtService.gerarToken(usuario)).thenReturn(jwtEsperado);
+        when(tokenRepository.findByTokenAndTokenType(refreshToken.getToken(), TokenType.REFRESH)).thenReturn(Optional.of(refreshToken));
 
         // Act
-        var result = authService.atualizarToken(refreshToken);
+        var result = authService.atualizarToken(refreshToken.getToken());
 
         // Assert
         assertNotNull(result);
         assertEquals("jwt-token-gerado", result.newAccessToken());
         verify(tokenService).revogarToken(usuario, TokenType.ACCESS);
         verify(tokenService).salvarAccessToken(usuario, jwtEsperado);
-        verify(jwtService).extrairEmail(refreshToken);
+        verify(jwtService).extrairEmail(refreshToken.getToken());
         verify(jwtService).gerarToken(usuario);
     }
 
@@ -159,7 +176,10 @@ class AuthServiceTest {
     void deveLancarExcecao_QuandoEmailDoUsuarioNaoForEncontradoDuranteAtualizacao() {
         // Arrange
         String refreshToken = "refresh-token-valido";
+
         when(jwtService.tokenValido(refreshToken)).thenReturn(true);
+        when(tokenRepository.findByTokenAndTokenType(refreshToken, TokenType.REFRESH))
+                .thenReturn(Optional.of(this.refreshToken));
         when(jwtService.extrairEmail(refreshToken)).thenReturn(usuario.getEmail());
         when(usuarioRepository.findByEmail(usuario.getEmail())).thenReturn(Optional.empty());
 
