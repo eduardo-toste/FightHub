@@ -2,6 +2,7 @@ package com.fighthub.controller;
 
 import com.fighthub.dto.aluno.AlunoDetalhadoResponse;
 import com.fighthub.dto.aluno.AlunoResponse;
+import com.fighthub.dto.aluno.AlunoUpdateCompletoRequest;
 import com.fighthub.dto.aluno.CriarAlunoRequest;
 import com.fighthub.service.AlunoService;
 import jakarta.validation.Valid;
@@ -40,5 +41,23 @@ public class AlunoController {
     public ResponseEntity<AlunoDetalhadoResponse> obterAluno(@PathVariable UUID id) {
         var aluno = alunoService.obterAluno(id);
         return ResponseEntity.status(HttpStatus.OK).body(aluno);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<AlunoDetalhadoResponse> updateCompleto(@PathVariable UUID id, @RequestBody @Valid AlunoUpdateCompletoRequest request) {
+        var alunoAtualizado = alunoService.updateAlunoCompleto(id, request);
+        return ResponseEntity.status(HttpStatus.OK).body(alunoAtualizado);
+    }
+
+    @PatchMapping("/{id}/desativar")
+    public ResponseEntity<Void> desativarAluno(@PathVariable UUID id) {
+        alunoService.desativarAluno(id);
+        return ResponseEntity.status(HttpStatus.OK).build();
+    }
+
+    @PatchMapping("/{id}/reativar")
+    public ResponseEntity<Void> reativarAluno(@PathVariable UUID id) {
+        alunoService.reativarAluno(id);
+        return ResponseEntity.status(HttpStatus.OK).build();
     }
 }
