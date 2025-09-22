@@ -31,6 +31,9 @@ class TokenServiceTest {
     @Mock
     private TokenRepository tokenRepository;
 
+    @Mock
+    private JwtService jwtService;
+
     @InjectMocks
     private TokenService tokenService;
 
