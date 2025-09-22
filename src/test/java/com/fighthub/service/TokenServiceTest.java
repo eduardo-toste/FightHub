@@ -123,6 +123,29 @@ class TokenServiceTest {
     }
 
     @Test
+    void deveSalvarTokenAtivacaoComSucesso() {
+        // Arrange
+        when(tokenRepository.save(any(Token.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        // Act
+        tokenService.salvarTokenAtivacao(usuario);
+
+        // Assert
+        ArgumentCaptor<Token> captor = ArgumentCaptor.forClass(Token.class);
+        verify(tokenRepository).save(captor.capture());
+
+        Token tokenSalvo = captor.getValue();
+        assertEquals(TokenType.ATIVACAO, tokenSalvo.getTokenType());
+        assertEquals(usuario, tokenSalvo.getUsuario());
+        assertFalse(tokenSalvo.isExpired());
+        assertFalse(tokenSalvo.isRevoked());
+        assertNotNull(tokenSalvo.getCriadoEm());
+        assertNotNull(tokenSalvo.getExpiraEm());
+        assertTrue(tokenSalvo.getExpiraEm().isAfter(tokenSalvo.getCriadoEm()));
+    }
+
+    @Test
     void deveRevogarTokensComSucesso() {
         // Arrange
         Token token1 = Token.builder()
