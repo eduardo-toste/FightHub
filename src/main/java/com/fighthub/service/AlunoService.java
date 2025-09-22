@@ -21,6 +21,7 @@ import java.time.Period;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.function.BiConsumer;
 
 @Service
 @RequiredArgsConstructor
@@ -111,21 +112,26 @@ public class AlunoService {
     }
 
     private Aluno atualizacaoParcial(Aluno aluno, AlunoUpdateParcialRequest request) {
-        List<Responsavel> responsaveis = request.idsResponsaveis() != null
-                ? responsavelRepository.findAllById(request.idsResponsaveis())
-                : List.of();
-
-        aluno.patchUpdate(request, responsaveis);
-        usuarioRepository.save(aluno.getUsuario());
-        return aluno;
+        return atualizarAluno(aluno, request.idsResponsaveis(),
+                (a, responsaveis) -> a.patchUpdate(request, responsaveis));
     }
 
     private Aluno atualizacaoCompleta(Aluno aluno, AlunoUpdateCompletoRequest request) {
-        List<Responsavel> responsaveis = request.idsResponsaveis() != null
-                ? responsavelRepository.findAllById(request.idsResponsaveis())
-                : List.of();
+        return atualizarAluno(aluno, request.idsResponsaveis(),
+                (a, responsaveis) -> a.putUpdate(request, responsaveis));
+    }
 
-        aluno.putUpdate(request, responsaveis);
+    private Aluno atualizarAluno(
+            Aluno aluno,
+            List<UUID> idsResponsaveis,
+            BiConsumer<Aluno, List<Responsavel>> atualizarFunc
+    ) {
+        List<Responsavel> responsaveis =
+                (idsResponsaveis != null && !idsResponsaveis.isEmpty())
+                        ? responsavelRepository.findAllById(idsResponsaveis)
+                        : List.of();
+
+        atualizarFunc.accept(aluno, responsaveis);
         usuarioRepository.save(aluno.getUsuario());
         return aluno;
     }
