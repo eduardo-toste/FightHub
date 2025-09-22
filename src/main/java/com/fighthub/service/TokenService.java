@@ -18,6 +18,7 @@ import java.util.UUID;
 public class TokenService {
 
     private final TokenRepository tokenRepository;
+    private final JwtService jwtService;
 
     public void salvarTokens(Usuario usuario, String accessToken, String refreshToken) {
         var agora = LocalDateTime.now();
@@ -64,20 +65,22 @@ public class TokenService {
     }
 
     public String salvarTokenAtivacao(Usuario usuario) {
+        var agora = LocalDateTime.now();
+
+        String tokenJwt = jwtService.gerarTokenAtivacao(usuario);
+
         Token token = Token.builder()
-                .token(UUID.randomUUID().toString())
-                .tokenType(TokenType.ATIVACAO)
-                .revoked(false)
-                .expired(false)
                 .usuario(usuario)
-                .criadoEm(LocalDateTime.now())
-                .expiraEm(LocalDateTime.now().plusDays(1))
+                .token(tokenJwt)
+                .tokenType(TokenType.ATIVACAO)
+                .expired(false)
+                .revoked(false)
+                .criadoEm(agora)
+                .expiraEm(agora.plusDays(1))
                 .build();
 
         tokenRepository.save(token);
-        log.debug("Novo token de ativação salvo para usuário {}", usuario.getEmail());
-
-        return token.getToken();
+        return tokenJwt;
     }
 
     public void revogarTokens(Usuario usuario) {
