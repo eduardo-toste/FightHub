@@ -8,6 +8,7 @@ public record AlunoResponse(
         UUID id,
         String nome,
         String email,
+        String telefone,
         String foto,
         boolean ativo,
         LocalDate dataNascimento,
