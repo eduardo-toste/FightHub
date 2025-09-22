@@ -31,7 +31,7 @@ public class AtivacaoService {
         Token token = tokenRepository.findByToken(request.token())
                 .orElseThrow(TokenInvalidoException::new);
 
-        if (jwtService.tokenValido(token.getToken())) {
+        if (!jwtService.tokenValido(token.getToken())) {
             throw new ValidacaoException("Token expirado ou revogado");
         }
 
