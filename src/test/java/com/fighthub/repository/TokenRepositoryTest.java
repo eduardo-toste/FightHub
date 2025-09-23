@@ -168,4 +168,26 @@ class TokenRepositoryTest {
         assertTrue(result.isPresent());
     }
 
+    @Test
+    void deveRetornarUmTokenPorTipo() {
+        // Arrange
+        Token token1 = Token.builder()
+                .usuario(usuario)
+                .token("token-1")
+                .tokenType(TokenType.ATIVACAO)
+                .expired(false)
+                .revoked(false)
+                .criadoEm(LocalDateTime.now())
+                .expiraEm(LocalDateTime.now().plusHours(1))
+                .build();
+
+        repository.save(token1);
+
+        // Act
+        var result = repository.findByTokenAndTokenType("token-1", TokenType.ATIVACAO);
+
+        // Assert
+        assertTrue(result.isPresent());
+    }
+
 }
