@@ -9,6 +9,7 @@ import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestTemplate;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -53,18 +54,14 @@ class JwtServiceTest {
                 "Teste",
                 "teste@gmail.com",
                 "senhaCriptografada",
-                null, // foto
+                null,
                 Role.ALUNO,
-                false, // loginSocial
-                true,  // ativo
-                "123.456.789-00", // cpf
-                "(11)91234-5678", // telefone
+                false,
+                true,
+                "123.456.789-00",
+                "(11)91234-5678",
                 endereco
         );
-    }
-
-    @BeforeEach
-    void setup() {
     }
 
     @Test
@@ -81,6 +78,16 @@ class JwtServiceTest {
     void deveGerarRefreshTokenComSucesso() {
         // Act
         String result = jwtService.gerarRefreshToken(usuario);
+
+        // Assert
+        assertNotNull(result);
+        assertTrue(result.startsWith("eyJ"));
+    }
+
+    @Test
+    void deveGerarTokenAtivacaoComSucesso() {
+        // Act
+        String result = jwtService.gerarTokenAtivacao(usuario);
 
         // Assert
         assertNotNull(result);
