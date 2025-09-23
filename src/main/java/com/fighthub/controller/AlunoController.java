@@ -44,7 +44,7 @@ public class AlunoController {
             @ApiResponse(responseCode = "400", description = "Requisição inválida",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class),
                             examples = @ExampleObject(name = "Erro de validação", value = SwaggerExamples.ERRO_VALIDACAO))),
-            @ApiResponse(responseCode = "403", description = "Usuário sem permissão para criar alunos",
+            @ApiResponse(responseCode = "403", description = "Você não tem permissão para acessar este recurso.",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class),
                             examples = @ExampleObject(name = "Acesso negado", value = SwaggerExamples.ACESSO_NEGADO)))
     })
