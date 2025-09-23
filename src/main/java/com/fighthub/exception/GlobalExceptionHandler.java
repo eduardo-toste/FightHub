@@ -22,6 +22,14 @@ public class GlobalExceptionHandler {
         return ErrorBuilder.build(HttpStatus.NOT_FOUND, ex.getMessage(), request.getRequestURI());
     }
 
+    @ExceptionHandler(AlunoNaoEncontradoException.class)
+    public ResponseEntity<ErrorResponse> handleAlunoNaoEncontrado(
+            AlunoNaoEncontradoException ex,
+            HttpServletRequest request
+    ) {
+        return ErrorBuilder.build(HttpStatus.NOT_FOUND, ex.getMessage(), request.getRequestURI());
+    }
+
     @ExceptionHandler(TokenInvalidoException.class)
     public ResponseEntity<ErrorResponse> handleTokenInvalido(
             TokenInvalidoException ex,
