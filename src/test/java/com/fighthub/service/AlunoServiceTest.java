@@ -188,7 +188,7 @@ class AlunoServiceTest {
                 () -> alunoService.obterAluno(aluno.getId()));
 
         assertNotNull(ex);
-        assertEquals("Usuário não encontrado.", ex.getMessage());
+        assertEquals("Aluno não encontrado.", ex.getMessage());
         verify(alunoRepository).findById(aluno.getId());
     }
 
@@ -315,7 +315,7 @@ class AlunoServiceTest {
                 () -> alunoService.updateAlunoCompleto(aluno.getId(), request));
 
         assertNotNull(ex);
-        assertEquals("Usuário não encontrado.", ex.getMessage());
+        assertEquals("Aluno não encontrado.", ex.getMessage());
         verify(alunoRepository).findById(aluno.getId());
     }
 
@@ -439,7 +439,7 @@ class AlunoServiceTest {
                 () -> alunoService.desativarAluno(alunoId));
 
         assertNotNull(ex);
-        assertEquals("Usuário não encontrado.", ex.getMessage());
+        assertEquals("Aluno não encontrado.", ex.getMessage());
         verify(alunoRepository).findById(alunoId);
     }
 
@@ -463,7 +463,7 @@ class AlunoServiceTest {
                 () -> alunoService.reativarAluno(alunoId));
 
         assertNotNull(ex);
-        assertEquals("Usuário não encontrado.", ex.getMessage());
+        assertEquals("Aluno não encontrado.", ex.getMessage());
         verify(alunoRepository).findById(alunoId);
     }
 
@@ -544,7 +544,7 @@ class AlunoServiceTest {
                 () -> alunoService.updateAlunoParcial(alunoId, request));
 
         assertNotNull(ex);
-        assertEquals("Usuário não encontrado.", ex.getMessage());
+        assertEquals("Aluno não encontrado.", ex.getMessage());
         verify(alunoRepository).findById(alunoId);
     }
 
