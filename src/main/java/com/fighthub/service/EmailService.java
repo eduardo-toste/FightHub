@@ -5,6 +5,8 @@ import com.fighthub.model.Usuario;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
+import org.springframework.mail.MailException;
+import org.springframework.mail.MailSendException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
@@ -38,7 +40,7 @@ public class EmailService {
             helper.setText(htmlContent, true);
 
             mailSender.send(message);
-        } catch (MessagingException e) {
+        } catch (MessagingException | MailException e) {
             throw new EmailNaoEnviadoException();
         }
     }
@@ -59,7 +61,7 @@ public class EmailService {
             helper.setText(htmlContent, true);
 
             mailSender.send(message);
-        } catch (MessagingException e) {
+        } catch (MessagingException | MailException e) {
             throw new EmailNaoEnviadoException();
         }
     }
