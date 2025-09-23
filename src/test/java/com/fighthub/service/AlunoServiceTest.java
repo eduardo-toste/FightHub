@@ -5,7 +5,7 @@ import com.fighthub.dto.aluno.AlunoUpdateCompletoRequest;
 import com.fighthub.dto.aluno.AlunoUpdateParcialRequest;
 import com.fighthub.dto.aluno.CriarAlunoRequest;
 import com.fighthub.dto.endereco.EnderecoRequest;
-import com.fighthub.exception.UsuarioNaoEncontradoException;
+import com.fighthub.exception.AlunoNaoEncontradoException;
 import com.fighthub.exception.ValidacaoException;
 import com.fighthub.model.Aluno;
 import com.fighthub.model.Endereco;
@@ -100,7 +100,7 @@ class AlunoServiceTest {
         alunoService.criarAluno(criarAlunoRequest);
 
         verify(usuarioRepository).save(any(Usuario.class));
-        verify(alunoRepository, times(2)).save(any(Aluno.class)); // segunda vez após adicionar responsáveis
+        verify(alunoRepository, times(2)).save(any(Aluno.class));
         verify(emailService).enviarEmailAtivacao(usuario, "token-ativacao");
     }
 
@@ -149,7 +149,7 @@ class AlunoServiceTest {
 
         alunoService.criarAluno(maior);
 
-        verify(alunoRepository, times(1)).save(any(Aluno.class)); // apenas uma vez
+        verify(alunoRepository, times(1)).save(any(Aluno.class));
         verify(responsavelRepository, never()).findAllById(any());
         verify(emailService).enviarEmailAtivacao(any(), eq("token-ativacao"));
     }
@@ -184,7 +184,7 @@ class AlunoServiceTest {
     void deveLancarExcecao_QuandoAlunoNaoExistir_AoBuscarAluno() {
         when(alunoRepository.findById(aluno.getId())).thenReturn(Optional.empty());
 
-        var ex = assertThrows(UsuarioNaoEncontradoException.class,
+        var ex = assertThrows(AlunoNaoEncontradoException.class,
                 () -> alunoService.obterAluno(aluno.getId()));
 
         assertNotNull(ex);
@@ -311,7 +311,7 @@ class AlunoServiceTest {
         );
         when(alunoRepository.findById(aluno.getId())).thenReturn(Optional.empty());
 
-        var ex = assertThrows(UsuarioNaoEncontradoException.class,
+        var ex = assertThrows(AlunoNaoEncontradoException.class,
                 () -> alunoService.updateAlunoCompleto(aluno.getId(), request));
 
         assertNotNull(ex);
@@ -435,7 +435,7 @@ class AlunoServiceTest {
         var alunoId = aluno.getId();
         when(alunoRepository.findById(alunoId)).thenReturn(Optional.empty());
 
-        var ex = assertThrows(UsuarioNaoEncontradoException.class,
+        var ex = assertThrows(AlunoNaoEncontradoException.class,
                 () -> alunoService.desativarAluno(alunoId));
 
         assertNotNull(ex);
@@ -459,7 +459,7 @@ class AlunoServiceTest {
         var alunoId = aluno.getId();
         when(alunoRepository.findById(alunoId)).thenReturn(Optional.empty());
 
-        var ex = assertThrows(UsuarioNaoEncontradoException.class,
+        var ex = assertThrows(AlunoNaoEncontradoException.class,
                 () -> alunoService.reativarAluno(alunoId));
 
         assertNotNull(ex);
@@ -540,7 +540,7 @@ class AlunoServiceTest {
         );
         when(alunoRepository.findById(alunoId)).thenReturn(Optional.empty());
 
-        var ex = assertThrows(UsuarioNaoEncontradoException.class,
+        var ex = assertThrows(AlunoNaoEncontradoException.class,
                 () -> alunoService.updateAlunoParcial(alunoId, request));
 
         assertNotNull(ex);

@@ -1,7 +1,7 @@
 package com.fighthub.service;
 
 import com.fighthub.dto.aluno.*;
-import com.fighthub.exception.UsuarioNaoEncontradoException;
+import com.fighthub.exception.AlunoNaoEncontradoException;
 import com.fighthub.exception.ValidacaoException;
 import com.fighthub.mapper.AlunoMapper;
 import com.fighthub.model.Aluno;
@@ -72,14 +72,14 @@ public class AlunoService {
 
     public AlunoDetalhadoResponse obterAluno(UUID id) {
         var aluno = alunoRepository.findById(id)
-                .orElseThrow(UsuarioNaoEncontradoException::new);
+                .orElseThrow(AlunoNaoEncontradoException::new);
 
         return AlunoMapper.toDetailedDTO(aluno);
     }
 
     public AlunoDetalhadoResponse updateAlunoCompleto(UUID id, AlunoUpdateCompletoRequest request) {
         var aluno = alunoRepository.findById(id)
-                .orElseThrow(UsuarioNaoEncontradoException::new);
+                .orElseThrow(AlunoNaoEncontradoException::new);
 
         isMenorDeIdade(request.dataNascimento(), request.idsResponsaveis());
 
@@ -89,7 +89,7 @@ public class AlunoService {
 
     public AlunoDetalhadoResponse updateAlunoParcial(UUID id, AlunoUpdateParcialRequest request) {
         var aluno = alunoRepository.findById(id)
-                .orElseThrow(UsuarioNaoEncontradoException::new);
+                .orElseThrow(AlunoNaoEncontradoException::new);
 
         var alunoAtualizado = atualizacaoParcial(aluno, request);
         return AlunoMapper.toDetailedDTO(alunoAtualizado);
@@ -105,7 +105,7 @@ public class AlunoService {
 
     private void alterarStatusAluno(UUID id, boolean status) {
         Aluno aluno = alunoRepository.findById(id)
-                .orElseThrow(UsuarioNaoEncontradoException::new);
+                .orElseThrow(AlunoNaoEncontradoException::new);
 
         aluno.getUsuario().setAtivo(status);
         usuarioRepository.save(aluno.getUsuario());
