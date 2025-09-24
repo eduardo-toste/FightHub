@@ -1,5 +1,6 @@
 package com.fighthub.config;
 
+import com.fighthub.repository.TokenRepository;
 import com.fighthub.repository.UsuarioRepository;
 import com.fighthub.security.SecurityFilter;
 import com.fighthub.service.JwtService;
@@ -24,6 +25,7 @@ public class TestSecurityConfig {
     public SecurityFilterChain testSecurityFilterChain(HttpSecurity http,
                                                        JwtService jwtService,
                                                        UsuarioRepository usuarioRepository,
+                                                       TokenRepository tokenRepository,
                                                        ErrorWriter errorWriter,
                                                        ObjectMapper objectMapper) throws Exception {
         return http
@@ -35,7 +37,7 @@ public class TestSecurityConfig {
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint(restAuthenticationEntryPoint(objectMapper))
                         .accessDeniedHandler(restAccessDeniedHandler(objectMapper)))
-                .addFilterBefore(new SecurityFilter(jwtService, usuarioRepository, errorWriter),
+                .addFilterBefore(new SecurityFilter(jwtService, usuarioRepository, tokenRepository, errorWriter),
                         UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
