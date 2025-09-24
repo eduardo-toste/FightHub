@@ -7,6 +7,7 @@ import com.fighthub.dto.endereco.EnderecoRequest;
 import com.fighthub.dto.endereco.EnderecoResponse;
 import com.fighthub.model.Usuario;
 import com.fighthub.model.enums.Role;
+import com.fighthub.repository.TokenRepository;
 import com.fighthub.repository.UsuarioRepository;
 import com.fighthub.service.AlunoService;
 import com.fighthub.service.AuthService;
@@ -43,6 +44,7 @@ class AlunoControllerTest {
     @Autowired private ObjectMapper objectMapper;
 
     @MockBean private UsuarioRepository usuarioRepository;
+    @MockBean private TokenRepository tokenRepository;
     @MockBean private AlunoService alunoService;
     @MockBean private AuthService authService;
     @MockBean private JwtService jwtService;
@@ -65,6 +67,9 @@ class AlunoControllerTest {
 
         when(usuarioRepository.findByEmail("usuario@teste.com"))
                 .thenReturn(Optional.of(usuarioMock));
+
+        when(tokenRepository.findByTokenAndExpiredFalseAndRevokedFalse(anyString()))
+                .thenReturn(Optional.of(new com.fighthub.model.Token()));
     }
 
     @Test

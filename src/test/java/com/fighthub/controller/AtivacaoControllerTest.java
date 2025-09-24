@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fighthub.config.TestSecurityConfig;
 import com.fighthub.dto.auth.AtivacaoRequest;
 import com.fighthub.dto.endereco.EnderecoRequest;
+import com.fighthub.repository.TokenRepository;
 import com.fighthub.repository.UsuarioRepository;
 import com.fighthub.service.AtivacaoService;
 import com.fighthub.service.JwtService;
@@ -18,7 +19,6 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.Optional;
-import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
@@ -36,6 +36,7 @@ class AtivacaoControllerTest {
     @MockBean private AtivacaoService ativacaoService;
     @MockBean private JwtService jwtService;
     @MockBean private UsuarioRepository usuarioRepository;
+    @MockBean private TokenRepository tokenRepository;
     @MockBean private ErrorWriter errorWriter;
 
     @BeforeEach
@@ -43,6 +44,8 @@ class AtivacaoControllerTest {
         when(jwtService.tokenValido(any())).thenReturn(true);
         when(jwtService.extrairEmail(any())).thenReturn("usuario@teste.com");
         when(usuarioRepository.findByEmail("usuario@teste.com")).thenReturn(Optional.empty());
+        when(tokenRepository.findByTokenAndExpiredFalseAndRevokedFalse(any()))
+                .thenReturn(Optional.of(new com.fighthub.model.Token())); // 👈 garante que o filtro não vai barrar
     }
 
     @Test
