@@ -1,5 +1,6 @@
 package com.fighthub.repository;
 
+import com.fighthub.model.Endereco;
 import com.fighthub.model.Token;
 import com.fighthub.model.Usuario;
 import com.fighthub.model.enums.Role;
@@ -29,14 +30,30 @@ class TokenRepositoryTest {
     private Usuario usuario;
 
     @BeforeEach
-    void setUp() {
-        usuario = Usuario.builder()
-                .nome("Teste")
-                .email("teste@email.com")
-                .senha("senhaCriptografada")
-                .ativo(true)
-                .role(Role.ALUNO)
+    void setup() {
+        Endereco endereco = Endereco.builder()
+                .cep("12345-678")
+                .logradouro("Rua Exemplo")
+                .numero("123")
+                .complemento("Apto 45")
+                .bairro("Centro")
+                .cidade("São Paulo")
+                .estado("SP")
                 .build();
+
+        usuario = new Usuario(
+                UUID.randomUUID(),
+                "Teste",
+                "teste@gmail.com",
+                "senhaCriptografada",
+                null, // foto
+                Role.ALUNO,
+                false, // loginSocial
+                true,  // ativo
+                "123.456.789-00", // cpf
+                "(11)91234-5678", // telefone
+                endereco
+        );
 
         usuario = usuarioRepository.save(usuario);
     }
@@ -148,6 +165,47 @@ class TokenRepositoryTest {
         var result = repository.findByToken("token-1");
 
         // Assert
+        assertTrue(result.isPresent());
+    }
+
+    @Test
+    void deveRetornarUmTokenPorTipo() {
+        // Arrange
+        Token token1 = Token.builder()
+                .usuario(usuario)
+                .token("token-1")
+                .tokenType(TokenType.ATIVACAO)
+                .expired(false)
+                .revoked(false)
+                .criadoEm(LocalDateTime.now())
+                .expiraEm(LocalDateTime.now().plusHours(1))
+                .build();
+
+        repository.save(token1);
+
+        // Act
+        var result = repository.findByTokenAndTokenType("token-1", TokenType.ATIVACAO);
+
+        // Assert
+        assertTrue(result.isPresent());
+    }
+
+    @Test
+    void deveRetornarToken_QuandoNaoEstiverRevogadoEExpirado() {
+        Token token1 = Token.builder()
+                .usuario(usuario)
+                .token("token-1")
+                .tokenType(TokenType.ATIVACAO)
+                .expired(false)
+                .revoked(false)
+                .criadoEm(LocalDateTime.now())
+                .expiraEm(LocalDateTime.now().plusHours(1))
+                .build();
+
+        repository.save(token1);
+
+        var result = repository.findByTokenAndExpiredFalseAndRevokedFalse("token-1");
+
         assertTrue(result.isPresent());
     }
 

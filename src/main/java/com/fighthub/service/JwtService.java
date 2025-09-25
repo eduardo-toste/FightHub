@@ -3,6 +3,7 @@ package com.fighthub.service;
 import com.fighthub.exception.TokenExpiradoException;
 import com.fighthub.exception.TokenInvalidoException;
 import com.fighthub.model.Usuario;
+import com.fighthub.model.enums.TokenType;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
@@ -46,6 +47,17 @@ public class JwtService {
                 .setSubject(usuario.getEmail())
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + refreshExpiration))
+                .signWith(key, SignatureAlgorithm.HS256)
+                .compact();
+    }
+
+    public String gerarTokenAtivacao(Usuario usuario) {
+        return Jwts.builder()
+                .setSubject(usuario.getEmail())
+                .claim("role", usuario.getRole().name())
+                .claim("tipo", TokenType.ATIVACAO.name())
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + expiration))
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
     }

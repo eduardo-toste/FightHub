@@ -2,6 +2,7 @@ package com.fighthub.security;
 
 import com.fighthub.exception.TokenExpiradoException;
 import com.fighthub.exception.TokenInvalidoException;
+import com.fighthub.repository.TokenRepository;
 import com.fighthub.repository.UsuarioRepository;
 import com.fighthub.service.JwtService;
 import com.fighthub.utils.ErrorWriter;
@@ -27,6 +28,7 @@ public class SecurityFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
     private final UsuarioRepository usuarioRepository;
+    private final TokenRepository tokenRepository;
     private final ErrorWriter errorWriter;
 
     @Override
@@ -49,6 +51,9 @@ public class SecurityFilter extends OncePerRequestFilter {
             if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                 var usuario = usuarioRepository.findByEmail(email)
                         .orElseThrow(() -> new TokenInvalidoException());
+
+                tokenRepository.findByTokenAndExpiredFalseAndRevokedFalse(jwt)
+                        .orElseThrow(TokenInvalidoException::new);
 
                 if (!jwtService.tokenValido(jwt)) {
                     throw new TokenExpiradoException();

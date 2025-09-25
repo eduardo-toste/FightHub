@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -17,6 +18,7 @@ import java.util.List;
 public class TokenService {
 
     private final TokenRepository tokenRepository;
+    private final JwtService jwtService;
 
     public void salvarTokens(Usuario usuario, String accessToken, String refreshToken) {
         var agora = LocalDateTime.now();
@@ -62,6 +64,25 @@ public class TokenService {
         log.debug("Novo token de acesso salvo para usuário {}", usuario.getEmail());
     }
 
+    public String salvarTokenAtivacao(Usuario usuario) {
+        var agora = LocalDateTime.now();
+
+        String tokenJwt = jwtService.gerarTokenAtivacao(usuario);
+
+        Token token = Token.builder()
+                .usuario(usuario)
+                .token(tokenJwt)
+                .tokenType(TokenType.ATIVACAO)
+                .expired(false)
+                .revoked(false)
+                .criadoEm(agora)
+                .expiraEm(agora.plusDays(1))
+                .build();
+
+        tokenRepository.save(token);
+        return tokenJwt;
+    }
+
     public void revogarTokens(Usuario usuario) {
         var tokens = tokenRepository.findAllByUsuarioAndExpiredFalseAndRevokedFalse(usuario);
 
@@ -89,11 +110,11 @@ public class TokenService {
         });
     }
 
-    public void revogarAccessToken(Usuario usuario) {
-        var tokens = tokenRepository.findAllByUsuarioAndRevokedFalseAndTokenType(usuario, TokenType.ACCESS);
+    public void revogarToken(Usuario usuario, TokenType tipo) {
+        var tokens = tokenRepository.findAllByUsuarioAndRevokedFalseAndTokenType(usuario, tipo);
 
         if (tokens.isEmpty()) {
-            log.debug("Nenhum access token ativo encontrado para o usuário: {}", usuario.getEmail());
+            log.debug("Nenhum token ativo encontrado para o usuário: {}", usuario.getEmail());
             return;
         }
 
@@ -103,6 +124,6 @@ public class TokenService {
         });
 
         tokenRepository.saveAll(tokens);
-        log.info("Revogados {} access token(s) para o usuário: {}", tokens.size(), usuario.getEmail());
+        log.info("Revogados {} token(s) para o usuário: {}", tokens.size(), usuario.getEmail());
     }
 }

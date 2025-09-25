@@ -14,7 +14,16 @@ CREATE TABLE usuarios (
     foto VARCHAR(255),
     role VARCHAR(30) NOT NULL CHECK (role IN ('ADMIN', 'PROFESSOR', 'ALUNO', 'RESPONSAVEL', 'COORDENADOR')),
     login_social BOOLEAN DEFAULT FALSE,
-    ativo BOOLEAN DEFAULT TRUE
+    ativo BOOLEAN DEFAULT TRUE,
+    telefone VARCHAR(15),
+    cpf VARCHAR(14) UNIQUE NOT NULL,
+    cep VARCHAR(9),
+    logradouro VARCHAR(100),
+    numero VARCHAR(10),
+    complemento VARCHAR(50),
+    bairro VARCHAR(50),
+    cidade VARCHAR(50),
+    estado VARCHAR(2)
 );
 
 -- ==========================
@@ -32,6 +41,7 @@ CREATE TABLE responsaveis (
 CREATE TABLE alunos (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     usuario_id UUID NOT NULL UNIQUE,
+    data_nascimento DATE NOT NULL,
     data_matricula DATE,
     FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE ON UPDATE CASCADE
 );

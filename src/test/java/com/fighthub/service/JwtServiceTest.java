@@ -2,12 +2,14 @@ package com.fighthub.service;
 
 import com.fighthub.exception.TokenExpiradoException;
 import com.fighthub.exception.TokenInvalidoException;
+import com.fighthub.model.Endereco;
 import com.fighthub.model.Usuario;
 import com.fighthub.model.enums.Role;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestTemplate;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -25,6 +27,8 @@ class JwtServiceTest {
     @InjectMocks
     private JwtService jwtService;
 
+    private Usuario usuario;
+
     @BeforeEach
     void setUp() {
         jwtService = new JwtService();
@@ -34,13 +38,34 @@ class JwtServiceTest {
         ReflectionTestUtils.setField(jwtService, "refreshExpiration", 604800000L);
 
         jwtService.init();
+
+        Endereco endereco = Endereco.builder()
+                .cep("12345-678")
+                .logradouro("Rua Exemplo")
+                .numero("123")
+                .complemento("Apto 45")
+                .bairro("Centro")
+                .cidade("São Paulo")
+                .estado("SP")
+                .build();
+
+        usuario = new Usuario(
+                UUID.randomUUID(),
+                "Teste",
+                "teste@gmail.com",
+                "senhaCriptografada",
+                null,
+                Role.ALUNO,
+                false,
+                true,
+                "123.456.789-00",
+                "(11)91234-5678",
+                endereco
+        );
     }
 
     @Test
     void deveGerarTokenPadraoComSucesso() {
-        // Arrange
-        Usuario usuario = new Usuario(UUID.randomUUID(), "Teste", "teste@gmail.com", "senhaCriptografada", null, Role.ALUNO, false, true);
-
         // Act
         String result = jwtService.gerarToken(usuario);
 
@@ -51,9 +76,6 @@ class JwtServiceTest {
 
     @Test
     void deveGerarRefreshTokenComSucesso() {
-        // Arrange
-        Usuario usuario = new Usuario(UUID.randomUUID(), "Teste", "teste@gmail.com", "senhaCriptografada", null, Role.ALUNO, false, true);
-
         // Act
         String result = jwtService.gerarRefreshToken(usuario);
 
@@ -63,9 +85,17 @@ class JwtServiceTest {
     }
 
     @Test
+    void deveGerarTokenAtivacaoComSucesso() {
+        // Act
+        String result = jwtService.gerarTokenAtivacao(usuario);
+
+        // Assert
+        assertNotNull(result);
+        assertTrue(result.startsWith("eyJ"));
+    }
+
+    @Test
     void deveValidarTokenCorretamente() {
-        // Arrange
-        Usuario usuario = new Usuario(UUID.randomUUID(), "Teste", "teste@gmail.com", "senhaCriptografada", null, Role.ALUNO, false, true);
         String token = jwtService.gerarToken(usuario);
 
         // Act
@@ -93,7 +123,6 @@ class JwtServiceTest {
         ReflectionTestUtils.setField(jwtService, "expiration", 1L);
         jwtService.init();
 
-        Usuario usuario = new Usuario(UUID.randomUUID(), "Teste", "teste@gmail.com", "senhaCriptografada", null, Role.ALUNO, false, true);
         String tokenExpirado = jwtService.gerarToken(usuario);
 
         // Pequena pausa para garantir expiração
@@ -113,7 +142,6 @@ class JwtServiceTest {
     @Test
     void deveExtrairOEmailComSucesso_QuandoTokenForValido() {
         // Arrange
-        Usuario usuario = new Usuario(UUID.randomUUID(), "Teste", "teste@gmail.com", "senhaCriptografada", null, Role.ALUNO, false, true);
         String token = jwtService.gerarToken(usuario);
 
         // Act
@@ -143,7 +171,6 @@ class JwtServiceTest {
         ReflectionTestUtils.setField(jwtService, "expiration", 1L);
         jwtService.init();
 
-        Usuario usuario = new Usuario(UUID.randomUUID(), "Teste", "teste@gmail.com", "senhaCriptografada", null, Role.ALUNO, false, true);
         String tokenExpirado = jwtService.gerarToken(usuario);
 
         // Pequena pausa para garantir expiração

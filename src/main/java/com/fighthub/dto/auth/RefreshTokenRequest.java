@@ -1,10 +1,10 @@
-package com.fighthub.dto;
+package com.fighthub.dto.auth;
 
 import jakarta.validation.constraints.NotBlank;
 
 public record RefreshTokenRequest(
 
-        @NotBlank
+        @NotBlank(message = "Refresh Token é obrigatório")
         String refreshToken
 
 ) {

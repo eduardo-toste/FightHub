@@ -1,10 +1,37 @@
-INSERT INTO usuarios (id, nome, email, senha, role, login_social, ativo)
-VALUES (
+INSERT INTO usuarios (
+    id,
+    nome,
+    email,
+    senha,
+    foto,
+    role,
+    login_social,
+    ativo,
+    telefone,
+    cpf,
+    cep,
+    logradouro,
+    numero,
+    complemento,
+    bairro,
+    cidade,
+    estado
+) VALUES (
     '00000000-0000-0000-0000-000000000001',
     'Administrador',
     'admin@fighthub.com',
-    '$2a$12$j8YVgfczwSJn67JYPFULB.P2MUdlQ0mGhN34UaNUmrgGSTWtYtT.S', -- senha: admin123
+    '$2a$12$j8YVgfczwSJn67JYPFULB.P2MUdlQ0mGhN34UaNUmrgGSTWtYtT.S',
+    NULL,
     'ADMIN',
     false,
-    true
+    true,
+    '11999999999',
+    '00000000000',
+    '01234-567',
+    'Rua das Lutas',
+    '100',
+    'Sala 1',
+    'Centro',
+    'São Paulo',
+    'SP'
 );

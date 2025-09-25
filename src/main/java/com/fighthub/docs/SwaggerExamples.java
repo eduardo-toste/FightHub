@@ -35,4 +35,33 @@ public class SwaggerExamples {
         }
     """;
 
+    public static final String ERRO_VALIDACAO = """
+        {
+          "timestamp": "2025-09-23T15:11:37.967005-03:00",
+          "status": 400,
+          "error": "Bad Request",
+          "message": "Erro de validação: CPF inválido ou campos obrigatórios ausentes",
+          "path": "/alunos"
+        }
+    """;
+
+    public static final String ALUNO_NAO_ENCONTRADO = """
+        {
+          "timestamp": "2025-09-23T15:13:12.123456-03:00",
+          "status": 404,
+          "error": "Not Found",
+          "message": "Aluno não encontrado",
+          "path": "/alunos/{id}"
+        }
+    """;
+
+    public static final String ACESSO_NEGADO = """
+        {
+          "timestamp": "2025-09-23T15:13:12.123456-03:00",
+          "status": 403,
+          "error": "Forbidden",
+          "message": "Acesso negado",
+          "path": "/alunos"
+        }
+    """;
 }

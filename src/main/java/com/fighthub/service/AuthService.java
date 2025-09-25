@@ -1,11 +1,13 @@
 package com.fighthub.service;
 
-import com.fighthub.dto.AuthRequest;
-import com.fighthub.dto.AuthResponse;
-import com.fighthub.dto.RefreshTokenResponse;
+import com.fighthub.dto.auth.AuthRequest;
+import com.fighthub.dto.auth.AuthResponse;
+import com.fighthub.dto.auth.RefreshTokenResponse;
+import com.fighthub.exception.TipoTokenInvalido;
 import com.fighthub.exception.TokenInvalidoException;
 import com.fighthub.exception.UsuarioNaoEncontradoException;
-import com.fighthub.model.Usuario;
+import com.fighthub.model.enums.TokenType;
+import com.fighthub.repository.TokenRepository;
 import com.fighthub.repository.UsuarioRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class AuthService {
 
     private final UsuarioRepository usuarioRepository;
+    private final TokenRepository tokenRepository;
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
     private final TokenService tokenService;
@@ -58,6 +61,9 @@ public class AuthService {
             throw new TokenInvalidoException();
         }
 
+        tokenRepository.findByTokenAndTokenType(refreshToken, TokenType.REFRESH)
+                .orElseThrow(TipoTokenInvalido::new);
+
         var email = jwtService.extrairEmail(refreshToken);
         var usuario = usuarioRepository.findByEmail(email)
                 .orElseThrow(() -> {
@@ -65,7 +71,7 @@ public class AuthService {
                     return new UsuarioNaoEncontradoException();
                 });
 
-        tokenService.revogarAccessToken(usuario);
+        tokenService.revogarToken(usuario, TokenType.ACCESS);
 
         var newAccessToken = jwtService.gerarToken(usuario);
         tokenService.salvarAccessToken(usuario, newAccessToken);

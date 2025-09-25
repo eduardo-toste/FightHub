@@ -1,19 +1,19 @@
-# ========== DATABASE ==========
+# ==================== DATABASE ====================
 spring.datasource.url=jdbc:postgresql://localhost:5432/fighthub
-spring.datasource.username=admin
-spring.datasource.password=111222333
+spring.datasource.username=example_user
+spring.datasource.password=example_password
 spring.datasource.driver-class-name=org.postgresql.Driver
 
-# ========== JPA ==========
+# ==================== JPA ====================
 spring.jpa.hibernate.ddl-auto=validate
 spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
 spring.jpa.open-in-view=false
 
-# ========== FLYWAY ==========
+# ==================== FLYWAY ====================
 spring.flyway.enabled=true
 spring.flyway.locations=classpath:db/migration
 
-# ========== LOGGING ==========
+# ==================== LOGGING ====================
 # Define o nome da aplicação (usado nos logs)
 spring.application.name=fighthub
 
@@ -29,12 +29,19 @@ logging.level.org.hibernate.type.descriptor.sql.BasicBinder=TRACE
 logging.level.org.springframework.web=INFO
 logging.level.org.springframework.security=INFO
 
-# ========== TOKEN JWT ==========
+# ==================== TOKEN JWT ====================
 # Chave secreta usada para assinar o JWT
-security.jwt.secret=f4c818a6d3e94c92bd158e3d76c20455
+security.jwt.secret=example_secret_key
 
 # Tempo de expiração do access token (em milissegundos): 15 minutos
 security.jwt.expiration=900000
 
 # Tempo de expiração do refresh token (em milissegundos): 7 dias
 security.jwt.refresh-expiration=604800000
+
+# ==================== MAIL ====================
+mail.host=smtp.gmail.com
+mail.port=587
+mail.username=example@gmail.com
+mail.password=example_password
+mail.tls-enabled=true
