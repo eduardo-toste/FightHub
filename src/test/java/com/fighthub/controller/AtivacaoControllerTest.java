@@ -45,7 +45,7 @@ class AtivacaoControllerTest {
         when(jwtService.extrairEmail(any())).thenReturn("usuario@teste.com");
         when(usuarioRepository.findByEmail("usuario@teste.com")).thenReturn(Optional.empty());
         when(tokenRepository.findByTokenAndExpiredFalseAndRevokedFalse(any()))
-                .thenReturn(Optional.of(new com.fighthub.model.Token())); // 👈 garante que o filtro não vai barrar
+                .thenReturn(Optional.of(new com.fighthub.model.Token()));
     }
 
     @Test
@@ -62,8 +62,8 @@ class AtivacaoControllerTest {
 
         var request = new AtivacaoRequest(
                 "token-de-ativacao",
-                "Usuário Teste",
                 "senhaSegura123",
+                "(11)12345-6789",
                 endereco
         );
 
