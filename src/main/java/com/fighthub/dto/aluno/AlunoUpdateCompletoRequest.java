@@ -19,7 +19,7 @@ public record AlunoUpdateCompletoRequest(
         String nome,
 
         @NotBlank(message = "E-mail é obrigatório")
-        @Email(message = "E-mail inválido")
+        @Email(message = "E-mail deve ser válido")
         String email,
 
         String foto,

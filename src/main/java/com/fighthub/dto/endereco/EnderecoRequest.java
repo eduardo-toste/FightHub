@@ -5,25 +5,31 @@ import jakarta.validation.constraints.Size;
 
 public record EnderecoRequest(
 
-        @NotBlank @Size(max = 9)
+        @NotBlank(message = "CEP é obrigatório")
+        @Size(max = 9)
         String cep,
 
-        @NotBlank @Size(max = 100)
+        @NotBlank(message = "Logradouro é obrigatório")
+        @Size(max = 100)
         String logradouro,
 
-        @NotBlank @Size(max = 10)
+        @NotBlank(message = "Número é obrigatório")
+        @Size(max = 10)
         String numero,
 
         @Size(max = 50)
         String complemento,
 
-        @NotBlank @Size(max = 50)
+        @NotBlank(message = "Bairro é obrigatório")
+        @Size(max = 50)
         String bairro,
 
-        @NotBlank @Size(max = 50)
+        @NotBlank(message = "Cidade é obrigatório")
+        @Size(max = 50)
         String cidade,
 
-        @NotBlank @Size(min = 2, max = 2)
+        @NotBlank(message = "Estado é obrigatório")
+        @Size(min = 2, max = 2)
         String estado
 
 ) {

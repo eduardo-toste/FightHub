@@ -11,18 +11,18 @@ import java.util.UUID;
 
 public record CriarAlunoRequest(
 
-        @NotBlank
+        @NotBlank(message = "Nome é obrigatório")
         String nome,
 
-        @NotBlank
-        @Email
+        @NotBlank(message = "E-mail é obrigatório")
+        @Email(message = "E-mail deve ser válido")
         String email,
 
-        @CPF
-        @NotBlank
+        @CPF(message = "CPF deve ser válido")
+        @NotBlank(message = "CPF é obrigatório")
         String cpf,
 
-        @NotNull
+        @NotNull(message = "CPF é obrigatório, com o formato AAAA-MM-DD")
         LocalDate dataNascimento,
 
         List<UUID> idsResponsaveis

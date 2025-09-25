@@ -7,13 +7,16 @@ import jakarta.validation.constraints.Pattern;
 
 public record AtivacaoRequest(
 
-        @NotBlank
+        @NotBlank(message = "Token é obrigatório")
         String token,
 
-        @NotBlank
+        @NotBlank(message = "Senha é obrigatória")
         String senha,
 
-        @Pattern(regexp = "\\(?\\d{2}\\)?\\s?\\d{4,5}-\\d{4}", message = "Telefone inválido")
+        @Pattern(
+                regexp = "\\(?\\d{2}\\)?\\s?\\d{4,5}-\\d{4}",
+                message = "Telefone deve estar no formato (XX)XXXXX-XXXX"
+        )
         String telefone,
 
         @Valid
