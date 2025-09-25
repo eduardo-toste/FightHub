@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -52,7 +53,7 @@ public class AtivacaoController {
                             examples = @ExampleObject(name = "Aluno não encontrado", value = SwaggerExamples.ALUNO_NAO_ENCONTRADO)))
     })
     @PostMapping
-    public ResponseEntity<Void> ativarConta(@RequestBody AtivacaoRequest request) {
+    public ResponseEntity<Void> ativarConta(@RequestBody @Valid AtivacaoRequest request) {
         ativacaoService.ativarConta(request);
         return ResponseEntity.status(HttpStatus.OK).build();
     }
