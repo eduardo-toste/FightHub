@@ -12,9 +12,9 @@ public record AlunoDetalhadoResponse(
         String email,
         String telefone,
         String foto,
-        boolean ativo,
         LocalDate dataNascimento,
         LocalDate dataMatricula,
+        boolean matriculaAtiva,
         EnderecoResponse endereco,
         List<AlunoDetalhadoResponse.ResponsavelResumo> responsaveis
 ) {
