@@ -133,21 +133,34 @@ public class AlunoController {
     }
 
     @Operation(
-            summary = "Atualização do Status de Matricula de Aluno",
-            description = "Gerencia a situação da matricula do aluno, podendo estar ativa ou inativa."
+            summary = "Desativação de aluno",
+            description = "Desativa o aluno, impedindo sua participação em atividades até ser reativado."
     )
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Status da Matricula atualizado com sucesso"),
+            @ApiResponse(responseCode = "200", description = "Aluno desativado com sucesso"),
             @ApiResponse(responseCode = "404", description = "Aluno não encontrado",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class),
-                            examples = @ExampleObject(name = "Aluno não encontrado", value = SwaggerExamples.ALUNO_NAO_ENCONTRADO))),
-            @ApiResponse(responseCode = "409", description = "Status de matricula já atualizado",
-                    content = @Content(schema = @Schema(implementation = ErrorResponse.class),
-                            examples = @ExampleObject(name = "Status de matricula já atualizado", value = SwaggerExamples.MATRICULA_INVALIDA))),
+                            examples = @ExampleObject(name = "Aluno não encontrado", value = SwaggerExamples.ALUNO_NAO_ENCONTRADO)))
     })
-    @PatchMapping("/{id}/matricula")
-    public ResponseEntity<Void> updateMatricula(@PathVariable UUID id, @RequestBody AlunoUpdateMatriculaRequest request) {
-        alunoService.atualizarStatusMatricula(id, request);
+    @PatchMapping("/{id}/desativar")
+    public ResponseEntity<Void> desativarAluno(@PathVariable UUID id) {
+        alunoService.desativarAluno(id);
+        return ResponseEntity.status(HttpStatus.OK).build();
+    }
+
+    @Operation(
+            summary = "Reativação de aluno",
+            description = "Reativa um aluno previamente desativado."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Aluno reativado com sucesso"),
+            @ApiResponse(responseCode = "404", description = "Aluno não encontrado",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class),
+                            examples = @ExampleObject(name = "Aluno não encontrado", value = SwaggerExamples.ALUNO_NAO_ENCONTRADO)))
+    })
+    @PatchMapping("/{id}/reativar")
+    public ResponseEntity<Void> reativarAluno(@PathVariable UUID id) {
+        alunoService.reativarAluno(id);
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 }
