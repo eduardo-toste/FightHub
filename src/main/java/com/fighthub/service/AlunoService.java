@@ -2,6 +2,7 @@ package com.fighthub.service;
 
 import com.fighthub.dto.aluno.*;
 import com.fighthub.exception.AlunoNaoEncontradoException;
+import com.fighthub.exception.MatriculaInvalidaException;
 import com.fighthub.exception.ValidacaoException;
 import com.fighthub.mapper.AlunoMapper;
 import com.fighthub.model.Aluno;
@@ -95,20 +96,16 @@ public class AlunoService {
         return AlunoMapper.toDetailedDTO(alunoAtualizado);
     }
 
-    public void desativarAluno(UUID id) {
-        alterarStatusAluno(id, false);
-    }
-
-    public void reativarAluno(UUID id) {
-        alterarStatusAluno(id, true);
-    }
-
-    private void alterarStatusAluno(UUID id, boolean status) {
-        Aluno aluno = alunoRepository.findById(id)
+    public void atualizarStatusMatricula(UUID id, AlunoUpdateMatriculaRequest request) {
+        var aluno = alunoRepository.findById(id)
                 .orElseThrow(AlunoNaoEncontradoException::new);
 
-        aluno.getUsuario().setAtivo(status);
-        usuarioRepository.save(aluno.getUsuario());
+        if (aluno.isMatriculaAtiva() == request.matriculaAtiva()) {
+            throw new MatriculaInvalidaException();
+        }
+
+        aluno.setMatriculaAtiva(request.matriculaAtiva());
+        alunoRepository.save(aluno);
     }
 
     private Aluno atualizacaoParcial(Aluno aluno, AlunoUpdateParcialRequest request) {
