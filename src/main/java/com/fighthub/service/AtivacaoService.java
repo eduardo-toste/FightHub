@@ -1,13 +1,16 @@
 package com.fighthub.service;
 
 import com.fighthub.dto.auth.AtivacaoRequest;
+import com.fighthub.exception.AlunoNaoEncontradoException;
 import com.fighthub.exception.TokenInvalidoException;
 import com.fighthub.exception.ValidacaoException;
 import com.fighthub.mapper.EnderecoMapper;
 import com.fighthub.model.Endereco;
 import com.fighthub.model.Token;
 import com.fighthub.model.Usuario;
+import com.fighthub.model.enums.Role;
 import com.fighthub.model.enums.TokenType;
+import com.fighthub.repository.AlunoRepository;
 import com.fighthub.repository.TokenRepository;
 import com.fighthub.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +24,7 @@ public class AtivacaoService {
 
     private final TokenRepository tokenRepository;
     private final UsuarioRepository usuarioRepository;
+    private final AlunoRepository alunoRepository;
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
     private final JwtService jwtService;
@@ -41,6 +45,7 @@ public class AtivacaoService {
         tokenService.revogarToken(usuario, TokenType.ATIVACAO);
 
         usuarioRepository.save(usuario);
+        ativarMatriculaQuandoAluno(usuario);
         tokenRepository.save(token);
 
         emailService.enviarEmailConfirmacao(usuario);
@@ -53,5 +58,15 @@ public class AtivacaoService {
         usuario.setAtivo(true);
         usuario.setTelefone(request.telefone());
         usuario.setEndereco(endereco);
+    }
+
+    private void ativarMatriculaQuandoAluno(Usuario usuario) {
+        if (usuario.getRole().equals(Role.ALUNO)) {
+            var aluno = alunoRepository.findByUsuarioId(usuario.getId())
+                    .orElseThrow(AlunoNaoEncontradoException::new);
+
+            aluno.setMatriculaAtiva(true);
+            alunoRepository.save(aluno);
+        }
     }
 }
