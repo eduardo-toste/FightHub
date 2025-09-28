@@ -2,6 +2,7 @@ package com.fighthub.service;
 
 import com.fighthub.dto.aluno.*;
 import com.fighthub.exception.AlunoNaoEncontradoException;
+import com.fighthub.exception.CpfExistenteException;
 import com.fighthub.exception.MatriculaInvalidaException;
 import com.fighthub.exception.ValidacaoException;
 import com.fighthub.mapper.AlunoMapper;
@@ -39,6 +40,10 @@ public class AlunoService {
 
         if (usuarioRepository.existsByEmail(request.email())) {
             throw new ValidacaoException("E-mail já cadastrado");
+        }
+
+        if (usuarioRepository.findByCpf(request.cpf()).isPresent()) {
+            throw new CpfExistenteException();
         }
 
         Usuario usuario = usuarioRepository.save(Usuario.builder()
