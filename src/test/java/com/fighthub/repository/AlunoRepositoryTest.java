@@ -99,4 +99,13 @@ class AlunoRepositoryTest {
         assertTrue(result.isPresent());
     }
 
+    @Test
+    void deveRetornarAluno_QuandoBuscadoPeloUsuarioId() {
+        // Act
+        var result = alunoRepository.findByUsuarioId(usuario.getId());
+
+        // Assert
+        assertTrue(result.isPresent());
+    }
+
 }
