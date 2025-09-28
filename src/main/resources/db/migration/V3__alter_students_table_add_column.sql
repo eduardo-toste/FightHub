@@ -1,0 +1,2 @@
+ALTER TABLE alunos
+ADD COLUMN matricula_ativa BOOLEAN DEFAULT TRUE;

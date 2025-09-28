@@ -72,6 +72,22 @@ public class GlobalExceptionHandler {
         return ErrorBuilder.build(HttpStatus.CONFLICT, ex.getMessage(), request.getRequestURI());
     }
 
+    @ExceptionHandler(MatriculaInvalidaException.class)
+    public ResponseEntity<ErrorResponse> handleMatriculaInvalidaException(
+            MatriculaInvalidaException ex,
+            HttpServletRequest request
+    ) {
+        return ErrorBuilder.build(HttpStatus.CONFLICT, ex.getMessage(), request.getRequestURI());
+    }
+
+    @ExceptionHandler(CpfExistenteException.class)
+    public ResponseEntity<ErrorResponse> handleCpfExistenteException(
+            CpfExistenteException ex,
+            HttpServletRequest request
+    ) {
+        return ErrorBuilder.build(HttpStatus.CONFLICT, ex.getMessage(), request.getRequestURI());
+    }
+
     @ExceptionHandler(BusinessException.class)
     public ResponseEntity<ErrorResponse> handleBusinessException(
             BusinessException ex,

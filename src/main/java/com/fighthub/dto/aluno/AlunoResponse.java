@@ -10,8 +10,8 @@ public record AlunoResponse(
         String email,
         String telefone,
         String foto,
-        boolean ativo,
         LocalDate dataNascimento,
-        LocalDate dataMatricula
+        LocalDate dataMatricula,
+        boolean matriculaAtiva
 ) {
 }

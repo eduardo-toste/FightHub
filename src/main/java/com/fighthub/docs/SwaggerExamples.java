@@ -64,4 +64,14 @@ public class SwaggerExamples {
           "path": "/alunos"
         }
     """;
+
+    public static final String MATRICULA_INVALIDA = """
+        {
+          "timestamp": "2025-09-23T15:13:12.123456-03:00",
+          "status": 409,
+          "error": "Conflict",
+          "message": "A situação atual da matricula já está neste estado.",
+          "path": "/alunos/{id}/matricula"
+        }
+    """;
 }
