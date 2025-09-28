@@ -19,4 +19,6 @@ public interface AlunoRepository extends JpaRepository<Aluno, UUID> {
     @EntityGraph(attributePaths = {"usuario", "responsaveis", "responsaveis.usuario"})
     Optional<Aluno> findById(UUID id);
 
+    Optional<Aluno> findByUsuarioId(UUID id);
+
 }

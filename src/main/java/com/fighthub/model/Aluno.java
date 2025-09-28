@@ -34,6 +34,10 @@ public class Aluno {
     @Column(name = "data_matricula")
     private LocalDate dataMatricula;
 
+    @Setter
+    @Column(name = "matricula_ativa")
+    private boolean matriculaAtiva;
+
     @ManyToMany
     @JoinTable(
             name = "alunos_responsaveis",

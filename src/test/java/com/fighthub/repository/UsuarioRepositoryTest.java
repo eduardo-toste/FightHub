@@ -75,4 +75,23 @@ class UsuarioRepositoryTest {
         assertTrue(result.isEmpty());
     }
 
+    @Test
+    void deveBuscarUsuarioPeloCpf_QuandoExistir() {
+        // Act
+        repository.save(usuario);
+        var result = repository.findByCpf(usuario.getCpf());
+
+        // Assert
+        assertTrue(result.isPresent());
+    }
+
+    @Test
+    void deveBuscarUsuarioPeloCpf_QuandoNaoExistir() {
+        // Act
+        var result = repository.findByCpf(usuario.getCpf());
+
+        // Assert
+        assertTrue(result.isEmpty());
+    }
+
 }

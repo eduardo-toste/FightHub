@@ -1,11 +1,10 @@
 package com.fighthub.service;
 
-import com.fighthub.dto.aluno.AlunoResponse;
-import com.fighthub.dto.aluno.AlunoUpdateCompletoRequest;
-import com.fighthub.dto.aluno.AlunoUpdateParcialRequest;
-import com.fighthub.dto.aluno.CriarAlunoRequest;
+import com.fighthub.dto.aluno.*;
 import com.fighthub.dto.endereco.EnderecoRequest;
 import com.fighthub.exception.AlunoNaoEncontradoException;
+import com.fighthub.exception.CpfExistenteException;
+import com.fighthub.exception.MatriculaInvalidaException;
 import com.fighthub.exception.ValidacaoException;
 import com.fighthub.model.Aluno;
 import com.fighthub.model.Endereco;
@@ -85,6 +84,7 @@ class AlunoServiceTest {
                 .usuario(usuario)
                 .dataMatricula(LocalDate.now())
                 .dataNascimento(criarAlunoRequest.dataNascimento())
+                .matriculaAtiva(true)
                 .responsaveis(new ArrayList<>())
                 .build();
     }
@@ -112,6 +112,19 @@ class AlunoServiceTest {
                 () -> alunoService.criarAluno(criarAlunoRequest));
 
         assertEquals("E-mail já cadastrado", ex.getMessage());
+        verify(usuarioRepository, never()).save(any());
+        verify(emailService, never()).enviarEmailAtivacao(any(), any());
+    }
+
+    @Test
+    void deveLancarExcecao_QuandoCpfJaCadastrado() {
+        when(usuarioRepository.existsByEmail(criarAlunoRequest.email())).thenReturn(false);
+        when(usuarioRepository.findByCpf(criarAlunoRequest.cpf())).thenReturn(Optional.of(usuario));
+
+        var ex = assertThrows(CpfExistenteException.class,
+                () -> alunoService.criarAluno(criarAlunoRequest));
+
+        assertEquals("Usuário já existente com este CPF", ex.getMessage());
         verify(usuarioRepository, never()).save(any());
         verify(emailService, never()).enviarEmailAtivacao(any(), any());
     }
@@ -420,54 +433,6 @@ class AlunoServiceTest {
     }
 
     @Test
-    void deveDesativarAluno_QuandoAlunoExistir() {
-        var alunoId = aluno.getId();
-        when(alunoRepository.findById(alunoId)).thenReturn(Optional.of(aluno));
-
-        alunoService.desativarAluno(alunoId);
-
-        assertFalse(aluno.getUsuario().isAtivo());
-        verify(usuarioRepository).save(any());
-    }
-
-    @Test
-    void deveLancarExcecao_QuandoAlunoNaoExistir_AoDesativarAluno() {
-        var alunoId = aluno.getId();
-        when(alunoRepository.findById(alunoId)).thenReturn(Optional.empty());
-
-        var ex = assertThrows(AlunoNaoEncontradoException.class,
-                () -> alunoService.desativarAluno(alunoId));
-
-        assertNotNull(ex);
-        assertEquals("Aluno não encontrado.", ex.getMessage());
-        verify(alunoRepository).findById(alunoId);
-    }
-
-    @Test
-    void deveReativarAluno_QuandoAlunoExistir() {
-        var alunoId = aluno.getId();
-        when(alunoRepository.findById(alunoId)).thenReturn(Optional.of(aluno));
-
-        alunoService.reativarAluno(alunoId);
-
-        assertTrue(aluno.getUsuario().isAtivo());
-        verify(usuarioRepository).save(any());
-    }
-
-    @Test
-    void deveLancarExcecao_QuandoAlunoNaoExistir_AoReativarAluno() {
-        var alunoId = aluno.getId();
-        when(alunoRepository.findById(alunoId)).thenReturn(Optional.empty());
-
-        var ex = assertThrows(AlunoNaoEncontradoException.class,
-                () -> alunoService.reativarAluno(alunoId));
-
-        assertNotNull(ex);
-        assertEquals("Aluno não encontrado.", ex.getMessage());
-        verify(alunoRepository).findById(alunoId);
-    }
-
-    @Test
     void deveAtualizarAlunoParcialmente() {
         var request = new AlunoUpdateParcialRequest(
                 "João Atualizado",
@@ -546,6 +511,50 @@ class AlunoServiceTest {
         assertNotNull(ex);
         assertEquals("Aluno não encontrado.", ex.getMessage());
         verify(alunoRepository).findById(alunoId);
+    }
+
+    @Test
+    void deveAtualizarStatusMatriculaAluno_QuandoEstiverDiferenteDoRequest() {
+        var alunoId = aluno.getId();
+        var request = new AlunoUpdateMatriculaRequest(false);
+        when(alunoRepository.findById(alunoId)).thenReturn(Optional.of(aluno));
+
+        alunoService.atualizarStatusMatricula(alunoId, request);
+
+        verify(alunoRepository).findById(alunoId);
+        verify(alunoRepository).save(any());
+        verify(alunoRepository).save(argThat(a -> !a.isMatriculaAtiva()));
+    }
+
+    @Test
+    void deveLancarExcecao_QuandoAlunoNaoExistir_AoAtualizarStatusMatricula() {
+        var alunoId = aluno.getId();
+        var request = new AlunoUpdateMatriculaRequest(false);
+        when(alunoRepository.findById(alunoId)).thenReturn(Optional.empty());
+
+        var ex = assertThrows(AlunoNaoEncontradoException.class,
+                () -> alunoService.atualizarStatusMatricula(alunoId, request));
+
+        assertNotNull(ex);
+        assertEquals("Aluno não encontrado.", ex.getMessage());
+        verify(alunoRepository).findById(alunoId);
+        verify(alunoRepository, never()).save(any());
+    }
+
+    @Test
+    void deveLancarExcecao_QuandoStatusEstiverIgualAoRequest_AoAtualizarStatusMatricula() {
+        var alunoId = aluno.getId();
+        var request = new AlunoUpdateMatriculaRequest(false);
+        aluno.setMatriculaAtiva(false);
+        when(alunoRepository.findById(alunoId)).thenReturn(Optional.of(aluno));
+
+        var ex = assertThrows(MatriculaInvalidaException.class,
+                () -> alunoService.atualizarStatusMatricula(alunoId, request));
+
+        assertNotNull(ex);
+        assertEquals("A situação atual da matricula já está neste estado.", ex.getMessage());
+        verify(alunoRepository).findById(alunoId);
+        verify(alunoRepository, never()).save(any());
     }
 
 }

@@ -5,6 +5,8 @@ import com.fighthub.config.TestSecurityConfig;
 import com.fighthub.dto.aluno.*;
 import com.fighthub.dto.endereco.EnderecoRequest;
 import com.fighthub.dto.endereco.EnderecoResponse;
+import com.fighthub.exception.AlunoNaoEncontradoException;
+import com.fighthub.exception.MatriculaInvalidaException;
 import com.fighthub.model.Usuario;
 import com.fighthub.model.enums.Role;
 import com.fighthub.repository.TokenRepository;
@@ -102,9 +104,9 @@ class AlunoControllerTest {
                         "joao@email.com",
                         "(11)99999-9999",
                         null,
-                        true,
                         LocalDate.of(2003, 10, 15),
-                        LocalDate.now()
+                        LocalDate.now(),
+                        true
                 )
         ));
 
@@ -115,7 +117,7 @@ class AlunoControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content[0].nome").value("João"))
                 .andExpect(jsonPath("$.content[0].email").value("joao@email.com"))
-                .andExpect(jsonPath("$.content[0].ativo").value(true));
+                .andExpect(jsonPath("$.content[0].matriculaAtiva").value(true));
 
         verify(alunoService).obterTodos(any(Pageable.class));
     }
@@ -129,9 +131,9 @@ class AlunoControllerTest {
                 "joao@email.com",
                 "(11)99999-9999",
                 null,
-                true,
                 LocalDate.of(2003, 10, 15),
                 LocalDate.now(),
+                true,
                 new EnderecoResponse("12345-678", "Rua das Flores", "123", "Apto 45", "Centro", "São Paulo", "SP"),
                 List.of()
         );
@@ -175,9 +177,9 @@ class AlunoControllerTest {
                 "joao@email.com",
                 "(11)12345-6789",
                 null,
-                true,
                 LocalDate.now().minusYears(17),
                 LocalDate.now(),
+                true,
                 new EnderecoResponse(
                         "12345-678",
                         "Rua das Flores",
@@ -220,9 +222,9 @@ class AlunoControllerTest {
                 "joao@email.com",
                 "(11)99999-9999",
                 null,
-                true,
                 LocalDate.of(2003, 10, 15),
                 LocalDate.now(),
+                true,
                 null,
                 List.of()
         );
@@ -240,24 +242,54 @@ class AlunoControllerTest {
     }
 
     @Test
-    void deveDesativarAluno() throws Exception {
+    void deveAtualizarStatusMatricula_QuandoSucesso() throws Exception {
         UUID id = UUID.randomUUID();
+        var request = new AlunoUpdateMatriculaRequest(true);
 
-        mockMvc.perform(patch("/alunos/{id}/desativar", id)
-                        .header("Authorization", "Bearer " + TOKEN))
+        doNothing().when(alunoService).atualizarStatusMatricula(eq(id), eq(request));
+
+        mockMvc.perform(patch("/alunos/{id}/matricula", id)
+                        .header("Authorization", "Bearer " + TOKEN)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk());
 
-        verify(alunoService).desativarAluno(eq(id));
+        verify(alunoService).atualizarStatusMatricula(eq(id), eq(request));
     }
 
     @Test
-    void deveReativarAluno() throws Exception {
+    void deveRetornarNotFound_QuandoAlunoNaoExistir_AoAtualizarMatricula() throws Exception {
         UUID id = UUID.randomUUID();
+        var request = new AlunoUpdateMatriculaRequest(false);
 
-        mockMvc.perform(patch("/alunos/{id}/reativar", id)
-                        .header("Authorization", "Bearer " + TOKEN))
-                .andExpect(status().isOk());
+        doThrow(new AlunoNaoEncontradoException())
+                .when(alunoService).atualizarStatusMatricula(eq(id), eq(request));
 
-        verify(alunoService).reativarAluno(eq(id));
+        mockMvc.perform(patch("/alunos/{id}/matricula", id)
+                        .header("Authorization", "Bearer " + TOKEN)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").value("Aluno não encontrado."));
+
+        verify(alunoService).atualizarStatusMatricula(eq(id), eq(request));
+    }
+
+    @Test
+    void deveRetornarConflict_QuandoStatusJaEstiverAtualizado() throws Exception {
+        UUID id = UUID.randomUUID();
+        var request = new AlunoUpdateMatriculaRequest(true);
+
+        doThrow(new MatriculaInvalidaException())
+                .when(alunoService).atualizarStatusMatricula(eq(id), eq(request));
+
+        mockMvc.perform(patch("/alunos/{id}/matricula", id)
+                        .header("Authorization", "Bearer " + TOKEN)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.message").value("A situação atual da matricula já está neste estado."));
+
+        verify(alunoService).atualizarStatusMatricula(eq(id), eq(request));
     }
 }
