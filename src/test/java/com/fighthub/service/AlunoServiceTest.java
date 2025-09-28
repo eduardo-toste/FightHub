@@ -3,6 +3,7 @@ package com.fighthub.service;
 import com.fighthub.dto.aluno.*;
 import com.fighthub.dto.endereco.EnderecoRequest;
 import com.fighthub.exception.AlunoNaoEncontradoException;
+import com.fighthub.exception.CpfExistenteException;
 import com.fighthub.exception.MatriculaInvalidaException;
 import com.fighthub.exception.ValidacaoException;
 import com.fighthub.model.Aluno;
@@ -111,6 +112,19 @@ class AlunoServiceTest {
                 () -> alunoService.criarAluno(criarAlunoRequest));
 
         assertEquals("E-mail já cadastrado", ex.getMessage());
+        verify(usuarioRepository, never()).save(any());
+        verify(emailService, never()).enviarEmailAtivacao(any(), any());
+    }
+
+    @Test
+    void deveLancarExcecao_QuandoCpfJaCadastrado() {
+        when(usuarioRepository.existsByEmail(criarAlunoRequest.email())).thenReturn(false);
+        when(usuarioRepository.findByCpf(criarAlunoRequest.cpf())).thenReturn(Optional.of(usuario));
+
+        var ex = assertThrows(CpfExistenteException.class,
+                () -> alunoService.criarAluno(criarAlunoRequest));
+
+        assertEquals("Usuário já existente com este CPF", ex.getMessage());
         verify(usuarioRepository, never()).save(any());
         verify(emailService, never()).enviarEmailAtivacao(any(), any());
     }
