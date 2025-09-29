@@ -1,10 +1,13 @@
 package com.fighthub.service;
 
+import com.fighthub.dto.usuario.UpdateRoleRequest;
 import com.fighthub.dto.usuario.UsuarioDetalhadoResponse;
 import com.fighthub.dto.usuario.UsuarioResponse;
 import com.fighthub.exception.UsuarioNaoEncontradoException;
+import com.fighthub.exception.ValidacaoException;
 import com.fighthub.mapper.UsuarioMapper;
 import com.fighthub.repository.UsuarioRepository;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -25,5 +28,19 @@ public class UsuarioService {
     public UsuarioDetalhadoResponse obterUsuario(UUID id) {
         return UsuarioMapper.toDetailedDTO(usuarioRepository.findById(id)
                 .orElseThrow(UsuarioNaoEncontradoException::new));
+    }
+
+    public UsuarioResponse updateRole(UUID id, UpdateRoleRequest request) {
+        var usuario = usuarioRepository.findById(id)
+                .orElseThrow(UsuarioNaoEncontradoException::new);
+
+        if (usuario.getRole().equals(request.role())) {
+            throw new ValidacaoException("Usuário já cadastrado como " + request.role());
+        }
+
+        usuario.setRole(request.role());
+        usuarioRepository.save(usuario);
+
+        return UsuarioMapper.toDTO(usuario);
     }
 }
