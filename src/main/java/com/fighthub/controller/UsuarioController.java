@@ -58,7 +58,7 @@ public class UsuarioController {
 
     @PatchMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<UsuarioDetalhadoResponse> atualizarUsuarioParcial(@PathVariable UUID id, @RequestBody UsuarioUpdateParcialRequest request) {
+    public ResponseEntity<UsuarioDetalhadoResponse> atualizarUsuarioParcial(@PathVariable UUID id, @RequestBody @Valid UsuarioUpdateParcialRequest request) {
         var usuario = usuarioService.updateUsuarioParcial(id, request);
         return ResponseEntity.status(HttpStatus.OK).body(usuario);
     }
