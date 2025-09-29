@@ -7,6 +7,7 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
+import org.hibernate.validator.constraints.br.CPF;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -34,6 +35,7 @@ public record UsuarioUpdateCompletoRequest(
                 regexp = "\\d{3}\\.\\d{3}\\.\\d{3}-\\d{2}|\\d{11}",
                 message = "CPF deve ser válido"
         )
+        @CPF(message = "CPF deve ser válido")
         String cpf,
 
         @Valid
