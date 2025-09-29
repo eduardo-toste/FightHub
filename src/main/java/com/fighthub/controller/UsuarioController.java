@@ -1,6 +1,7 @@
 package com.fighthub.controller;
 
 import com.fighthub.dto.usuario.UpdateRoleRequest;
+import com.fighthub.dto.usuario.UpdateStatusRequest;
 import com.fighthub.dto.usuario.UsuarioDetalhadoResponse;
 import com.fighthub.dto.usuario.UsuarioResponse;
 import com.fighthub.model.Usuario;
@@ -41,6 +42,13 @@ public class UsuarioController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<UsuarioResponse> atualizarRole(@PathVariable UUID id, @RequestBody @Valid UpdateRoleRequest request) {
         var usuario = usuarioService.updateRole(id, request);
+        return ResponseEntity.status(HttpStatus.OK).body(usuario);
+    }
+
+    @PatchMapping("/{id}/status")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<UsuarioResponse> atualizarStatus(@PathVariable UUID id, @RequestBody @Valid UpdateStatusRequest request) {
+        var usuario = usuarioService.updateStatus(id, request);
         return ResponseEntity.status(HttpStatus.OK).body(usuario);
     }
 }
