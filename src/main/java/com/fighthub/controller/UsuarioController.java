@@ -1,9 +1,6 @@
 package com.fighthub.controller;
 
-import com.fighthub.dto.usuario.UpdateRoleRequest;
-import com.fighthub.dto.usuario.UpdateStatusRequest;
-import com.fighthub.dto.usuario.UsuarioDetalhadoResponse;
-import com.fighthub.dto.usuario.UsuarioResponse;
+import com.fighthub.dto.usuario.*;
 import com.fighthub.model.Usuario;
 import com.fighthub.service.UsuarioService;
 import jakarta.validation.Valid;
@@ -49,6 +46,20 @@ public class UsuarioController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<UsuarioResponse> atualizarStatus(@PathVariable UUID id, @RequestBody @Valid UpdateStatusRequest request) {
         var usuario = usuarioService.updateStatus(id, request);
+        return ResponseEntity.status(HttpStatus.OK).body(usuario);
+    }
+
+    @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<UsuarioDetalhadoResponse> atualizarUsuarioCompleto(@PathVariable UUID id, @RequestBody @Valid UsuarioUpdateCompletoRequest request) {
+        var usuario = usuarioService.updateUsuarioCompleto(id, request);
+        return ResponseEntity.status(HttpStatus.OK).body(usuario);
+    }
+
+    @PatchMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<UsuarioDetalhadoResponse> atualizarUsuarioParcial(@PathVariable UUID id, @RequestBody UsuarioUpdateParcialRequest request) {
+        var usuario = usuarioService.updateUsuarioParcial(id, request);
         return ResponseEntity.status(HttpStatus.OK).body(usuario);
     }
 }
