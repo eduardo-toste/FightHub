@@ -1,6 +1,7 @@
 package com.fighthub.service;
 
 import com.fighthub.dto.usuario.UpdateRoleRequest;
+import com.fighthub.dto.usuario.UpdateStatusRequest;
 import com.fighthub.dto.usuario.UsuarioDetalhadoResponse;
 import com.fighthub.dto.usuario.UsuarioResponse;
 import com.fighthub.exception.UsuarioNaoEncontradoException;
@@ -39,6 +40,24 @@ public class UsuarioService {
         }
 
         usuario.setRole(request.role());
+        usuarioRepository.save(usuario);
+
+        return UsuarioMapper.toDTO(usuario);
+    }
+
+    public UsuarioResponse updateStatus(UUID id, UpdateStatusRequest request) {
+        var usuario = usuarioRepository.findById(id)
+                .orElseThrow(UsuarioNaoEncontradoException::new);
+
+        if (usuario.isAtivo() == request.usuarioAtivo()) {
+            if (request.usuarioAtivo()) {
+                throw new ValidacaoException("Usuário já está ativo");
+            } else {
+                throw new ValidacaoException("Usuário já está inativo");
+            }
+        }
+
+        usuario.setAtivo(request.usuarioAtivo());
         usuarioRepository.save(usuario);
 
         return UsuarioMapper.toDTO(usuario);
