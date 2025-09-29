@@ -1,9 +1,6 @@
 package com.fighthub.service;
 
-import com.fighthub.dto.usuario.UpdateRoleRequest;
-import com.fighthub.dto.usuario.UpdateStatusRequest;
-import com.fighthub.dto.usuario.UsuarioDetalhadoResponse;
-import com.fighthub.dto.usuario.UsuarioResponse;
+import com.fighthub.dto.usuario.*;
 import com.fighthub.exception.UsuarioNaoEncontradoException;
 import com.fighthub.exception.ValidacaoException;
 import com.fighthub.mapper.UsuarioMapper;
@@ -61,5 +58,25 @@ public class UsuarioService {
         usuarioRepository.save(usuario);
 
         return UsuarioMapper.toDTO(usuario);
+    }
+
+    public UsuarioDetalhadoResponse updateUsuarioCompleto(UUID id, UsuarioUpdateCompletoRequest request) {
+        var usuario = usuarioRepository.findById(id)
+                .orElseThrow(UsuarioNaoEncontradoException::new);
+
+        usuario.putUpdate(request);
+        usuarioRepository.save(usuario);
+
+        return UsuarioMapper.toDetailedDTO(usuario);
+    }
+
+    public UsuarioDetalhadoResponse updateUsuarioParcial(UUID id, UsuarioUpdateParcialRequest request) {
+        var usuario = usuarioRepository.findById(id)
+                .orElseThrow(UsuarioNaoEncontradoException::new);
+
+        usuario.patchUpdate(request);
+        usuarioRepository.save(usuario);
+
+        return UsuarioMapper.toDetailedDTO(usuario);
     }
 }
