@@ -55,6 +55,26 @@ public class SwaggerExamples {
         }
     """;
 
+    public static final String USUARIO_NAO_ENCONTRADO = """
+        {
+          "timestamp": "2025-09-23T15:13:12.123456-03:00",
+          "status": 404,
+          "error": "Not Found",
+          "message": "Usuario não encontrado",
+          "path": "/usuarios/{id}"
+        }
+    """;
+
+    public static final String STATUS_INVALIDO = """
+        {
+          "timestamp": "2025-09-23T15:13:12.123456-03:00",
+          "status": 409,
+          "error": "Conflict",
+          "message": "Usuário já está ativo",
+          "path": "/alunos/{id}/status"
+        }
+    """;
+
     public static final String ACESSO_NEGADO = """
         {
           "timestamp": "2025-09-23T15:13:12.123456-03:00",
