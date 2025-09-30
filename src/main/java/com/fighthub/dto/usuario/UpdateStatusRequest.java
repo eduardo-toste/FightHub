@@ -6,7 +6,7 @@ import jakarta.validation.constraints.NotNull;
 public record UpdateStatusRequest(
 
         @NotNull(message = "Status de ativação é obrigatório")
-        boolean usuarioAtivo
+        Boolean usuarioAtivo
 
 ) {
 }
