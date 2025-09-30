@@ -88,6 +88,14 @@ public class GlobalExceptionHandler {
         return ErrorBuilder.build(HttpStatus.CONFLICT, ex.getMessage(), request.getRequestURI());
     }
 
+    @ExceptionHandler(ValidacaoException.class)
+    public ResponseEntity<ErrorResponse> handleValidacaoException(
+            ValidacaoException ex,
+            HttpServletRequest request
+    ) {
+        return ErrorBuilder.build(HttpStatus.CONFLICT, ex.getMessage(), request.getRequestURI());
+    }
+
     @ExceptionHandler(BusinessException.class)
     public ResponseEntity<ErrorResponse> handleBusinessException(
             BusinessException ex,
