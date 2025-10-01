@@ -17,6 +17,7 @@ import com.fighthub.service.AuthService;
 import com.fighthub.service.JwtService;
 import com.fighthub.service.UsuarioService;
 import com.fighthub.utils.ErrorWriter;
+import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,6 +49,7 @@ class UsuarioControllerTest {
 
     @Autowired private MockMvc mockMvc;
     @Autowired private ObjectMapper objectMapper;
+    @Autowired private HttpServletRequest request;
 
     @MockBean private UsuarioRepository usuarioRepository;
     @MockBean private TokenRepository tokenRepository;
@@ -400,6 +402,121 @@ class UsuarioControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("Authorization", "Bearer " + TOKEN)
                         .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void deveRetornarOsDadosDoUsuarioQueFezARequisicao() throws Exception {
+        EnderecoResponse enderecoResponse = new EnderecoResponse(
+                "04567-890", "Rua das Flores", "111",
+                "Apto 42B", "Jardim Primavera", "São Paulo", "SP"
+        );
+
+        UsuarioDetalhadoResponse response = new UsuarioDetalhadoResponse(
+                UUID.randomUUID(),
+                "João",
+                "480.528.920-15",
+                "joao@email.com",
+                "(11)98765-4321",
+                null,
+                Role.ALUNO,
+                false,
+                true,
+                enderecoResponse
+        );
+        when(usuarioService.obterDadosDoProprioUsuario(any())).thenReturn(response);
+
+        mockMvc.perform(get("/usuarios/me")
+                        .header("Authorization", "Bearer " + TOKEN))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.nome").value("João"));
+    }
+
+    @Test
+    void deveAtualizarProprioUsuarioPorCompleto() throws Exception {
+        var requestDTO = new UsuarioUpdateCompletoRequest(
+                "Atualizado",
+                "novo@email.com",
+                null,
+                "(11)91234-5678",
+                "480.528.920-15",
+                new EnderecoRequest("12345-678", "Rua Nova", "321", null, "Centro", "Cidade", "SP"),
+                Role.ALUNO,
+                true
+        );
+
+        var responseDTO = new UsuarioDetalhadoResponse(
+                UUID.randomUUID(),
+                "Atualizado",
+                "123.456.789-00",
+                "novo@email.com",
+                "(11)91234-5678",
+                null,
+                Role.ALUNO,
+                false,
+                true,
+                new EnderecoResponse("12345-678", "Rua Nova", "321", null, "Centro", "Cidade", "SP")
+        );
+
+        when(usuarioService.updateProprioCompleto(any(), eq(requestDTO))).thenReturn(responseDTO);
+
+        mockMvc.perform(put("/usuarios/me")
+                        .header("Authorization", "Bearer " + TOKEN)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(requestDTO)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.nome").value("Atualizado"))
+                .andExpect(jsonPath("$.email").value("novo@email.com"));
+    }
+
+    @Test
+    void deveAtualizarProprioUsuarioParcialmente() throws Exception {
+        var requestDTO = new UsuarioUpdateParcialRequest("Parcialmente Atualizado", null, null, null, null, null, null, true);
+
+        var responseDTO = new UsuarioDetalhadoResponse(
+                UUID.randomUUID(),
+                "Parcialmente Atualizado",
+                "123.456.789-00",
+                "usuario@teste.com",
+                "(11)91234-5678",
+                null,
+                Role.ALUNO,
+                false,
+                true,
+                new EnderecoResponse("12345-678", "Rua Nova", "321", null, "Centro", "Cidade", "SP")
+        );
+
+        when(usuarioService.updateProprioParcial(any(), eq(requestDTO))).thenReturn(responseDTO);
+
+        mockMvc.perform(patch("/usuarios/me")
+                        .header("Authorization", "Bearer " + TOKEN)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(requestDTO)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.nome").value("Parcialmente Atualizado"));
+    }
+
+    @Test
+    void deveAtualizarSenhaDoUsuario() throws Exception {
+        var requestDTO = new UpdateSenhaRequest("novaSenhaSegura123");
+
+        mockMvc.perform(patch("/usuarios/me/password")
+                        .header("Authorization", "Bearer " + TOKEN)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(requestDTO)))
+                .andExpect(status().isOk());
+
+        verify(usuarioService).updateSenha(any(), eq(requestDTO));
+    }
+
+    @Test
+    void deveRetornarBadRequestQuandoSenhaForInvalida() throws Exception {
+        var requestDTO = new UpdateSenhaRequest("");
+
+        mockMvc.perform(patch("/usuarios/me/password")
+                        .header("Authorization", "Bearer " + TOKEN)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(requestDTO)))
                 .andExpect(status().isBadRequest());
     }
 
