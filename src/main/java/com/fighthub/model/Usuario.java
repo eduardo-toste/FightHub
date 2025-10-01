@@ -1,5 +1,8 @@
 package com.fighthub.model;
 
+import com.fighthub.dto.usuario.UsuarioUpdateCompletoRequest;
+import com.fighthub.dto.usuario.UsuarioUpdateParcialRequest;
+import com.fighthub.mapper.EnderecoMapper;
 import com.fighthub.model.enums.Role;
 import jakarta.persistence.*;
 import lombok.*;
@@ -99,5 +102,27 @@ public class Usuario implements UserDetails {
     @Override
     public boolean isEnabled() {
         return this.ativo;
+    }
+
+    public void putUpdate(UsuarioUpdateCompletoRequest request) {
+        this.setNome(request.nome());
+        this.setEmail(request.email());
+        this.setFoto(request.foto());
+        this.setTelefone(request.telefone());
+        this.setCpf(request.cpf());
+        this.setEndereco(EnderecoMapper.toEntity(request.endereco()));
+        this.setRole(request.role());
+        this.setAtivo(request.ativo());
+    }
+
+    public void patchUpdate(UsuarioUpdateParcialRequest request) {
+        if (request.nome() != null) { this.setNome(request.nome()); }
+        if (request.email() != null) { this.setEmail(request.email()); }
+        if (request.foto() != null) { this.setFoto(request.foto()); }
+        if (request.telefone() != null) { this.setTelefone(request.telefone()); }
+        if (request.cpf() != null) { this.setCpf(request.cpf()); }
+        if (request.endereco() != null) { this.setEndereco(EnderecoMapper.toEntity(request.endereco())); }
+        if (request.role() != null) { this.setRole(request.role()); }
+        if (request.ativo() != null) { this.setAtivo(request.ativo()); }
     }
 }
