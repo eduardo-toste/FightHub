@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -153,5 +154,29 @@ public class UsuarioController {
     public ResponseEntity<UsuarioDetalhadoResponse> atualizarUsuarioParcial(@PathVariable UUID id, @RequestBody @Valid UsuarioUpdateParcialRequest request) {
         var usuario = usuarioService.updateUsuarioParcial(id, request);
         return ResponseEntity.status(HttpStatus.OK).body(usuario);
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<UsuarioDetalhadoResponse> obterDadosProprios(HttpServletRequest request) {
+        var usuario = usuarioService.obterDadosDoProprioUsuario(request);
+        return ResponseEntity.status(HttpStatus.OK).body(usuario);
+    }
+
+    @PutMapping("/me")
+    public ResponseEntity<UsuarioDetalhadoResponse> alterarDadosPropriosCompletamente(HttpServletRequest request, @RequestBody @Valid UsuarioUpdateCompletoRequest updateRequest) {
+        var usuario = usuarioService.updateProprioCompleto(request, updateRequest);
+        return ResponseEntity.status(HttpStatus.OK).body(usuario);
+    }
+
+    @PatchMapping("/me")
+    public ResponseEntity<UsuarioDetalhadoResponse> alterarDadosPropriosParcialmente(HttpServletRequest request, @RequestBody @Valid UsuarioUpdateParcialRequest updateRequest) {
+        var usuario = usuarioService.updateProprioParcial(request, updateRequest);
+        return ResponseEntity.status(HttpStatus.OK).body(usuario);
+    }
+
+    @PatchMapping("/me/password")
+    public ResponseEntity<Void> alterarSenha(HttpServletRequest request, @RequestBody @Valid UpdateSenhaRequest updateRequest) {
+        usuarioService.updateSenha(request, updateRequest);
+        return ResponseEntity.status(HttpStatus.OK).build();
     }
 }
