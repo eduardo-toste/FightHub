@@ -1,14 +1,21 @@
 package com.fighthub.service;
 
 import com.fighthub.dto.usuario.*;
+import com.fighthub.exception.TokenInvalidoException;
 import com.fighthub.exception.UsuarioNaoEncontradoException;
 import com.fighthub.exception.ValidacaoException;
 import com.fighthub.mapper.UsuarioMapper;
+import com.fighthub.model.Token;
+import com.fighthub.model.Usuario;
+import com.fighthub.repository.TokenRepository;
 import com.fighthub.repository.UsuarioRepository;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpHeaders;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.UUID;
@@ -18,6 +25,8 @@ import java.util.UUID;
 public class UsuarioService {
 
     private final UsuarioRepository usuarioRepository;
+    private final JwtService jwtService;
+    private final PasswordEncoder passwordEncoder;
 
     public Page<UsuarioResponse> obterTodosUsuarios(Pageable pageable) {
         return UsuarioMapper.toPage(usuarioRepository.findAll(pageable));
@@ -78,5 +87,43 @@ public class UsuarioService {
         usuarioRepository.save(usuario);
 
         return UsuarioMapper.toDetailedDTO(usuario);
+    }
+
+    public UsuarioDetalhadoResponse obterDadosDoProprioUsuario(HttpServletRequest request) {
+        Usuario usuario = obterUsuarioPorEmail(request);
+        return UsuarioMapper.toDetailedDTO(usuario);
+    }
+
+    public UsuarioDetalhadoResponse updateProprioCompleto(HttpServletRequest request, UsuarioUpdateCompletoRequest updateRequest) {
+        Usuario usuario = obterUsuarioPorEmail(request);
+
+        usuario.putUpdate(updateRequest);
+        usuarioRepository.save(usuario);
+
+        return UsuarioMapper.toDetailedDTO(usuario);
+    }
+
+    public UsuarioDetalhadoResponse updateProprioParcial(HttpServletRequest request, UsuarioUpdateParcialRequest updateRequest) {
+        Usuario usuario = obterUsuarioPorEmail(request);
+
+        usuario.patchUpdate(updateRequest);
+        usuarioRepository.save(usuario);
+
+        return UsuarioMapper.toDetailedDTO(usuario);
+    }
+
+    public void updateSenha(HttpServletRequest request, UpdateSenhaRequest updateRequest) {
+        Usuario usuario = obterUsuarioPorEmail(request);
+        usuario.setSenha(passwordEncoder.encode(updateRequest.senha()));
+        usuarioRepository.save(usuario);
+    }
+
+    private Usuario obterUsuarioPorEmail(HttpServletRequest request) {
+        final String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
+        final String jwt = authHeader.substring(7);
+        final String emailUsuario = jwtService.extrairEmail(jwt);
+
+        return usuarioRepository.findByEmail(emailUsuario)
+                .orElseThrow(UsuarioNaoEncontradoException::new);
     }
 }
