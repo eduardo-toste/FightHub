@@ -1,10 +1,7 @@
 package com.fighthub.service;
 
 import com.fighthub.dto.endereco.EnderecoRequest;
-import com.fighthub.dto.usuario.UpdateRoleRequest;
-import com.fighthub.dto.usuario.UpdateStatusRequest;
-import com.fighthub.dto.usuario.UsuarioUpdateCompletoRequest;
-import com.fighthub.dto.usuario.UsuarioUpdateParcialRequest;
+import com.fighthub.dto.usuario.*;
 import com.fighthub.exception.UsuarioNaoEncontradoException;
 import com.fighthub.exception.ValidacaoException;
 import com.fighthub.model.Aluno;
@@ -12,6 +9,7 @@ import com.fighthub.model.Endereco;
 import com.fighthub.model.Usuario;
 import com.fighthub.model.enums.Role;
 import com.fighthub.repository.UsuarioRepository;
+import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -22,6 +20,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpHeaders;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.List;
 import java.util.Optional;
@@ -35,6 +35,15 @@ class UsuarioServiceTest {
 
     @Mock
     private UsuarioRepository usuarioRepository;
+
+    @Mock
+    private HttpServletRequest request;
+
+    @Mock
+    private JwtService jwtService;
+
+    @Mock
+    private PasswordEncoder passwordEncoder;
 
     @InjectMocks
     private UsuarioService usuarioService;
@@ -238,6 +247,38 @@ class UsuarioServiceTest {
     }
 
     @Test
+    void deveLancarExcecao_QuandoUsuarioNaoForEncontrado_AoAtualizarUsuarioPorCompleto() {
+        var userId = usuario.getId();
+        var enderecoRequest = new EnderecoRequest(
+                "12345-677",
+                "Rua da Flor",
+                "113",
+                "Apto 44",
+                "Centro",
+                "São Paulo",
+                "SP"
+        );
+        var request = new UsuarioUpdateCompletoRequest(
+                "Nome Atualizado",
+                "email_att@example.com",
+                null,
+                "(11)12346-5897",
+                "111.111.111-22",
+                enderecoRequest,
+                Role.ALUNO,
+                true
+        );
+        when(usuarioRepository.findById(userId)).thenReturn(Optional.empty());
+
+        var ex = assertThrows(UsuarioNaoEncontradoException.class,
+                () -> usuarioService.updateUsuarioCompleto(userId, request));
+
+        assertNotNull(ex);
+        assertEquals("Usuário não encontrado.", ex.getMessage());
+        verify(usuarioRepository, never()).save(usuario);
+    }
+
+    @Test
     void deveAtualizarUsuarioParcialmente() {
         var userId = usuario.getId();
         var request = new UsuarioUpdateParcialRequest(
@@ -258,5 +299,223 @@ class UsuarioServiceTest {
         assertEquals("Nome Atualizacao Parcial", result.nome());
         verify(usuarioRepository).findById(userId);
         verify(usuarioRepository).save(usuario);
+    }
+
+    @Test
+    void deveLancarExcecao_QuandoUsuarioNaoForEncontrado_AoAtualizarUsuarioParcialmente() {
+        var userId = usuario.getId();
+        var request = new UsuarioUpdateParcialRequest(
+                "Nome Atualizacao Parcial",
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                true
+        );
+        when(usuarioRepository.findById(userId)).thenReturn(Optional.empty());
+
+        var ex = assertThrows(UsuarioNaoEncontradoException.class,
+                () -> usuarioService.updateUsuarioParcial(userId, request));
+
+        assertNotNull(ex);
+        assertEquals("Usuário não encontrado.", ex.getMessage());
+        verify(usuarioRepository, never()).save(usuario);
+    }
+
+    @Test
+    void deveRetornarOsDadosDoUsuarioQueFezARequisicao() {
+        String jwt = "token-valido";
+        String email = "email@teste.com";
+        when(request.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn("Bearer " + jwt);
+        when(jwtService.extrairEmail(jwt)).thenReturn(email);
+        when(usuarioRepository.findByEmail(email)).thenReturn(Optional.of(usuario));
+
+        var result = usuarioService.obterDadosDoProprioUsuario(request);
+
+        assertNotNull(result);
+        assertEquals("Usuario Teste", result.nome());
+        assertEquals("email@teste.com", result.email());
+        assertEquals("111.111.111-11", result.cpf());
+        verify(request).getHeader(HttpHeaders.AUTHORIZATION);
+        verify(jwtService).extrairEmail(jwt);
+        verify(usuarioRepository).findByEmail(email);
+    }
+
+    @Test
+    void deveLancarExcecao_QuandoUsuarioNaoForEncontrado_AoRetornarOsDadosDoUsuarioQueFezARequisicao() {
+        String jwt = "token-valido";
+        String email = "email@teste.com";
+        when(request.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn("Bearer " + jwt);
+        when(jwtService.extrairEmail(jwt)).thenReturn(email);
+        when(usuarioRepository.findByEmail(email)).thenReturn(Optional.empty());
+
+        var ex = assertThrows(UsuarioNaoEncontradoException.class,
+                () -> usuarioService.obterDadosDoProprioUsuario(request));
+
+        assertNotNull(ex);
+        assertEquals("Usuário não encontrado.", ex.getMessage());
+    }
+
+    @Test
+    void deveAtualizarProprioUsuarioPorCompleto() {
+        String jwt = "token-valido";
+        String email = "email@teste.com";
+        var enderecoRequest = new EnderecoRequest(
+                "12345-677",
+                "Rua da Flor",
+                "113",
+                "Apto 44",
+                "Centro",
+                "São Paulo",
+                "SP"
+        );
+        var updateRequest = new UsuarioUpdateCompletoRequest(
+                "Nome Atualizado",
+                "email_att@example.com",
+                null,
+                "(11)12346-5897",
+                "111.111.111-22",
+                enderecoRequest,
+                Role.ALUNO,
+                true
+        );
+        when(request.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn("Bearer " + jwt);
+        when(jwtService.extrairEmail(jwt)).thenReturn(email);
+        when(usuarioRepository.findByEmail(email)).thenReturn(Optional.of(usuario));
+
+        var result = usuarioService.updateProprioCompleto(request, updateRequest);
+
+        assertNotNull(result);
+        assertEquals("Nome Atualizado", result.nome());
+        assertEquals("email_att@example.com", result.email());
+        assertEquals("111.111.111-22", result.cpf());
+        verify(usuarioRepository).findByEmail(email);
+        verify(usuarioRepository).save(usuario);
+    }
+
+    @Test
+    void deveLancarExcecao_QuandoUsuarioNaoForEncontrado_AoAtualizarProprioUsuarioPorCompleto() {
+        String jwt = "token-valido";
+        String email = "email@teste.com";
+        var enderecoRequest = new EnderecoRequest(
+                "12345-677",
+                "Rua da Flor",
+                "113",
+                "Apto 44",
+                "Centro",
+                "São Paulo",
+                "SP"
+        );
+        var updateRequest = new UsuarioUpdateCompletoRequest(
+                "Nome Atualizado",
+                "email_att@example.com",
+                null,
+                "(11)12346-5897",
+                "111.111.111-22",
+                enderecoRequest,
+                Role.ALUNO,
+                true
+        );
+        when(request.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn("Bearer " + jwt);
+        when(jwtService.extrairEmail(jwt)).thenReturn(email);
+        when(usuarioRepository.findByEmail(email)).thenReturn(Optional.empty());
+
+        var ex = assertThrows(UsuarioNaoEncontradoException.class,
+                () -> usuarioService.updateProprioCompleto(request, updateRequest));
+
+        assertNotNull(ex);
+        assertEquals("Usuário não encontrado.", ex.getMessage());
+        verify(usuarioRepository, never()).save(usuario);
+    }
+
+    @Test
+    void deveAtualizarProprioUsuarioParcialmente() {
+        String jwt = "token-valido";
+        String email = "email@teste.com";
+        var updateRequest = new UsuarioUpdateParcialRequest(
+                "Nome Atualizacao Parcial",
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                true
+        );
+        when(request.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn("Bearer " + jwt);
+        when(jwtService.extrairEmail(jwt)).thenReturn(email);
+        when(usuarioRepository.findByEmail(email)).thenReturn(Optional.of(usuario));
+
+        var result = usuarioService.updateProprioParcial(request, updateRequest);
+
+        assertNotNull(result);
+        assertEquals("Nome Atualizacao Parcial", result.nome());
+        verify(usuarioRepository).findByEmail(email);
+        verify(usuarioRepository).save(usuario);
+    }
+
+    @Test
+    void deveLancarExcecao_QuandoUsuarioNaoForEncontrado_AoAtualizarProprioUsuarioParcialmente() {
+        String jwt = "token-valido";
+        String email = "email@teste.com";
+        var updateRequest = new UsuarioUpdateParcialRequest(
+                "Nome Atualizacao Parcial",
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                true
+        );
+        when(request.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn("Bearer " + jwt);
+        when(jwtService.extrairEmail(jwt)).thenReturn(email);
+        when(usuarioRepository.findByEmail(email)).thenReturn(Optional.empty());
+
+        var ex = assertThrows(UsuarioNaoEncontradoException.class,
+                () -> usuarioService.updateProprioParcial(request, updateRequest));
+
+        assertNotNull(ex);
+        assertEquals("Usuário não encontrado.", ex.getMessage());
+        verify(usuarioRepository, never()).save(usuario);
+    }
+
+    @Test
+    void deveAlterarAPropriaSenha() {
+        String jwt = "token-valido";
+        String email = "email@teste.com";
+        UpdateSenhaRequest updateRequest = new UpdateSenhaRequest("senha-request");
+        String senhaCriptografada = "senha-criptografada";
+        when(request.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn("Bearer " + jwt);
+        when(jwtService.extrairEmail(jwt)).thenReturn(email);
+        when(usuarioRepository.findByEmail(email)).thenReturn(Optional.of(usuario));
+        when(passwordEncoder.encode(updateRequest.senha())).thenReturn(senhaCriptografada);
+
+        usuarioService.updateSenha(request, updateRequest);
+
+        assertEquals("senha-criptografada", usuario.getSenha());
+        verify(request).getHeader(HttpHeaders.AUTHORIZATION);
+        verify(jwtService).extrairEmail(jwt);
+        verify(usuarioRepository).findByEmail(email);
+        verify(passwordEncoder).encode(updateRequest.senha());
+    }
+
+    @Test
+    void deveLancarExcecao_QuandoUsuarioNaoForEncontrado_AoAtualizarProprioSenha() {
+        String jwt = "token-valido";
+        String email = "email@teste.com";
+        UpdateSenhaRequest updateRequest = new UpdateSenhaRequest("senha-request");
+        when(request.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn("Bearer " + jwt);
+        when(jwtService.extrairEmail(jwt)).thenReturn(email);
+        when(usuarioRepository.findByEmail(email)).thenReturn(Optional.empty());
+
+        var ex = assertThrows(UsuarioNaoEncontradoException.class,
+                () -> usuarioService.updateSenha(request, updateRequest));
+
+        assertNotNull(ex);
+        assertEquals("Usuário não encontrado.", ex.getMessage());
+        verify(usuarioRepository, never()).save(usuario);
     }
 }
