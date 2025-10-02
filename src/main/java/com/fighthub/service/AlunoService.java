@@ -83,24 +83,6 @@ public class AlunoService {
         return AlunoMapper.toDetailedDTO(aluno);
     }
 
-    public AlunoDetalhadoResponse updateAlunoCompleto(UUID id, AlunoUpdateCompletoRequest request) {
-        var aluno = alunoRepository.findById(id)
-                .orElseThrow(AlunoNaoEncontradoException::new);
-
-        isMenorDeIdade(request.dataNascimento(), request.idsResponsaveis());
-
-        var alunoAtualizado = atualizacaoCompleta(aluno, request);
-        return AlunoMapper.toDetailedDTO(alunoAtualizado);
-    }
-
-    public AlunoDetalhadoResponse updateAlunoParcial(UUID id, AlunoUpdateParcialRequest request) {
-        var aluno = alunoRepository.findById(id)
-                .orElseThrow(AlunoNaoEncontradoException::new);
-
-        var alunoAtualizado = atualizacaoParcial(aluno, request);
-        return AlunoMapper.toDetailedDTO(alunoAtualizado);
-    }
-
     public void atualizarStatusMatricula(UUID id, AlunoUpdateMatriculaRequest request) {
         var aluno = alunoRepository.findById(id)
                 .orElseThrow(AlunoNaoEncontradoException::new);
@@ -111,31 +93,6 @@ public class AlunoService {
 
         aluno.setMatriculaAtiva(request.matriculaAtiva());
         alunoRepository.save(aluno);
-    }
-
-    private Aluno atualizacaoParcial(Aluno aluno, AlunoUpdateParcialRequest request) {
-        return atualizarAluno(aluno, request.idsResponsaveis(),
-                (a, responsaveis) -> a.patchUpdate(request, responsaveis));
-    }
-
-    private Aluno atualizacaoCompleta(Aluno aluno, AlunoUpdateCompletoRequest request) {
-        return atualizarAluno(aluno, request.idsResponsaveis(),
-                (a, responsaveis) -> a.putUpdate(request, responsaveis));
-    }
-
-    private Aluno atualizarAluno(
-            Aluno aluno,
-            List<UUID> idsResponsaveis,
-            BiConsumer<Aluno, List<Responsavel>> atualizarFunc
-    ) {
-        List<Responsavel> responsaveis =
-                (idsResponsaveis != null && !idsResponsaveis.isEmpty())
-                        ? responsavelRepository.findAllById(idsResponsaveis)
-                        : List.of();
-
-        atualizarFunc.accept(aluno, responsaveis);
-        usuarioRepository.save(aluno.getUsuario());
-        return aluno;
     }
 
     private boolean isMenorDeIdade(LocalDate dataNascimento, List<UUID> idsResponsaveis) {
