@@ -1,7 +1,5 @@
 package com.fighthub.model;
 
-import com.fighthub.dto.aluno.AlunoUpdateCompletoRequest;
-import com.fighthub.dto.aluno.AlunoUpdateParcialRequest;
 import com.fighthub.mapper.EnderecoMapper;
 import jakarta.persistence.*;
 import lombok.*;
@@ -45,33 +43,5 @@ public class Aluno {
             inverseJoinColumns = @JoinColumn(name = "responsavel_id")
     )
     private List<Responsavel> responsaveis = new ArrayList<>();
-
-    public void putUpdate(AlunoUpdateCompletoRequest request, List<Responsavel> novosResponsaveis) {
-        this.usuario.setNome(request.nome());
-        this.usuario.setEmail(request.email());
-        this.usuario.setFoto(request.foto());
-        this.usuario.setTelefone(request.telefone());
-        this.usuario.setEndereco(EnderecoMapper.toEntity(request.endereco()));
-        this.dataNascimento = request.dataNascimento();
-        this.responsaveis.clear();
-        if (novosResponsaveis != null && !novosResponsaveis.isEmpty()) {
-            this.responsaveis.addAll(novosResponsaveis);
-        }
-    }
-
-    public void patchUpdate(AlunoUpdateParcialRequest request, List<Responsavel> novosResponsaveis) {
-        if (request.nome() != null) { this.usuario.setNome(request.nome()); }
-        if (request.email() != null) { this.usuario.setEmail(request.email()); }
-        if (request.foto() != null) { this.usuario.setFoto(request.foto()); }
-        if (request.telefone() != null) { this.usuario.setTelefone(request.telefone()); }
-        if (request.endereco() != null && this.usuario.getEndereco() != null) {
-            this.usuario.getEndereco().patchUpdate(request.endereco());
-        }
-        if (request.dataNascimento() != null) { this.dataNascimento = request.dataNascimento();}
-        if (novosResponsaveis != null && !novosResponsaveis.isEmpty()) {
-            this.responsaveis.clear();
-            this.responsaveis.addAll(novosResponsaveis);
-        }
-    }
 
 }
