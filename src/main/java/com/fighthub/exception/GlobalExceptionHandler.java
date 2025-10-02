@@ -44,14 +44,6 @@ public class GlobalExceptionHandler {
         return ErrorBuilder.build(HttpStatus.UNAUTHORIZED, ex.getMessage(), request.getRequestURI());
     }
 
-    @ExceptionHandler(TipoTokenInvalido.class)
-    public ResponseEntity<ErrorResponse> handleTipoTokenInvalido(
-            TipoTokenInvalido ex,
-            HttpServletRequest request
-    ) {
-        return ErrorBuilder.build(HttpStatus.FORBIDDEN, ex.getMessage(), request.getRequestURI());
-    }
-
     @ExceptionHandler(TokenExpiradoException.class)
     public ResponseEntity<ErrorResponse> handleTokenInvalido(
             TokenExpiradoException ex,
