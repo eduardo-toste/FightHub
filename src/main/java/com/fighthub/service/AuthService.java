@@ -3,9 +3,9 @@ package com.fighthub.service;
 import com.fighthub.dto.auth.AuthRequest;
 import com.fighthub.dto.auth.AuthResponse;
 import com.fighthub.dto.auth.RefreshTokenResponse;
-import com.fighthub.exception.TipoTokenInvalido;
 import com.fighthub.exception.TokenInvalidoException;
 import com.fighthub.exception.UsuarioNaoEncontradoException;
+import com.fighthub.exception.ValidacaoException;
 import com.fighthub.model.enums.TokenType;
 import com.fighthub.repository.TokenRepository;
 import com.fighthub.repository.UsuarioRepository;
@@ -62,7 +62,7 @@ public class AuthService {
         }
 
         tokenRepository.findByTokenAndTokenType(refreshToken, TokenType.REFRESH)
-                .orElseThrow(TipoTokenInvalido::new);
+                .orElseThrow(() -> new ValidacaoException("O token recebido não é do tipo REFRESH"));
 
         var email = jwtService.extrairEmail(refreshToken);
         var usuario = usuarioRepository.findByEmail(email)
