@@ -85,54 +85,6 @@ public class AlunoController {
     }
 
     @Operation(
-            summary = "Atualização completa de aluno",
-            description = """
-                    Atualiza **todos os dados** de um aluno existente.
-                    - Substitui completamente o estado atual.
-                    - Exige endereço válido e todos os campos obrigatórios.
-                    """
-    )
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Aluno atualizado com sucesso",
-                    content = @Content(schema = @Schema(implementation = AlunoDetalhadoResponse.class))),
-            @ApiResponse(responseCode = "400", description = "Dados inválidos para atualização",
-                    content = @Content(schema = @Schema(implementation = ErrorResponse.class),
-                            examples = @ExampleObject(name = "Erro de validação", value = SwaggerExamples.ERRO_VALIDACAO))),
-            @ApiResponse(responseCode = "404", description = "Aluno não encontrado",
-                    content = @Content(schema = @Schema(implementation = ErrorResponse.class),
-                            examples = @ExampleObject(name = "Aluno não encontrado", value = SwaggerExamples.ALUNO_NAO_ENCONTRADO)))
-    })
-    @PutMapping("/{id}")
-    public ResponseEntity<AlunoDetalhadoResponse> updateCompleto(
-            @PathVariable UUID id,
-            @RequestBody @Valid AlunoUpdateCompletoRequest request) {
-        var alunoAtualizado = alunoService.updateAlunoCompleto(id, request);
-        return ResponseEntity.status(HttpStatus.OK).body(alunoAtualizado);
-    }
-
-    @Operation(
-            summary = "Atualização parcial de aluno",
-            description = "Permite atualizar apenas os campos informados do aluno, sem substituir o estado inteiro."
-    )
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Aluno atualizado com sucesso",
-                    content = @Content(schema = @Schema(implementation = AlunoDetalhadoResponse.class))),
-            @ApiResponse(responseCode = "400", description = "Dados inválidos para atualização",
-                    content = @Content(schema = @Schema(implementation = ErrorResponse.class),
-                            examples = @ExampleObject(name = "Erro de validação", value = SwaggerExamples.ERRO_VALIDACAO))),
-            @ApiResponse(responseCode = "404", description = "Aluno não encontrado",
-                    content = @Content(schema = @Schema(implementation = ErrorResponse.class),
-                            examples = @ExampleObject(name = "Aluno não encontrado", value = SwaggerExamples.ALUNO_NAO_ENCONTRADO)))
-    })
-    @PatchMapping("/{id}")
-    public ResponseEntity<AlunoDetalhadoResponse> updateParcial(
-            @PathVariable UUID id,
-            @RequestBody @Valid AlunoUpdateParcialRequest request) {
-        var alunoAtualizado = alunoService.updateAlunoParcial(id, request);
-        return ResponseEntity.status(HttpStatus.OK).body(alunoAtualizado);
-    }
-
-    @Operation(
             summary = "Atualização do Status de Matricula de Aluno",
             description = "Gerencia a situação da matricula do aluno, podendo estar ativa ou inativa."
     )
