@@ -62,6 +62,7 @@ public class AlunoController {
     @ApiResponse(responseCode = "200", description = "Lista de alunos retornada com sucesso",
             content = @Content(schema = @Schema(implementation = AlunoResponse.class)))
     @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'COORDENADOR', 'PROFESSOR')")
     public ResponseEntity<Page<AlunoResponse>> obterAlunos(Pageable pageable) {
         Page<AlunoResponse> alunos = alunoService.obterTodos(pageable);
         return ResponseEntity.status(HttpStatus.OK).body(alunos);
@@ -79,6 +80,7 @@ public class AlunoController {
                             examples = @ExampleObject(name = "Aluno não encontrado", value = SwaggerExamples.ALUNO_NAO_ENCONTRADO)))
     })
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'COORDENADOR', 'PROFESSOR')")
     public ResponseEntity<AlunoDetalhadoResponse> obterAluno(@PathVariable UUID id) {
         var aluno = alunoService.obterAluno(id);
         return ResponseEntity.status(HttpStatus.OK).body(aluno);
@@ -98,6 +100,7 @@ public class AlunoController {
                             examples = @ExampleObject(name = "Status de matricula já atualizado", value = SwaggerExamples.MATRICULA_INVALIDA))),
     })
     @PatchMapping("/{id}/matricula")
+    @PreAuthorize("hasAnyRole('ADMIN', 'COORDENADOR')")
     public ResponseEntity<Void> updateMatricula(@PathVariable UUID id, @RequestBody AlunoUpdateMatriculaRequest request) {
         alunoService.atualizarStatusMatricula(id, request);
         return ResponseEntity.status(HttpStatus.OK).build();
