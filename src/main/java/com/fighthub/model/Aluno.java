@@ -26,9 +26,11 @@ public class Aluno {
     @JoinColumn(name = "usuario_id", nullable = false)
     private Usuario usuario;
 
+    @Setter
     @Column(name = "data_nascimento", nullable = false)
     private LocalDate dataNascimento;
 
+    @Setter
     @Column(name = "data_matricula")
     private LocalDate dataMatricula;
 
