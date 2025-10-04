@@ -105,4 +105,18 @@ public class AlunoController {
         alunoService.atualizarStatusMatricula(id, request);
         return ResponseEntity.status(HttpStatus.OK).build();
     }
+
+    @PatchMapping("/{id}/data-nascimento")
+    @PreAuthorize("hasAnyRole('ADMIN', 'COORDENADOR')")
+    public ResponseEntity<Void> updateDataNascimento(@PathVariable UUID id, @RequestBody AlunoUpdateDataNascimentoRequest request) {
+        alunoService.atualizarDataNascimento(id, request);
+        return ResponseEntity.status(HttpStatus.OK).build();
+    }
+
+    @PatchMapping("/{id}/data-matricula")
+    @PreAuthorize("hasAnyRole('ADMIN', 'COORDENADOR')")
+    public ResponseEntity<Void> updateDataMatricula(@PathVariable UUID id, @RequestBody AlunoUpdateDataMatriculaRequest request) {
+        alunoService.atualizarDataMatricula(id, request);
+        return ResponseEntity.status(HttpStatus.OK).build();
+    }
 }
