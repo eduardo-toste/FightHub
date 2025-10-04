@@ -22,7 +22,7 @@ public record CriarAlunoRequest(
         @NotBlank(message = "CPF é obrigatório")
         String cpf,
 
-        @NotBlank(message = "Data de nascimneto é obrigatória, com o formato AAAA-MM-DD")
+        @NotBlank(message = "Data de nascimento é obrigatória, com o formato AAAA-MM-DD")
         LocalDate dataNascimento,
 
         List<UUID> idsResponsaveis
