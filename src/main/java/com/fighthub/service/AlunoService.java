@@ -95,6 +95,22 @@ public class AlunoService {
         alunoRepository.save(aluno);
     }
 
+    public void atualizarDataNascimento(UUID id, AlunoUpdateDataNascimentoRequest request) {
+        var aluno = alunoRepository.findById(id)
+                .orElseThrow(AlunoNaoEncontradoException::new);
+
+        aluno.setDataNascimento(request.dataNascimento());
+        alunoRepository.save(aluno);
+    }
+
+    public void atualizarDataMatricula(UUID id, AlunoUpdateDataMatriculaRequest request) {
+        var aluno = alunoRepository.findById(id)
+                .orElseThrow(AlunoNaoEncontradoException::new);
+
+        aluno.setDataMatricula(request.dataMatricula());
+        alunoRepository.save(aluno);
+    }
+
     private boolean isMenorDeIdade(LocalDate dataNascimento, List<UUID> idsResponsaveis) {
         boolean menorDeIdade = Period.between(dataNascimento, LocalDate.now()).getYears() < 18;
 
