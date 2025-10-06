@@ -206,314 +206,6 @@ class AlunoServiceTest {
     }
 
     @Test
-    void deveAtualizarAlunoCompletamente() {
-        var enderecoRequest = new EnderecoRequest(
-                "12345-678",
-                "Rua das Flores",
-                "123",
-                "Apto 45",
-                "Centro",
-                "São Paulo",
-                "SP"
-        );
-
-        var responsavelId = UUID.randomUUID();
-        var request = new AlunoUpdateCompletoRequest(
-                "João Atualizado",
-                "joao@email.com",
-                null,
-                "(11)12345-6789",
-                LocalDate.now().minusYears(17),
-                List.of(responsavelId),
-                enderecoRequest
-        );
-
-        var usuarioResponsavel = Usuario.builder()
-                .id(UUID.randomUUID())
-                .nome("Maria Responsável")
-                .email("maria@email.com")
-                .cpf("987.654.321-00")
-                .role(Role.RESPONSAVEL)
-                .ativo(true)
-                .build();
-
-        var responsavel = Responsavel.builder()
-                .id(responsavelId)
-                .usuario(usuarioResponsavel)
-                .build();
-
-        var alunoExistente = aluno;
-
-        when(alunoRepository.findById(alunoExistente.getId())).thenReturn(Optional.of(alunoExistente));
-        when(responsavelRepository.findAllById(List.of(responsavelId))).thenReturn(List.of(responsavel));
-
-        var result = alunoService.updateAlunoCompleto(alunoExistente.getId(), request);
-
-        assertNotNull(result);
-        assertEquals("João Atualizado", result.nome());
-        assertEquals("(11)12345-6789", result.telefone());
-        assertEquals("12345-678", result.endereco().cep());
-        assertEquals("São Paulo", result.endereco().cidade());
-        assertEquals("SP", result.endereco().estado());
-
-        verify(alunoRepository).findById(alunoExistente.getId());
-        verify(responsavelRepository).findAllById(List.of(responsavelId));
-        verify(usuarioRepository).save(alunoExistente.getUsuario());
-    }
-
-    @Test
-    void deveAtualizarAlunoCompletamente_QuandoForDeMaiorSemResponsavel() {
-        var enderecoRequest = new EnderecoRequest(
-                "12345-678",
-                "Rua das Flores",
-                "123",
-                "Apto 45",
-                "Centro",
-                "São Paulo",
-                "SP"
-        );
-
-        var request = new AlunoUpdateCompletoRequest(
-                "João Atualizado",
-                "joao@email.com",
-                null,
-                "(11)12345-6789",
-                LocalDate.now().minusYears(20),
-                null,
-                enderecoRequest
-        );
-
-        var alunoExistente = aluno;
-
-        when(alunoRepository.findById(alunoExistente.getId())).thenReturn(Optional.of(alunoExistente));
-
-        var result = alunoService.updateAlunoCompleto(alunoExistente.getId(), request);
-
-        assertNotNull(result);
-        assertEquals("João Atualizado", result.nome());
-        assertEquals("(11)12345-6789", result.telefone());
-        assertEquals("12345-678", result.endereco().cep());
-        assertEquals("São Paulo", result.endereco().cidade());
-        assertEquals("SP", result.endereco().estado());
-
-        verify(alunoRepository).findById(alunoExistente.getId());
-        verify(usuarioRepository).save(alunoExistente.getUsuario());
-    }
-
-    @Test
-    void deveLancarExcecao_QuandoAlunoNaoExistir_AoAtualizarAlunoCompletamente() {
-        var enderecoRequest = new EnderecoRequest(
-                "12345-678",
-                "Rua das Flores",
-                "123",
-                "Apto 45",
-                "Centro",
-                "São Paulo",
-                "SP"
-        );
-
-        var responsavelId = UUID.randomUUID();
-        var request = new AlunoUpdateCompletoRequest(
-                "João Atualizado",
-                "joao@email.com",
-                null,
-                "(11)12345-6789",
-                LocalDate.now().minusYears(17),
-                List.of(responsavelId),
-                enderecoRequest
-        );
-        when(alunoRepository.findById(aluno.getId())).thenReturn(Optional.empty());
-
-        var ex = assertThrows(AlunoNaoEncontradoException.class,
-                () -> alunoService.updateAlunoCompleto(aluno.getId(), request));
-
-        assertNotNull(ex);
-        assertEquals("Aluno não encontrado.", ex.getMessage());
-        verify(alunoRepository).findById(aluno.getId());
-    }
-
-    @Test
-    void deveAtualizarAlunoCompletamente_SemResponsaveisListaVazia() {
-        var enderecoRequest = new EnderecoRequest(
-                "12345-678",
-                "Rua das Flores",
-                "123",
-                "Apto 45",
-                "Centro",
-                "São Paulo",
-                "SP"
-        );
-
-        var request = new AlunoUpdateCompletoRequest(
-                "João Atualizado",
-                "joao@email.com",
-                null,
-                "(11)12345-6789",
-                LocalDate.now().minusYears(20),
-                List.of(),
-                enderecoRequest
-        );
-
-        when(alunoRepository.findById(aluno.getId())).thenReturn(Optional.of(aluno));
-
-        var result = alunoService.updateAlunoCompleto(aluno.getId(), request);
-
-        assertNotNull(result);
-        assertEquals("João Atualizado", result.nome());
-        verify(alunoRepository).findById(aluno.getId());
-        verify(responsavelRepository, never()).findAllById(any());
-        verify(usuarioRepository).save(aluno.getUsuario());
-    }
-
-    @Test
-    void deveAtualizarAlunoCompletamente_SemResponsaveisNulos() {
-        var enderecoRequest = new EnderecoRequest(
-                "12345-678",
-                "Rua das Flores",
-                "123",
-                "Apto 45",
-                "Centro",
-                "São Paulo",
-                "SP"
-        );
-
-        var request = new AlunoUpdateCompletoRequest(
-                "João Atualizado",
-                "joao@email.com",
-                null,
-                "(11)12345-6789",
-                LocalDate.now().minusYears(20),
-                null, // <<< null
-                enderecoRequest
-        );
-
-        when(alunoRepository.findById(aluno.getId())).thenReturn(Optional.of(aluno));
-
-        var result = alunoService.updateAlunoCompleto(aluno.getId(), request);
-
-        assertNotNull(result);
-        assertEquals("João Atualizado", result.nome());
-        verify(alunoRepository).findById(aluno.getId());
-        verify(responsavelRepository, never()).findAllById(any());
-        verify(usuarioRepository).save(aluno.getUsuario());
-    }
-
-    @Test
-    void deveLancarExcecao_QuandoAlunoMenorDeIdadeNaoTiverResponsavel_AoAtualizarAlunoCompletamente() {
-        var enderecoRequest = new EnderecoRequest(
-                "12345-678",
-                "Rua das Flores",
-                "123",
-                "Apto 45",
-                "Centro",
-                "São Paulo",
-                "SP"
-        );
-
-        var request = new AlunoUpdateCompletoRequest(
-                "João Atualizado",
-                "joao@email.com",
-                null,
-                "(11)12345-6789",
-                LocalDate.now().minusYears(17),
-                null,
-                enderecoRequest
-        );
-
-        var alunoExistente = aluno;
-
-        when(alunoRepository.findById(alunoExistente.getId())).thenReturn(Optional.of(alunoExistente));
-
-        var ex = assertThrows(ValidacaoException.class,
-                () -> alunoService.updateAlunoCompleto(aluno.getId(), request));
-
-        assertNotNull(ex);
-        assertEquals("Aluno menor de idade deve ter ao menos um responsável", ex.getMessage());
-        verify(alunoRepository).findById(aluno.getId());
-    }
-
-    @Test
-    void deveAtualizarAlunoParcialmente() {
-        var request = new AlunoUpdateParcialRequest(
-                "João Atualizado",
-                null,
-                null,
-                null,
-                null,
-                null,
-                null
-        );
-
-        var alunoExistente = aluno;
-        when(alunoRepository.findById(alunoExistente.getId())).thenReturn(Optional.of(alunoExistente));
-
-        var result = alunoService.updateAlunoParcial(alunoExistente.getId(), request);
-
-        assertNotNull(result);
-        assertEquals("João Atualizado", result.nome());
-        verify(alunoRepository).findById(alunoExistente.getId());
-        verify(usuarioRepository).save(alunoExistente.getUsuario());
-    }
-
-    @Test
-    void deveAtualizarAlunoParcialmente_AlterandoResponsaveis() {
-        var responsavelId = UUID.randomUUID();
-        var request = new AlunoUpdateParcialRequest(
-                null,
-                null,
-                null,
-                null,
-                null,
-                List.of(responsavelId),
-                null
-        );
-
-        var usuarioResponsavel = Usuario.builder()
-                .id(UUID.randomUUID())
-                .nome("Maria Responsável")
-                .email("maria@email.com")
-                .role(Role.RESPONSAVEL)
-                .ativo(true)
-                .build();
-
-        var responsavel = Responsavel.builder()
-                .id(responsavelId)
-                .usuario(usuarioResponsavel)
-                .build();
-
-        when(alunoRepository.findById(aluno.getId())).thenReturn(Optional.of(aluno));
-        when(responsavelRepository.findAllById(List.of(responsavelId))).thenReturn(List.of(responsavel));
-
-        var result = alunoService.updateAlunoParcial(aluno.getId(), request);
-
-        assertNotNull(result);
-        verify(responsavelRepository).findAllById(List.of(responsavelId));
-        verify(usuarioRepository).save(aluno.getUsuario());
-    }
-
-    @Test
-    void deveLancarExcecao_QuandoAlunoNaoExistir_AoAtualizarAlunoParcialmente() {
-        var alunoId = aluno.getId();
-        var request = new AlunoUpdateParcialRequest(
-                "João Atualizado",
-                null,
-                null,
-                null,
-                null,
-                null,
-                null
-        );
-        when(alunoRepository.findById(alunoId)).thenReturn(Optional.empty());
-
-        var ex = assertThrows(AlunoNaoEncontradoException.class,
-                () -> alunoService.updateAlunoParcial(alunoId, request));
-
-        assertNotNull(ex);
-        assertEquals("Aluno não encontrado.", ex.getMessage());
-        verify(alunoRepository).findById(alunoId);
-    }
-
-    @Test
     void deveAtualizarStatusMatriculaAluno_QuandoEstiverDiferenteDoRequest() {
         var alunoId = aluno.getId();
         var request = new AlunoUpdateMatriculaRequest(false);
@@ -534,6 +226,60 @@ class AlunoServiceTest {
 
         var ex = assertThrows(AlunoNaoEncontradoException.class,
                 () -> alunoService.atualizarStatusMatricula(alunoId, request));
+
+        assertNotNull(ex);
+        assertEquals("Aluno não encontrado.", ex.getMessage());
+        verify(alunoRepository).findById(alunoId);
+        verify(alunoRepository, never()).save(any());
+    }
+
+    @Test
+    void deveAtualizarDataMatriculaAluno() {
+        var alunoId = aluno.getId();
+        var request = new AlunoUpdateDataMatriculaRequest(LocalDate.now().minusMonths(4));
+        when(alunoRepository.findById(alunoId)).thenReturn(Optional.of(aluno));
+
+        alunoService.atualizarDataMatricula(alunoId, request);
+
+        verify(alunoRepository).findById(alunoId);
+        verify(alunoRepository).save(any());
+    }
+
+    @Test
+    void deveLancarExcecao_QuandoAlunoNaoExistir_AoAtualizarDataMatriculaAluno() {
+        var alunoId = aluno.getId();
+        var request = new AlunoUpdateDataMatriculaRequest(LocalDate.now().minusMonths(4));
+        when(alunoRepository.findById(alunoId)).thenReturn(Optional.empty());
+
+        var ex = assertThrows(AlunoNaoEncontradoException.class,
+                () -> alunoService.atualizarDataMatricula(alunoId, request));
+
+        assertNotNull(ex);
+        assertEquals("Aluno não encontrado.", ex.getMessage());
+        verify(alunoRepository).findById(alunoId);
+        verify(alunoRepository, never()).save(any());
+    }
+
+    @Test
+    void deveAtualizarDataNascimentoAluno() {
+        var alunoId = aluno.getId();
+        var request = new AlunoUpdateDataNascimentoRequest(LocalDate.now().minusYears(20));
+        when(alunoRepository.findById(alunoId)).thenReturn(Optional.of(aluno));
+
+        alunoService.atualizarDataNascimento(alunoId, request);
+
+        verify(alunoRepository).findById(alunoId);
+        verify(alunoRepository).save(any());
+    }
+
+    @Test
+    void deveLancarExcecao_QuandoAlunoNaoExistir_AoAtualizarDataNascimentoAluno() {
+        var alunoId = aluno.getId();
+        var request = new AlunoUpdateDataNascimentoRequest(LocalDate.now().minusYears(20));
+        when(alunoRepository.findById(alunoId)).thenReturn(Optional.empty());
+
+        var ex = assertThrows(AlunoNaoEncontradoException.class,
+                () -> alunoService.atualizarDataNascimento(alunoId, request));
 
         assertNotNull(ex);
         assertEquals("Aluno não encontrado.", ex.getMessage());
