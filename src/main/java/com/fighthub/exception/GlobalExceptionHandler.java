@@ -1,16 +1,20 @@
 package com.fighthub.exception;
 
+import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.fighthub.exception.dto.ErrorResponse;
 import com.fighthub.utils.ErrorBuilder;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.context.request.WebRequest;
 
 import javax.management.BadAttributeValueExpException;
+import java.util.Arrays;
 import java.util.List;
 
 @RestControllerAdvice
@@ -38,14 +42,6 @@ public class GlobalExceptionHandler {
             HttpServletRequest request
     ) {
         return ErrorBuilder.build(HttpStatus.UNAUTHORIZED, ex.getMessage(), request.getRequestURI());
-    }
-
-    @ExceptionHandler(TipoTokenInvalido.class)
-    public ResponseEntity<ErrorResponse> handleTipoTokenInvalido(
-            TipoTokenInvalido ex,
-            HttpServletRequest request
-    ) {
-        return ErrorBuilder.build(HttpStatus.FORBIDDEN, ex.getMessage(), request.getRequestURI());
     }
 
     @ExceptionHandler(TokenExpiradoException.class)
@@ -126,4 +122,32 @@ public class GlobalExceptionHandler {
         return ErrorBuilder.build(HttpStatus.BAD_REQUEST, "Erro de validação", request.getRequestURI(), validationError);
     }
 
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ErrorResponse> handleHttpMessageNotReadableException(
+            HttpMessageNotReadableException ex,
+            HttpServletRequest request
+    ) {
+        Throwable causa = ex.getCause();
+        if (causa instanceof InvalidFormatException ife && ife.getTargetType().isEnum()) {
+            String nomeCampo = ife.getPath().isEmpty() ? "desconhecido" : ife.getPath().get(0).getFieldName();
+            String valorInvalido = String.valueOf(ife.getValue());
+            List<String> valoresPermitidos = Arrays.stream(ife.getTargetType().getEnumConstants())
+                    .map(Object::toString)
+                    .toList();
+
+            String mensagem = String.format(
+                    "Valor inválido para o campo '%s': '%s'. Valores permitidos: %s",
+                    nomeCampo,
+                    valorInvalido,
+                    valoresPermitidos
+            );
+
+            return ErrorBuilder.build(HttpStatus.BAD_REQUEST, mensagem, request.getRequestURI());
+        }
+        return ErrorBuilder.build(
+                HttpStatus.BAD_REQUEST,
+                "Erro ao ler o corpo da requisição. Verifique o formato dos dados enviados.",
+                request.getRequestURI()
+        );
+    }
 }

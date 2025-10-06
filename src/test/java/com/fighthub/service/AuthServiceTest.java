@@ -1,9 +1,9 @@
 package com.fighthub.service;
 
 import com.fighthub.dto.auth.AuthRequest;
-import com.fighthub.exception.TipoTokenInvalido;
 import com.fighthub.exception.TokenInvalidoException;
 import com.fighthub.exception.UsuarioNaoEncontradoException;
+import com.fighthub.exception.ValidacaoException;
 import com.fighthub.model.Endereco;
 import com.fighthub.model.Token;
 import com.fighthub.model.Usuario;
@@ -170,6 +170,21 @@ class AuthServiceTest {
 
         // Assert
         assertEquals("Token JWT inválido ou malformado.", ex.getMessage());
+    }
+
+    @Test
+    void deveLancarExcecao_QuandoTipoTokenNaoForRefresh() {
+        // Arrange
+        String token = "token-invalido";
+        when(jwtService.tokenValido(token)).thenReturn(true);
+        when(tokenRepository.findByTokenAndTokenType(token, TokenType.REFRESH)).thenReturn(Optional.empty());
+
+        // Act
+        var ex = assertThrows(ValidacaoException.class,
+                () -> authService.atualizarToken(token));
+
+        // Assert
+        assertEquals("O token recebido não é do tipo REFRESH", ex.getMessage());
     }
 
     @Test
