@@ -200,4 +200,72 @@ class AlunoControllerTest {
 
         verify(alunoService).atualizarStatusMatricula(eq(id), eq(request));
     }
+
+    @Test
+    void deveAtualizarDataMatriculaAluno_QuandoSucesso() throws Exception {
+        UUID id = UUID.randomUUID();
+        var request = new AlunoUpdateDataMatriculaRequest(LocalDate.now().minusMonths(4));
+
+        doNothing().when(alunoService).atualizarDataMatricula(eq(id), eq(request));
+
+        mockMvc.perform(patch("/alunos/{id}/data-matricula", id)
+                        .header("Authorization", "Bearer " + TOKEN)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk());
+
+        verify(alunoService).atualizarDataMatricula(eq(id), eq(request));
+    }
+
+    @Test
+    void deveRetornarNotFound_QuandoAlunoNaoExistir_AoAtualizarDataMatriculaAluno() throws Exception {
+        UUID id = UUID.randomUUID();
+        var request = new AlunoUpdateDataMatriculaRequest(LocalDate.now().minusMonths(4));
+
+        doThrow(new AlunoNaoEncontradoException())
+                .when(alunoService).atualizarDataMatricula(eq(id), eq(request));
+
+        mockMvc.perform(patch("/alunos/{id}/data-matricula", id)
+                        .header("Authorization", "Bearer " + TOKEN)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").value("Aluno não encontrado."));
+
+        verify(alunoService).atualizarDataMatricula(eq(id), eq(request));
+    }
+
+    @Test
+    void deveAtualizarDataNascimentoAluno_QuandoSucesso() throws Exception {
+        UUID id = UUID.randomUUID();
+        var request = new AlunoUpdateDataNascimentoRequest(LocalDate.now().minusYears(20));
+
+        doNothing().when(alunoService).atualizarDataNascimento(eq(id), eq(request));
+
+        mockMvc.perform(patch("/alunos/{id}/data-nascimento", id)
+                        .header("Authorization", "Bearer " + TOKEN)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk());
+
+        verify(alunoService).atualizarDataNascimento(eq(id), eq(request));
+    }
+
+    @Test
+    void deveRetornarNotFound_QuandoAlunoNaoExistir_AoAtualizarDataNascimentoAluno() throws Exception {
+        UUID id = UUID.randomUUID();
+        var request = new AlunoUpdateDataNascimentoRequest(LocalDate.now().minusYears(20));
+
+        doThrow(new AlunoNaoEncontradoException())
+                .when(alunoService).atualizarDataNascimento(eq(id), eq(request));
+
+        mockMvc.perform(patch("/alunos/{id}/data-nascimento", id)
+                        .header("Authorization", "Bearer " + TOKEN)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").value("Aluno não encontrado."));
+
+        verify(alunoService).atualizarDataNascimento(eq(id), eq(request));
+    }
 }
