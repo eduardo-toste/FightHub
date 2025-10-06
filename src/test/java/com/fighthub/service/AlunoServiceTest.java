@@ -234,6 +234,60 @@ class AlunoServiceTest {
     }
 
     @Test
+    void deveAtualizarDataMatriculaAluno() {
+        var alunoId = aluno.getId();
+        var request = new AlunoUpdateDataMatriculaRequest(LocalDate.now().minusMonths(4));
+        when(alunoRepository.findById(alunoId)).thenReturn(Optional.of(aluno));
+
+        alunoService.atualizarDataMatricula(alunoId, request);
+
+        verify(alunoRepository).findById(alunoId);
+        verify(alunoRepository).save(any());
+    }
+
+    @Test
+    void deveLancarExcecao_QuandoAlunoNaoExistir_AoAtualizarDataMatriculaAluno() {
+        var alunoId = aluno.getId();
+        var request = new AlunoUpdateDataMatriculaRequest(LocalDate.now().minusMonths(4));
+        when(alunoRepository.findById(alunoId)).thenReturn(Optional.empty());
+
+        var ex = assertThrows(AlunoNaoEncontradoException.class,
+                () -> alunoService.atualizarDataMatricula(alunoId, request));
+
+        assertNotNull(ex);
+        assertEquals("Aluno não encontrado.", ex.getMessage());
+        verify(alunoRepository).findById(alunoId);
+        verify(alunoRepository, never()).save(any());
+    }
+
+    @Test
+    void deveAtualizarDataNascimentoAluno() {
+        var alunoId = aluno.getId();
+        var request = new AlunoUpdateDataNascimentoRequest(LocalDate.now().minusYears(20));
+        when(alunoRepository.findById(alunoId)).thenReturn(Optional.of(aluno));
+
+        alunoService.atualizarDataNascimento(alunoId, request);
+
+        verify(alunoRepository).findById(alunoId);
+        verify(alunoRepository).save(any());
+    }
+
+    @Test
+    void deveLancarExcecao_QuandoAlunoNaoExistir_AoAtualizarDataNascimentoAluno() {
+        var alunoId = aluno.getId();
+        var request = new AlunoUpdateDataNascimentoRequest(LocalDate.now().minusYears(20));
+        when(alunoRepository.findById(alunoId)).thenReturn(Optional.empty());
+
+        var ex = assertThrows(AlunoNaoEncontradoException.class,
+                () -> alunoService.atualizarDataNascimento(alunoId, request));
+
+        assertNotNull(ex);
+        assertEquals("Aluno não encontrado.", ex.getMessage());
+        verify(alunoRepository).findById(alunoId);
+        verify(alunoRepository, never()).save(any());
+    }
+
+    @Test
     void deveLancarExcecao_QuandoStatusEstiverIgualAoRequest_AoAtualizarStatusMatricula() {
         var alunoId = aluno.getId();
         var request = new AlunoUpdateMatriculaRequest(false);
