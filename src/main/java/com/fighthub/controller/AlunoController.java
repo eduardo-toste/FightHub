@@ -106,6 +106,16 @@ public class AlunoController {
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
+    @Operation(
+            summary = "Atualização da Data de Nascimento de Aluno",
+            description = "Gerencia a data de nascimento do aluno."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Data de nascimento atualizada com sucesso"),
+            @ApiResponse(responseCode = "404", description = "Aluno não encontrado",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class),
+                            examples = @ExampleObject(name = "Aluno não encontrado", value = SwaggerExamples.ALUNO_NAO_ENCONTRADO))),
+    })
     @PatchMapping("/{id}/data-nascimento")
     @PreAuthorize("hasAnyRole('ADMIN', 'COORDENADOR')")
     public ResponseEntity<Void> updateDataNascimento(@PathVariable UUID id, @RequestBody AlunoUpdateDataNascimentoRequest request) {
@@ -113,6 +123,16 @@ public class AlunoController {
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
+    @Operation(
+            summary = "Atualização da Data de Matricula de Aluno",
+            description = "Gerencia a data de matricula do aluno."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Data de matricula atualizada com sucesso"),
+            @ApiResponse(responseCode = "404", description = "Aluno não encontrado",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class),
+                            examples = @ExampleObject(name = "Aluno não encontrado", value = SwaggerExamples.ALUNO_NAO_ENCONTRADO))),
+    })
     @PatchMapping("/{id}/data-matricula")
     @PreAuthorize("hasAnyRole('ADMIN', 'COORDENADOR')")
     public ResponseEntity<Void> updateDataMatricula(@PathVariable UUID id, @RequestBody AlunoUpdateDataMatriculaRequest request) {
