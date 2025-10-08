@@ -1,5 +1,6 @@
 package com.fighthub.service;
 
+import com.fighthub.dto.auth.ValidarCodigoRecuperacaoRequest;
 import com.fighthub.model.Token;
 import com.fighthub.model.Usuario;
 import com.fighthub.model.enums.TokenType;
@@ -144,6 +145,11 @@ public class TokenService {
 
         tokenRepository.save(token);
         return token.getToken();
+    }
+
+    public boolean validarCodigoRecuperacao(Usuario usuario, String codigoRecuperacao) {
+        return tokenRepository.findByTokenAndUsuarioAndExpiredFalseAndRevokedFalse(codigoRecuperacao, usuario)
+                .isPresent();
     }
 
     private String gerarCodigoRecuperacao() {
