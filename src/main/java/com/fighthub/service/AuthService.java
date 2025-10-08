@@ -114,7 +114,9 @@ public class AuthService {
         var usuario = usuarioRepository.findByEmail(request.email())
                 .orElseThrow(UsuarioNaoEncontradoException::new);
 
-        validarCodigo(usuario, request.codigoRecuperacao());
+        if (!tokenService.validarCodigoRecuperacao(usuario, request.codigoRecuperacao())) {
+            throw new TokenInvalidoException();
+        }
     }
 
     @Transactional
@@ -122,16 +124,12 @@ public class AuthService {
         var usuario = usuarioRepository.findByEmail(request.email())
                 .orElseThrow(UsuarioNaoEncontradoException::new);
 
-        validarCodigo(usuario, request.codigoRecuperacao());
+        if (!tokenService.validarCodigoRecuperacao(usuario, request.codigoRecuperacao())) {
+            throw new TokenInvalidoException();
+        }
 
         usuario.setSenha(passwordEncoder.encode(request.novaSenha()));
         usuarioRepository.save(usuario);
         tokenService.revogarToken(usuario, TokenType.RECUPERACAO_SENHA);
-    }
-
-    private void validarCodigo(Usuario usuario, String codigo) {
-        if (!tokenService.validarCodigoRecuperacao(usuario, codigo)) {
-            throw new TokenInvalidoException();
-        }
     }
 }
