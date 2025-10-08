@@ -2,6 +2,7 @@ package com.fighthub.service;
 
 import com.fighthub.dto.auth.AuthRequest;
 import com.fighthub.dto.auth.AuthResponse;
+import com.fighthub.dto.auth.RecuperarSenhaRequest;
 import com.fighthub.dto.auth.RefreshTokenResponse;
 import com.fighthub.exception.TokenInvalidoException;
 import com.fighthub.exception.UsuarioNaoEncontradoException;
@@ -10,6 +11,7 @@ import com.fighthub.model.enums.TokenType;
 import com.fighthub.repository.TokenRepository;
 import com.fighthub.repository.UsuarioRepository;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
@@ -28,6 +30,7 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
     private final TokenService tokenService;
+    private final EmailService emailService;
 
     @Transactional
     public AuthResponse login(AuthRequest request) {
@@ -94,5 +97,15 @@ public class AuthService {
         tokenService.revogarTokensPorJwt(jwt);
 
         log.info("Logout concluído para token: {}", jwt);
+    }
+
+    @Transactional
+    public void recoverPassword(RecuperarSenhaRequest request) {
+        var usuario = usuarioRepository.findByEmail(request.email())
+                .orElseThrow(UsuarioNaoEncontradoException::new);
+
+        tokenService.revogarToken(usuario, TokenType.RECUPERACAO_SENHA);
+        var codigoRecuperacao = tokenService.salvarCodigoRecuperacao(usuario);
+        emailService.enviarEmailRecuperacaoSenha(usuario, codigoRecuperacao);
     }
 }
