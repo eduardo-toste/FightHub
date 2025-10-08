@@ -103,4 +103,16 @@ public class AuthController {
         authService.recoverPassword(request);
         return ResponseEntity.status(HttpStatus.OK).build();
     }
+
+    @PostMapping("/recuperar-senha/validar-codigo")
+    public ResponseEntity<Void> validarCodigoRecuperacao(@RequestBody @Valid ValidarCodigoRecuperacaoRequest request) {
+        authService.validateRecoverCode(request);
+        return ResponseEntity.status(HttpStatus.OK).build();
+    }
+
+    @PostMapping("/recuperar-senha/nova-senha")
+    public ResponseEntity<Void> criarNovaSenha(@RequestBody @Valid ConfirmarRecuperacaoSenhaRequest request) {
+        authService.confirmarRecuperacaoSenha(request);
+        return ResponseEntity.status(HttpStatus.OK).build();
+    }
 }
