@@ -1,12 +1,10 @@
 package com.fighthub.service;
 
-import com.fighthub.dto.auth.AuthRequest;
-import com.fighthub.dto.auth.AuthResponse;
-import com.fighthub.dto.auth.RecuperarSenhaRequest;
-import com.fighthub.dto.auth.RefreshTokenResponse;
+import com.fighthub.dto.auth.*;
 import com.fighthub.exception.TokenInvalidoException;
 import com.fighthub.exception.UsuarioNaoEncontradoException;
 import com.fighthub.exception.ValidacaoException;
+import com.fighthub.model.Usuario;
 import com.fighthub.model.enums.TokenType;
 import com.fighthub.repository.TokenRepository;
 import com.fighthub.repository.UsuarioRepository;
@@ -17,6 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,6 +30,7 @@ public class AuthService {
     private final JwtService jwtService;
     private final TokenService tokenService;
     private final EmailService emailService;
+    private final PasswordEncoder passwordEncoder;
 
     @Transactional
     public AuthResponse login(AuthRequest request) {
@@ -107,5 +107,31 @@ public class AuthService {
         tokenService.revogarToken(usuario, TokenType.RECUPERACAO_SENHA);
         var codigoRecuperacao = tokenService.salvarCodigoRecuperacao(usuario);
         emailService.enviarEmailRecuperacaoSenha(usuario, codigoRecuperacao);
+    }
+
+    @Transactional
+    public void validateRecoverCode(ValidarCodigoRecuperacaoRequest request) {
+        var usuario = usuarioRepository.findByEmail(request.email())
+                .orElseThrow(UsuarioNaoEncontradoException::new);
+
+        validarCodigo(usuario, request.codigoRecuperacao());
+    }
+
+    @Transactional
+    public void confirmarRecuperacaoSenha(ConfirmarRecuperacaoSenhaRequest request) {
+        var usuario = usuarioRepository.findByEmail(request.email())
+                .orElseThrow(UsuarioNaoEncontradoException::new);
+
+        validarCodigo(usuario, request.codigoRecuperacao());
+
+        usuario.setSenha(passwordEncoder.encode(request.novaSenha()));
+        usuarioRepository.save(usuario);
+        tokenService.revogarToken(usuario, TokenType.RECUPERACAO_SENHA);
+    }
+
+    private void validarCodigo(Usuario usuario, String codigo) {
+        if (!tokenService.validarCodigoRecuperacao(usuario, codigo)) {
+            throw new TokenInvalidoException();
+        }
     }
 }
