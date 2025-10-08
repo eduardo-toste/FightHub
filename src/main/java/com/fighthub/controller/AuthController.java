@@ -1,10 +1,7 @@
 package com.fighthub.controller;
 
 import com.fighthub.docs.SwaggerExamples;
-import com.fighthub.dto.auth.AuthRequest;
-import com.fighthub.dto.auth.RefreshTokenRequest;
-import com.fighthub.dto.auth.AuthResponse;
-import com.fighthub.dto.auth.RefreshTokenResponse;
+import com.fighthub.dto.auth.*;
 import com.fighthub.exception.dto.ErrorResponse;
 import com.fighthub.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -98,6 +95,12 @@ public class AuthController {
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(HttpServletRequest request) {
         authService.logout(request);
+        return ResponseEntity.status(HttpStatus.OK).build();
+    }
+
+    @PostMapping("/recuperar-senha")
+    public ResponseEntity<Void> recuperarSenha(@RequestBody @Valid RecuperarSenhaRequest request) {
+        authService.recoverPassword(request);
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 }
