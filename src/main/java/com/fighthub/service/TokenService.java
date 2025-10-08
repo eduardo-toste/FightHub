@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -19,6 +20,7 @@ public class TokenService {
 
     private final TokenRepository tokenRepository;
     private final JwtService jwtService;
+    private static final SecureRandom random = new SecureRandom();
 
     public void salvarTokens(Usuario usuario, String accessToken, String refreshToken) {
         var agora = LocalDateTime.now();
@@ -125,5 +127,27 @@ public class TokenService {
 
         tokenRepository.saveAll(tokens);
         log.info("Revogados {} token(s) para o usuário: {}", tokens.size(), usuario.getEmail());
+    }
+
+    public String salvarCodigoRecuperacao(Usuario usuario) {
+        String codigo = gerarCodigoRecuperacao();
+
+        Token token = Token.builder()
+                .usuario(usuario)
+                .token(codigo)
+                .tokenType(TokenType.RECUPERACAO_SENHA)
+                .expired(false)
+                .revoked(false)
+                .criadoEm(LocalDateTime.now())
+                .expiraEm(LocalDateTime.now().plusMinutes(15))
+                .build();
+
+        tokenRepository.save(token);
+        return token.getToken();
+    }
+
+    private String gerarCodigoRecuperacao() {
+        int numero = 100_000 + random.nextInt(900_000);
+        return String.valueOf(numero);
     }
 }
