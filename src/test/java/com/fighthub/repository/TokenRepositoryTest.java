@@ -209,4 +209,23 @@ class TokenRepositoryTest {
         assertTrue(result.isPresent());
     }
 
+    @Test
+    void deveRetornarToken_QuandoNaoEstiverRevogadoEExpirado_AoBuscarPorTokenEUsuario() {
+        Token token1 = Token.builder()
+                .usuario(usuario)
+                .token("token-1")
+                .tokenType(TokenType.RECUPERACAO_SENHA)
+                .expired(false)
+                .revoked(false)
+                .criadoEm(LocalDateTime.now())
+                .expiraEm(LocalDateTime.now().plusHours(1))
+                .build();
+
+        repository.save(token1);
+
+        var result = repository.findByTokenAndUsuarioAndExpiredFalseAndRevokedFalse("token-1", usuario);
+
+        assertTrue(result.isPresent());
+    }
+
 }
