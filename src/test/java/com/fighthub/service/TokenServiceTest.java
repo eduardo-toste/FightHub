@@ -10,6 +10,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -36,6 +37,9 @@ class TokenServiceTest {
 
     @InjectMocks
     private TokenService tokenService;
+
+    @Captor
+    private ArgumentCaptor<Token> tokenCaptor;
 
     private Usuario usuario;
 
@@ -269,5 +273,64 @@ class TokenServiceTest {
             assertTrue(token.isRevoked());
         });
         verify(tokenRepository).saveAll(tokens);
+    }
+
+    @Test
+    void deveGerarESalvarCodigoDeRecuperacao() {
+        var codigo = tokenService.salvarCodigoRecuperacao(usuario);
+
+        assertNotNull(codigo);
+        assertEquals(6, codigo.length());
+
+        verify(tokenRepository).save(tokenCaptor.capture());
+        var tokenSalvo = tokenCaptor.getValue();
+
+        assertEquals(codigo, tokenSalvo.getToken());
+        assertEquals(TokenType.RECUPERACAO_SENHA, tokenSalvo.getTokenType());
+        assertFalse(tokenSalvo.isExpired());
+        assertFalse(tokenSalvo.isRevoked());
+        assertEquals(usuario, tokenSalvo.getUsuario());
+        assertNotNull(tokenSalvo.getCriadoEm());
+        assertNotNull(tokenSalvo.getExpiraEm());
+    }
+
+    @Test
+    void deveRetornarTrue_AoValidarCodigoRecuperaco_QuandoEleExistirVinculadoAoUsuario() {
+        var codigoRecuperacao = "codigo-recuperacao";
+        Token token = Token.builder()
+                .usuario(usuario)
+                .token(codigoRecuperacao)
+                .tokenType(TokenType.RECUPERACAO_SENHA)
+                .expired(false)
+                .revoked(false)
+                .criadoEm(LocalDateTime.now())
+                .expiraEm(LocalDateTime.now().plusMinutes(15))
+                .build();
+        when(tokenRepository.findByTokenAndUsuarioAndExpiredFalseAndRevokedFalse(codigoRecuperacao, usuario)).thenReturn(Optional.of(token));
+
+        var result = tokenService.validarCodigoRecuperacao(usuario, codigoRecuperacao);
+
+        assertTrue(result);
+        verify(tokenRepository).findByTokenAndUsuarioAndExpiredFalseAndRevokedFalse(codigoRecuperacao, usuario);
+    }
+
+    @Test
+    void deveRetornarFalse_AoValidarCodigoRecuperaco_QuandoEleNaoExistirVinculadoAoUsuario() {
+        var codigoRecuperacao = "codigo-recuperacao";
+        Token token = Token.builder()
+                .usuario(usuario)
+                .token(codigoRecuperacao)
+                .tokenType(TokenType.RECUPERACAO_SENHA)
+                .expired(false)
+                .revoked(false)
+                .criadoEm(LocalDateTime.now())
+                .expiraEm(LocalDateTime.now().plusMinutes(15))
+                .build();
+        when(tokenRepository.findByTokenAndUsuarioAndExpiredFalseAndRevokedFalse(codigoRecuperacao, usuario)).thenReturn(Optional.empty());
+
+        var result = tokenService.validarCodigoRecuperacao(usuario, codigoRecuperacao);
+
+        assertFalse(result);
+        verify(tokenRepository).findByTokenAndUsuarioAndExpiredFalseAndRevokedFalse(codigoRecuperacao, usuario);
     }
 }
