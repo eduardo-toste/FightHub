@@ -1,6 +1,9 @@
 package com.fighthub.service;
 
 import com.fighthub.dto.auth.AuthRequest;
+import com.fighthub.dto.auth.ConfirmarRecuperacaoSenhaRequest;
+import com.fighthub.dto.auth.RecuperarSenhaRequest;
+import com.fighthub.dto.auth.ValidarCodigoRecuperacaoRequest;
 import com.fighthub.exception.TokenInvalidoException;
 import com.fighthub.exception.UsuarioNaoEncontradoException;
 import com.fighthub.exception.ValidacaoException;
@@ -21,6 +24,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -46,10 +50,16 @@ class AuthServiceTest {
     private AuthenticationManager authenticationManager;
 
     @Mock
+    private PasswordEncoder passwordEncoder;
+
+    @Mock
     private JwtService jwtService;
 
     @Mock
     private TokenService tokenService;
+
+    @Mock
+    private EmailService emailService;
 
     @InjectMocks
     private AuthService authService;
@@ -243,6 +253,127 @@ class AuthServiceTest {
         // Act
         var ex = assertThrows(TokenInvalidoException.class,
                 () -> authService.logout(request));
+
+        // Assert
+        assertEquals("Token inválido ou malformado.", ex.getMessage());
+    }
+
+    @Test
+    void deveRevogarCodigosDeRecuperacaoAntigosEEnviarEmailComNovoCodigo() {
+        var request = new RecuperarSenhaRequest(usuario.getEmail());
+        var codigoRecuperacao = "111222";
+        when(usuarioRepository.findByEmail(usuario.getEmail())).thenReturn(Optional.of(usuario));
+        when(tokenService.salvarCodigoRecuperacao(usuario)).thenReturn(codigoRecuperacao);
+
+        authService.recoverPassword(request);
+
+        verify(usuarioRepository).findByEmail(usuario.getEmail());
+        verify(tokenService).revogarToken(usuario, TokenType.RECUPERACAO_SENHA);
+        verify(emailService).enviarEmailRecuperacaoSenha(usuario, codigoRecuperacao);
+    }
+
+    @Test
+    void deveLancarExcecao_QuandoUsuarioNaoExistir_AoRevogarCodigosDeRecuperacaoAntigosEEnviarEmailComNovoCodigo() {
+        // Arrange
+        var request = new RecuperarSenhaRequest(usuario.getEmail());
+        when(usuarioRepository.findByEmail(usuario.getEmail())).thenReturn(Optional.empty());
+
+        // Act
+        var ex = assertThrows(UsuarioNaoEncontradoException.class,
+                () -> authService.recoverPassword(request));
+
+        // Assert
+        assertEquals("Usuário não encontrado.", ex.getMessage());
+    }
+
+    @Test
+    void deveValidarCorretamenteCodigoDeRecuperacao() {
+        var codigoRecuperacao = "111222";
+        var request = new ValidarCodigoRecuperacaoRequest(codigoRecuperacao, usuario.getEmail());
+        when(usuarioRepository.findByEmail(usuario.getEmail())).thenReturn(Optional.of(usuario));
+        when(tokenService.validarCodigoRecuperacao(usuario, codigoRecuperacao)).thenReturn(true);
+
+        authService.validateRecoverCode(request);
+
+        verify(usuarioRepository).findByEmail(usuario.getEmail());
+        verify(tokenService).validarCodigoRecuperacao(usuario, codigoRecuperacao);
+    }
+
+    @Test
+    void deveLancarExcecao_QuandoUsuarioNaoExistir_AoValidarCodigoDeRecuperacao() {
+        // Arrange
+        var codigoRecuperacao = "111222";
+        var request = new ValidarCodigoRecuperacaoRequest(codigoRecuperacao, usuario.getEmail());
+        when(usuarioRepository.findByEmail(usuario.getEmail())).thenReturn(Optional.empty());
+
+        // Act
+        var ex = assertThrows(UsuarioNaoEncontradoException.class,
+                () -> authService.validateRecoverCode(request));
+
+        // Assert
+        assertEquals("Usuário não encontrado.", ex.getMessage());
+    }
+
+    @Test
+    void deveLancarExcecao_QuandoCodigoForInvalido_AoValidarCodigoDeRecuperacao() {
+        // Arrange
+        var codigoRecuperacao = "111222";
+        var request = new ValidarCodigoRecuperacaoRequest(codigoRecuperacao, usuario.getEmail());
+        when(usuarioRepository.findByEmail(usuario.getEmail())).thenReturn(Optional.of(usuario));
+        when(tokenService.validarCodigoRecuperacao(usuario, codigoRecuperacao)).thenReturn(false);
+
+        // Act
+        var ex = assertThrows(TokenInvalidoException.class,
+                () -> authService.validateRecoverCode(request));
+
+        // Assert
+        assertEquals("Token inválido ou malformado.", ex.getMessage());
+    }
+
+    @Test
+    void deveConfirmarRecuperacaoDeSenhaComSucesso() {
+        var codigoRecuperacao = "111222";
+        var novaSenha = "teste123";
+        var request = new ConfirmarRecuperacaoSenhaRequest(codigoRecuperacao, usuario.getEmail(), novaSenha);
+        when(usuarioRepository.findByEmail(usuario.getEmail())).thenReturn(Optional.of(usuario));
+        when(tokenService.validarCodigoRecuperacao(usuario, codigoRecuperacao)).thenReturn(true);
+
+        authService.confirmarRecuperacaoSenha(request);
+
+        verify(usuarioRepository).findByEmail(usuario.getEmail());
+        verify(tokenService).validarCodigoRecuperacao(usuario, codigoRecuperacao);
+        verify(usuarioRepository).save(usuario);
+        verify(tokenService).revogarToken(usuario, TokenType.RECUPERACAO_SENHA);
+    }
+
+    @Test
+    void deveLancarExcecao_QuandoUsuarioNaoExistir_AoConfirmarRecuperacaoDeSenha() {
+        // Arrange
+        var codigoRecuperacao = "111222";
+        var novaSenha = "teste123";
+        var request = new ConfirmarRecuperacaoSenhaRequest(codigoRecuperacao, usuario.getEmail(), novaSenha);
+        when(usuarioRepository.findByEmail(usuario.getEmail())).thenReturn(Optional.empty());
+
+        // Act
+        var ex = assertThrows(UsuarioNaoEncontradoException.class,
+                () -> authService.confirmarRecuperacaoSenha(request));
+
+        // Assert
+        assertEquals("Usuário não encontrado.", ex.getMessage());
+    }
+
+    @Test
+    void deveLancarExcecao_QuandoCodigoForInvalido_AoConfirmarRecuperacaoDeSenha() {
+        // Arrange
+        var codigoRecuperacao = "111222";
+        var novaSenha = "teste123";
+        var request = new ConfirmarRecuperacaoSenhaRequest(codigoRecuperacao, usuario.getEmail(), novaSenha);
+        when(usuarioRepository.findByEmail(usuario.getEmail())).thenReturn(Optional.of(usuario));
+        when(tokenService.validarCodigoRecuperacao(usuario, codigoRecuperacao)).thenReturn(false);
+
+        // Act
+        var ex = assertThrows(TokenInvalidoException.class,
+                () -> authService.confirmarRecuperacaoSenha(request));
 
         // Assert
         assertEquals("Token inválido ou malformado.", ex.getMessage());
