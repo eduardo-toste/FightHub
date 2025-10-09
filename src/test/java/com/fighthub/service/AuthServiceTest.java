@@ -169,7 +169,7 @@ class AuthServiceTest {
                 () -> authService.atualizarToken(refreshToken));
 
         // Assert
-        assertEquals("Token JWT inválido ou malformado.", ex.getMessage());
+        assertEquals("Token inválido ou malformado.", ex.getMessage());
     }
 
     @Test
@@ -231,7 +231,7 @@ class AuthServiceTest {
                 () -> authService.logout(request));
 
         // Assert
-        assertEquals("Token JWT inválido ou malformado.", ex.getMessage());
+        assertEquals("Token inválido ou malformado.", ex.getMessage());
     }
 
     @Test
@@ -245,7 +245,7 @@ class AuthServiceTest {
                 () -> authService.logout(request));
 
         // Assert
-        assertEquals("Token JWT inválido ou malformado.", ex.getMessage());
+        assertEquals("Token inválido ou malformado.", ex.getMessage());
     }
 
 }

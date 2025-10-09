@@ -162,7 +162,7 @@ class JwtServiceTest {
                 () -> jwtService.extrairEmail(tokenInvalido));
 
         // Assert
-        assertEquals("Token JWT inválido ou malformado.", ex.getMessage());
+        assertEquals("Token inválido ou malformado.", ex.getMessage());
     }
 
     @Test
