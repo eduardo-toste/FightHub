@@ -22,7 +22,6 @@
 - [Testes](#testes)
 - [Deploy](#deploy)
 - [Contribuição](#contribuição)
-- [Licença](#licença)
 
 ## Características
 
@@ -41,6 +40,7 @@
 - Perfis completos com foto e informações pessoais
 - Suporte a login social (OAuth2)
 - Controle de status ativo/inativo com auditoria
+- Sistema de ativação de contas por email
 
 ### Gestão de Modalidades
 - Cadastro completo de modalidades de artes marciais
@@ -53,6 +53,7 @@
 - **Aulas**: Agendamento e controle completo de aulas
 - **Presenças**: Sistema robusto de controle de frequência
 - **Inscrições**: Sistema de inscrições em aulas específicas
+- **Matrículas**: Controle de matrículas e status ativo/inativo
 
 ### Funcionalidades Administrativas
 - Relatórios detalhados de presença e frequência
@@ -65,25 +66,36 @@
 ### Backend
 - **Java 21** - Linguagem de programação com recursos modernos
 - **Spring Boot 3.2.5** - Framework principal para desenvolvimento
-- **Spring Security** - Autenticação e autorização robusta
+- **Spring Security** - Autenticação e autorização robusta com JWT
 - **Spring Data JPA** - Persistência de dados com Hibernate
+- **PostgreSQL 16** - Banco de dados principal
+- **H2 Database** - Banco de dados para testes
+- **Flyway** - Migração de banco de dados
+- **JWT (jjwt)** - Autenticação stateless com tokens
+- **Lombok** - Redução de boilerplate
+- **MapStruct** - Mapeamento de objetos DTO ↔ Entity
 - **Spring Validation** - Validação de dados e constraints
+- **Spring Mail** - Envio de emails para ativação e notificações
+- **JaCoCo** - Cobertura de testes
+- **HikariCP** - Pool de conexões do banco de dados
 
 ### Banco de Dados
 - **PostgreSQL 16** - Banco de dados relacional principal
 - **Flyway** - Migração e versionamento do banco de dados
 - **H2** - Banco em memória para testes automatizados
 
-### Documentação e Qualidade
-- **SpringDoc OpenAPI 3** - Documentação automática da API
-- **JaCoCo** - Análise de cobertura de testes
-- **Lombok** - Redução de código boilerplate
+### Documentação e Testes
+- **Swagger/OpenAPI 3** - Documentação interativa da API
+- **JaCoCo** - Relatórios de cobertura de testes
+- **JUnit 5** - Framework de testes
+- **Mockito** - Mocking para testes unitários
+- **TestContainers** - Testes de integração com containers
+
 
 ### Ferramentas de Desenvolvimento
 - **Maven** - Gerenciamento de dependências e build
 - **Docker Compose** - Containerização do banco de dados
-- **JUnit 5** - Framework de testes unitários
-- **Mockito** - Framework de mocking para testes
+- **Git** - Controle de versão
 
 ## Pré-requisitos
 
@@ -99,7 +111,7 @@ Antes de começar, certifique-se de ter instalado:
 ### 1. Clone o repositório
 
 ```bash
-git clone https://github.com/seu-usuario/fighthub.git
+git clone https://github.com/eduardo-toste/fighthub.git
 cd fighthub
 ```
 
@@ -153,14 +165,6 @@ A aplicação estará disponível em: `http://localhost:8080`
 
 ## Configuração
 
-### Variáveis de Ambiente
-
-| Variável | Descrição | Padrão |
-|----------|-----------|---------|
-| `POSTGRES_DB` | Nome do banco de dados | `fighthub` |
-| `POSTGRES_USER` | Usuário do PostgreSQL | `admin` |
-| `POSTGRES_PASSWORD` | Senha do PostgreSQL | `111222333` |
-
 ### Configurações da Aplicação
 
 Principais configurações no `application.properties`:
@@ -185,10 +189,36 @@ logging.level.org.hibernate.SQL=DEBUG
 
 ### Endpoints Principais
 
-#### Autenticação
+#### Autenticação (`/auth`)
 - `POST /auth/login` - Login do usuário
 - `POST /auth/refresh` - Renovar token de acesso
 - `POST /auth/logout` - Logout do usuário
+- `POST /auth/recuperar-senha` - Solicitar recuperação de senha
+- `POST /auth/recuperar-senha/validar-codigo` - Validar código de recuperação
+- `POST /auth/recuperar-senha/confirmar` - Confirmar nova senha
+
+#### Usuários (`/usuarios`)
+- `GET /usuarios` - Listar usuários (paginado) - *Apenas ADMIN*
+- `GET /usuarios/{id}` - Consultar usuário por ID - *Apenas ADMIN*
+- `GET /usuarios/me` - Consultar próprios dados
+- `PUT /usuarios/{id}` - Atualização completa de usuário - *Apenas ADMIN*
+- `PATCH /usuarios/{id}` - Atualização parcial de usuário - *Apenas ADMIN*
+- `PUT /usuarios/me` - Atualização completa dos próprios dados
+- `PATCH /usuarios/me` - Atualização parcial dos próprios dados
+- `PATCH /usuarios/{id}/role` - Atualizar role do usuário - *Apenas ADMIN*
+- `PATCH /usuarios/{id}/status` - Atualizar status do usuário - *Apenas ADMIN*
+- `PATCH /usuarios/me/password` - Alterar própria senha
+
+#### Alunos (`/alunos`)
+- `GET /alunos` - Listar alunos (paginado) - *ADMIN, COORDENADOR, PROFESSOR*
+- `GET /alunos/{id}` - Consultar aluno por ID - *ADMIN, COORDENADOR, PROFESSOR*
+- `POST /alunos` - Criar novo aluno - *ADMIN, COORDENADOR, PROFESSOR*
+- `PATCH /alunos/{id}/matricula` - Atualizar status de matrícula
+- `PATCH /alunos/{id}/data-matricula` - Atualizar data de matrícula
+- `PATCH /alunos/{id}/data-nascimento` - Atualizar data de nascimento
+
+#### Ativação (`/ativar`)
+- `POST /ativar` - Ativar conta do usuário
 
 #### Exemplo de Login
 
@@ -266,7 +296,7 @@ O relatório de cobertura será gerado em: `target/site/jacoco/index.html`
 
 ### Tipos de Testes
 
-- **Testes Unitários**: Testam componentes isolados
+- **Testes Unitários**: Testam componentes isolados (18 classes de teste)
 - **Testes de Integração**: Testam fluxos completos
 - **Testes de Repositório**: Testam acesso aos dados
 - **Testes de Segurança**: Testam autenticação e autorização
@@ -291,6 +321,7 @@ Para deploy em ambiente de produção, siga estas diretrizes:
    - Configure HTTPS/TLS
    - Use certificados SSL válidos
    - Configure firewall e rate limiting
+   - Altere as chaves JWT padrão
 
 4. **Monitoramento**
    - Configure health checks
@@ -327,17 +358,6 @@ Contribuições são sempre bem-vindas! Para contribuir:
 - Escreva testes para novas funcionalidades
 - Mantenha a cobertura de testes acima de 80%
 - Documente APIs com Swagger/OpenAPI
-
-### Issues
-
-Encontrou um bug ou tem uma sugestão? Abra uma [issue](https://github.com/seu-usuario/fighthub/issues)!
-
-## Licença
-
-Este projeto está licenciado sob a Licença MIT - veja o arquivo [LICENSE](LICENSE) para detalhes.
-
----
+- Use commits semânticos
 
 **FightHub** - Solução empresarial para gerenciamento de academias de artes marciais.
-
-Para mais informações, visite nossa [documentação completa](https://github.com/seu-usuario/fighthub/wiki) ou entre em contato através do email de suporte.
