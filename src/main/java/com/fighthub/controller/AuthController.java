@@ -98,18 +98,64 @@ public class AuthController {
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
+    @Operation(
+            summary = "Solicitação de Recuperação de Senha",
+            description = "Envia um e-mail para o usuário com o código de recuperação."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Solicitação realizada com sucesso"),
+            @ApiResponse(responseCode = "404", description = "Usuário não encontrado",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class),
+                            examples = {
+                                    @ExampleObject(name = "Usuário não encontrado", value = SwaggerExamples.USUARIO_NAO_ENCONTRADO)
+                            }))
+    })
     @PostMapping("/recuperar-senha")
     public ResponseEntity<Void> recuperarSenha(@RequestBody @Valid RecuperarSenhaRequest request) {
         authService.recoverPassword(request);
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
+    @Operation(
+            summary = "Validação do código de recuperação",
+            description = "Valida o código numérico enviado ao e-mail do usuário para recuperação de senha."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Código validado com sucesso"),
+            @ApiResponse(responseCode = "404", description = "Usuário não encontrado",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class),
+                            examples = {
+                                    @ExampleObject(name = "Usuário não encontrado", value = SwaggerExamples.USUARIO_NAO_ENCONTRADO)
+                            })),
+            @ApiResponse(responseCode = "400", description = "Código de recuperação inválido",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class),
+                            examples = {
+                                    @ExampleObject(name = "Código inválido", value = SwaggerExamples.TOKEN_INVALIDO)
+                            }))
+    })
     @PostMapping("/recuperar-senha/validar-codigo")
     public ResponseEntity<Void> validarCodigoRecuperacao(@RequestBody @Valid ValidarCodigoRecuperacaoRequest request) {
         authService.validateRecoverCode(request);
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
+    @Operation(
+            summary = "Criação de nova senha",
+            description = "Permite a definição de uma nova senha informando o código de recuperação recebido por e-mail."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Senha redefinida com sucesso"),
+            @ApiResponse(responseCode = "404", description = "Usuário não encontrado",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class),
+                            examples = {
+                                    @ExampleObject(name = "Usuário não encontrado", value = SwaggerExamples.USUARIO_NAO_ENCONTRADO)
+                            })),
+            @ApiResponse(responseCode = "400", description = "Código de recuperação inválido",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class),
+                            examples = {
+                                    @ExampleObject(name = "Código inválido", value = SwaggerExamples.TOKEN_INVALIDO)
+                            }))
+    })
     @PostMapping("/recuperar-senha/nova-senha")
     public ResponseEntity<Void> criarNovaSenha(@RequestBody @Valid ConfirmarRecuperacaoSenhaRequest request) {
         authService.confirmarRecuperacaoSenha(request);
