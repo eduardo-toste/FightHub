@@ -4,6 +4,7 @@ public enum TokenType {
 
     ACCESS,
     REFRESH,
-    ATIVACAO
+    ATIVACAO,
+    RECUPERACAO_SENHA
 
 }

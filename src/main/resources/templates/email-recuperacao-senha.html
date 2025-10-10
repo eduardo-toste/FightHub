@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Recuperação de Senha | FightHub</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+        @media only screen and (max-width: 620px) {
+            table[class="container"] {
+                width: 90% !important;
+            }
+            h1 {
+                font-size: 24px !important;
+            }
+            h2 {
+                font-size: 20px !important;
+            }
+            p, a {
+                font-size: 15px !important;
+            }
+            td {
+                padding: 24px !important;
+            }
+        }
+    </style>
+</head>
+
+<body style="margin: 0; padding: 0; background-color: #f9f9f9; font-family: 'Segoe UI', Arial, sans-serif;">
+
+<table width="100%" cellpadding="0" cellspacing="0" bgcolor="#f9f9f9">
+    <tr>
+        <td align="center">
+
+            <table class="container" width="600" cellpadding="0" cellspacing="0" bgcolor="#ffffff"
+                   style="margin: 40px auto; border-radius: 16px; border: 1px solid #e0e0e0;
+                      box-shadow: 0 6px 24px rgba(0, 0, 0, 0.05); width: 100%; max-width: 600px;">
+
+                <!-- Cabeçalho -->
+                <tr>
+                    <td align="center" style="padding: 32px 24px 16px; border-top-left-radius: 16px; border-top-right-radius: 16px;">
+                        <h1 style="margin: 0; font-size: 32px; color: #d72638;">FightHub</h1>
+                        <p style="margin-top: 8px; font-size: 15px; color: #666;">Disciplina. Evolução. Conquista.</p>
+                    </td>
+                </tr>
+
+                <!-- Corpo -->
+                <tr>
+                    <td style="padding: 32px 40px;">
+                        <h2 style="margin: 0 0 20px 0; font-size: 24px; color: #333;">
+                            Recuperação de senha solicitada
+                        </h2>
+
+                        <p style="font-size: 16px; line-height: 1.6; color: #444;">
+                            Olá, <strong><span th:text="${nome}">Usuário</span></strong>! <br><br>
+                            Recebemos uma solicitação para redefinir a senha da sua conta no <strong>FightHub</strong>.
+                        </p>
+
+                        <p style="font-size: 16px; line-height: 1.6; color: #444;">
+                            Para prosseguir, utilize o seguinte código de verificação:
+                        </p>
+
+                        <!-- Código -->
+                        <table width="100%" cellpadding="0" cellspacing="0" style="margin: 32px 0;">
+                            <tr>
+                                <td align="center">
+                                    <div style="display: inline-block; padding: 14px 28px; background-color: #f6f6f6;
+                                        font-size: 28px; font-weight: bold; color: #d72638; letter-spacing: 4px;
+                                        border: 2px dashed #d72638; border-radius: 12px;">
+                                        <span th:text="${codigo}">123456</span>
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+
+                        <p style="font-size: 16px; color: #444;">
+                            Esse código é válido por apenas <strong>15 minutos</strong>. Após isso, será necessário solicitar um novo.
+                        </p>
+
+                        <p style="font-size: 14px; color: #666666; margin-top: 32px;">
+                            Caso você não tenha solicitado essa recuperação, por favor ignore este e-mail.
+                        </p>
+
+                        <hr style="border: none; border-top: 1px solid #eeeeee; margin: 32px 0;">
+
+                        <p style="font-style: italic; color: #777777; text-align: center; font-size: 14px;">
+                            "Não é a força que define um lutador. É a disciplina em se reerguer. Vamos nessa!"
+                        </p>
+                    </td>
+                </tr>
+
+                <!-- Rodapé -->
+                <tr>
+                    <td align="center" bgcolor="#f1f1f1"
+                        style="padding: 16px; font-size: 12px; color: #666;
+                       border-bottom-left-radius: 16px; border-bottom-right-radius: 16px;">
+                        © 2025 FightHub. Todos os direitos reservados. <br>
+                        Plataforma de gestão para academias de artes marciais.
+                    </td>
+                </tr>
+
+            </table>
+
+        </td>
+    </tr>
+</table>
+
+</body>
+</html>

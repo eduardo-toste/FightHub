@@ -140,4 +140,42 @@ class EmailServiceTest {
         assertEquals("Erro ao enviar e-mail", ex.getMessage());
     }
 
+    @Test
+    void deveEnviarEmailRecuperacaoSenha() {
+        String html = "<html><body>Email de recuperação de senha</body></html>";
+        String codigoRecuperacao = "111222";
+
+        when(templateEngine.process(eq("email-recuperacao-senha"), any(Context.class))).thenReturn(html);
+        when(javaMailSender.createMimeMessage()).thenReturn(mimeMessage);
+
+        emailService.enviarEmailRecuperacaoSenha(usuario, codigoRecuperacao);
+
+        ArgumentCaptor<Context> contextCaptor = ArgumentCaptor.forClass(Context.class);
+        verify(templateEngine).process(eq("email-recuperacao-senha"), contextCaptor.capture());
+
+        Context contextUsado = contextCaptor.getValue();
+        assertEquals(usuario.getNome(), contextUsado.getVariable("nome"));
+        assertEquals(codigoRecuperacao, contextUsado.getVariable("codigo"));
+
+        verify(javaMailSender).createMimeMessage();
+        verify(javaMailSender).send(mimeMessage);
+    }
+
+    @Test
+    void deveLancarExcecao_QuandoEmailRecuperacaoSenhaNaoForEnviado() {
+        String html = "<html><body>Email de recuperação de senha</body></html>";
+        String codigoRecuperacao = "111222";
+
+        when(templateEngine.process(eq("email-recuperacao-senha"), any(Context.class))).thenReturn(html);
+        when(javaMailSender.createMimeMessage()).thenReturn(mimeMessage);
+
+        doThrow(new MailSendException("Falha ao enviar"))
+                .when(javaMailSender).send(mimeMessage);
+
+        var ex = assertThrows(EmailNaoEnviadoException.class,
+                () -> emailService.enviarEmailRecuperacaoSenha(usuario, codigoRecuperacao));
+
+        assertEquals("Erro ao enviar e-mail", ex.getMessage());
+    }
+
 }

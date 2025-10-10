@@ -150,7 +150,7 @@ class AtivacaoServiceTest {
         var ex = assertThrows(TokenInvalidoException.class,
                 () -> ativacaoService.ativarConta(request));
 
-        assertEquals("Token JWT inválido ou malformado.", ex.getMessage());
+        assertEquals("Token inválido ou malformado.", ex.getMessage());
         verify(usuarioRepository, never()).save(any());
         verify(tokenRepository, never()).save(any());
         verify(emailService, never()).enviarEmailConfirmacao(any());

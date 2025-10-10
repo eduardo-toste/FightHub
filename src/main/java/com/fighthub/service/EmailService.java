@@ -65,4 +65,26 @@ public class EmailService {
             throw new EmailNaoEnviadoException();
         }
     }
+
+    @Async
+    public void enviarEmailRecuperacaoSenha(Usuario usuario, String codigoRecuperacao) {
+        Context context = new Context();
+        context.setVariable("nome", usuario.getNome());
+        context.setVariable("codigo", codigoRecuperacao);
+
+        String htmlContent = templateEngine.process("email-recuperacao-senha", context);
+
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, "UTF-8");
+
+            helper.setTo(usuario.getEmail());
+            helper.setSubject("Recuperação de senha solicitada!");
+            helper.setText(htmlContent, true);
+
+            mailSender.send(message);
+        } catch (MessagingException | MailException e) {
+            throw new EmailNaoEnviadoException();
+        }
+    }
 }
