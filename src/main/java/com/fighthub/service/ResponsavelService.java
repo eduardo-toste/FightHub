@@ -1,15 +1,23 @@
 package com.fighthub.service;
 
 import com.fighthub.dto.responsavel.CriarResponsavelRequest;
+import com.fighthub.dto.responsavel.ResponsavelDetalhadoResponse;
+import com.fighthub.dto.responsavel.ResponsavelResponse;
 import com.fighthub.exception.CpfExistenteException;
+import com.fighthub.exception.ResponsavelNaoEncontradoException;
 import com.fighthub.exception.ValidacaoException;
+import com.fighthub.mapper.ResponsavelMapper;
 import com.fighthub.model.Responsavel;
 import com.fighthub.model.Usuario;
 import com.fighthub.model.enums.Role;
 import com.fighthub.repository.ResponsavelRepository;
 import com.fighthub.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -46,4 +54,12 @@ public class ResponsavelService {
         emailService.enviarEmailAtivacao(usuario, token);
     }
 
+    public Page<ResponsavelResponse> obterTodosResponsaveis(Pageable pageable) {
+        return ResponsavelMapper.toPageDTO(responsavelRepository.findAll(pageable));
+    }
+
+    public ResponsavelDetalhadoResponse obterResponsavelPorId(UUID id) {
+        return ResponsavelMapper.toDetailedDTO(responsavelRepository.findById(id)
+                .orElseThrow(ResponsavelNaoEncontradoException::new));
+    }
 }
