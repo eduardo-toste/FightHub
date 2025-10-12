@@ -65,6 +65,16 @@ public class SwaggerExamples {
         }
     """;
 
+    public static final String RESPONSAVEL_NAO_ENCONTRADO = """
+        {
+          "timestamp": "2025-09-23T15:13:12.123456-03:00",
+          "status": 404,
+          "error": "Not Found",
+          "message": "Responsavel não encontrado",
+          "path": "/responsavel/{id}"
+        }
+    """;
+
     public static final String USUARIO_NAO_ENCONTRADO = """
         {
           "timestamp": "2025-09-23T15:13:12.123456-03:00",
