@@ -63,7 +63,7 @@ public class ResponsavelController {
             description = "Retorna uma lista paginada de responsaveis cadastrados."
     )
     @ApiResponse(responseCode = "200", description = "Lista de responsaveis retornada com sucesso",
-            content = @Content(schema = @Schema(implementation = AlunoResponse.class)))
+            content = @Content(schema = @Schema(implementation = ResponsavelResponse.class)))
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'COORDENADOR', 'PROFESSOR')")
     public ResponseEntity<Page<ResponsavelResponse>> obterResponsaveis(Pageable pageable) {
@@ -77,7 +77,7 @@ public class ResponsavelController {
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Responsavel encontrado",
-                    content = @Content(schema = @Schema(implementation = AlunoDetalhadoResponse.class))),
+                    content = @Content(schema = @Schema(implementation = ResponsavelDetalhadoResponse.class))),
             @ApiResponse(responseCode = "404", description = "Responsavel não encontrado",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class),
                             examples = @ExampleObject(name = "Responsavel não encontrado", value = SwaggerExamples.RESPONSAVEL_NAO_ENCONTRADO)))
