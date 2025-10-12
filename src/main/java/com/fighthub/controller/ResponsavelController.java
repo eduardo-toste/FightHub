@@ -1,9 +1,19 @@
 package com.fighthub.controller;
 
+import com.fighthub.docs.SwaggerExamples;
+import com.fighthub.dto.aluno.AlunoDetalhadoResponse;
+import com.fighthub.dto.aluno.AlunoResponse;
 import com.fighthub.dto.responsavel.CriarResponsavelRequest;
 import com.fighthub.dto.responsavel.ResponsavelDetalhadoResponse;
 import com.fighthub.dto.responsavel.ResponsavelResponse;
+import com.fighthub.exception.dto.ErrorResponse;
 import com.fighthub.service.ResponsavelService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +34,23 @@ public class ResponsavelController {
 
     private final ResponsavelService responsavelService;
 
+    @Operation(
+            summary = "Criação de novo responsavel",
+            description = """
+                    Permite que **ADMIN, COORDENADOR ou PROFESSOR** cadastrem um novo responsavel no sistema.
+                    
+                    - Valida CPF, e-mail e data de nascimento.
+                    """
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "Responsavel criado com sucesso"),
+            @ApiResponse(responseCode = "400", description = "Requisição inválida",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class),
+                            examples = @ExampleObject(name = "Erro de validação", value = SwaggerExamples.ERRO_VALIDACAO))),
+            @ApiResponse(responseCode = "403", description = "Você não tem permissão para acessar este recurso.",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class),
+                            examples = @ExampleObject(name = "Acesso negado", value = SwaggerExamples.ACESSO_NEGADO)))
+    })
     @PostMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'COORDENADOR', 'PROFESSOR')")
     public ResponseEntity<Void> criarResponsavel(@RequestBody @Valid CriarResponsavelRequest request) {
@@ -31,6 +58,12 @@ public class ResponsavelController {
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
+    @Operation(
+            summary = "Listagem de responsaveis",
+            description = "Retorna uma lista paginada de responsaveis cadastrados."
+    )
+    @ApiResponse(responseCode = "200", description = "Lista de responsaveis retornada com sucesso",
+            content = @Content(schema = @Schema(implementation = AlunoResponse.class)))
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'COORDENADOR', 'PROFESSOR')")
     public ResponseEntity<Page<ResponsavelResponse>> obterResponsaveis(Pageable pageable) {
@@ -38,6 +71,17 @@ public class ResponsavelController {
         return ResponseEntity.status(HttpStatus.OK).body(responsaveis);
     }
 
+    @Operation(
+            summary = "Consulta de responsavel por ID",
+            description = "Retorna os dados detalhados de um responsavel específico pelo seu ID."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Responsavel encontrado",
+                    content = @Content(schema = @Schema(implementation = AlunoDetalhadoResponse.class))),
+            @ApiResponse(responseCode = "404", description = "Responsavel não encontrado",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class),
+                            examples = @ExampleObject(name = "Responsavel não encontrado", value = SwaggerExamples.RESPONSAVEL_NAO_ENCONTRADO)))
+    })
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'COORDENADOR', 'PROFESSOR')")
     public ResponseEntity<ResponsavelDetalhadoResponse> obterResponsavel(@PathVariable UUID id) {
