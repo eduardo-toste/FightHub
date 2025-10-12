@@ -29,7 +29,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/responsaveis")
 @RequiredArgsConstructor
-@Tag(name = "Responsaveis", description = "Endpoints para criação e gerenciamento de Responsaveis no FightHub")
+@Tag(name = "Responsáveis", description = "Endpoints para criação e gerenciamento de Responsáveis no FightHub")
 public class ResponsavelController {
 
     private final ResponsavelService responsavelService;
