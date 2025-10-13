@@ -1,8 +1,6 @@
 package com.fighthub.controller;
 
 import com.fighthub.docs.SwaggerExamples;
-import com.fighthub.dto.aluno.AlunoDetalhadoResponse;
-import com.fighthub.dto.aluno.AlunoResponse;
 import com.fighthub.dto.responsavel.CriarResponsavelRequest;
 import com.fighthub.dto.responsavel.ResponsavelDetalhadoResponse;
 import com.fighthub.dto.responsavel.ResponsavelResponse;
@@ -87,6 +85,20 @@ public class ResponsavelController {
     public ResponseEntity<ResponsavelDetalhadoResponse> obterResponsavel(@PathVariable UUID id) {
         var responsavel = responsavelService.obterResponsavelPorId(id);
         return ResponseEntity.status(HttpStatus.OK).body(responsavel);
+    }
+
+    @PatchMapping("/{idResponsavel}/alunos/{idAluno}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'COORDENADOR')")
+    public ResponseEntity<Void> vincularAlunoAoResponsavel(@PathVariable UUID idResponsavel, @PathVariable UUID idAluno) {
+        responsavelService.vincularAlunoAoResponsavel(idResponsavel, idAluno);
+        return ResponseEntity.status(HttpStatus.OK).build();
+    }
+
+    @DeleteMapping("/{idResponsavel}/alunos/{idAluno}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'COORDENADOR')")
+    public ResponseEntity<Void> removerVinculoAlunoEResponsavel(@PathVariable UUID idResponsavel, @PathVariable UUID idAluno) {
+        responsavelService.removerVinculoAlunoEResponsavel(idResponsavel, idAluno);
+        return ResponseEntity.status(HttpStatus.OK).build();
     }
 
 }
