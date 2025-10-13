@@ -38,12 +38,7 @@ public class Aluno {
     @Column(name = "matricula_ativa")
     private boolean matriculaAtiva;
 
-    @ManyToMany
-    @JoinTable(
-            name = "alunos_responsaveis",
-            joinColumns = @JoinColumn(name = "aluno_id"),
-            inverseJoinColumns = @JoinColumn(name = "responsavel_id")
-    )
+    @ManyToMany(mappedBy = "alunos")
     private List<Responsavel> responsaveis = new ArrayList<>();
 
 }
