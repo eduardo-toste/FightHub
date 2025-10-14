@@ -71,7 +71,7 @@ public class SwaggerExamples {
           "status": 404,
           "error": "Not Found",
           "message": "Responsavel não encontrado",
-          "path": "/responsavel/{id}"
+          "path": "/responsaveis/{id}"
         }
     """;
 
@@ -112,6 +112,26 @@ public class SwaggerExamples {
           "error": "Conflict",
           "message": "A situação atual da matricula já está neste estado.",
           "path": "/alunos/{id}/matricula"
+        }
+    """;
+
+    public static final String ALUNO_JA_VINCULADO = """
+        {
+          "timestamp": "2025-09-23T15:13:12.123456-03:00",
+          "status": 409,
+          "error": "Conflict",
+          "message": "Vínculo de responsabilidade já estabelecido.",
+          "path": "/responsaveis/{idResponsavel}/alunos/{idAluno}"
+        }
+    """;
+
+    public static final String ALUNO_NAO_VINCULADO = """
+        {
+          "timestamp": "2025-09-23T15:13:12.123456-03:00",
+          "status": 409,
+          "error": "Conflict",
+          "message": "Responsável não vinculado ao aluno.",
+          "path": "/responsaveis/{idResponsavel}/alunos/{idAluno}"
         }
     """;
 }
