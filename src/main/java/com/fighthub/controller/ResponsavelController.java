@@ -87,6 +87,24 @@ public class ResponsavelController {
         return ResponseEntity.status(HttpStatus.OK).body(responsavel);
     }
 
+    @Operation(
+            summary = "Vínculo de aluno",
+            description = "Vincula o aluno ao responsável sem retornar nenhum conteúdo."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Aluno vinculado"),
+            @ApiResponse(responseCode = "404", description = "Responsável ou aluno não encontrado",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class),
+                            examples = {
+                                    @ExampleObject(name = "Responsável não encontrado", value = SwaggerExamples.RESPONSAVEL_NAO_ENCONTRADO),
+                                    @ExampleObject(name = "Aluno não encontrado", value = SwaggerExamples.ALUNO_NAO_ENCONTRADO)
+                            })),
+            @ApiResponse(responseCode = "409", description = "Aluno já vinculado ao responsável",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class),
+                            examples = @ExampleObject(
+                                    name = "Aluno já vinculado",
+                                    value = SwaggerExamples.ALUNO_JA_VINCULADO)))
+    })
     @PatchMapping("/{idResponsavel}/alunos/{idAluno}")
     @PreAuthorize("hasAnyRole('ADMIN', 'COORDENADOR')")
     public ResponseEntity<Void> vincularAlunoAoResponsavel(@PathVariable UUID idResponsavel, @PathVariable UUID idAluno) {
@@ -94,6 +112,24 @@ public class ResponsavelController {
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
+    @Operation(
+            summary = "Desnvínculo de aluno",
+            description = "Desvincula o aluno ao responsável sem retornar nenhum conteúdo."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Aluno desvinculado"),
+            @ApiResponse(responseCode = "404", description = "Responsável ou aluno não encontrado",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class),
+                            examples = {
+                                    @ExampleObject(name = "Responsável não encontrado", value = SwaggerExamples.RESPONSAVEL_NAO_ENCONTRADO),
+                                    @ExampleObject(name = "Aluno não encontrado", value = SwaggerExamples.ALUNO_NAO_ENCONTRADO)
+                            })),
+            @ApiResponse(responseCode = "409", description = "Responsável não vinculado ao aluno",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class),
+                            examples = @ExampleObject(
+                                    name = "Responsável não vinculado ao aluno",
+                                    value = SwaggerExamples.ALUNO_NAO_VINCULADO)))
+    })
     @DeleteMapping("/{idResponsavel}/alunos/{idAluno}")
     @PreAuthorize("hasAnyRole('ADMIN', 'COORDENADOR')")
     public ResponseEntity<Void> removerVinculoAlunoEResponsavel(@PathVariable UUID idResponsavel, @PathVariable UUID idAluno) {
