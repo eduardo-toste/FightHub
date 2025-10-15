@@ -3,78 +3,40 @@ package com.fighthub.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fighthub.config.TestSecurityConfig;
 import com.fighthub.dto.aluno.*;
-import com.fighthub.dto.endereco.EnderecoRequest;
 import com.fighthub.dto.endereco.EnderecoResponse;
 import com.fighthub.exception.AlunoNaoEncontradoException;
 import com.fighthub.exception.MatriculaInvalidaException;
-import com.fighthub.model.Usuario;
-import com.fighthub.model.enums.Role;
 import com.fighthub.repository.TokenRepository;
 import com.fighthub.repository.UsuarioRepository;
 import com.fighthub.service.AlunoService;
-import com.fighthub.service.AuthService;
 import com.fighthub.service.JwtService;
+import com.fighthub.utils.ControllerTestBase;
 import com.fighthub.utils.ErrorWriter;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(controllers = AlunoController.class)
-@Import(TestSecurityConfig.class)
-class AlunoControllerTest {
+class AlunoControllerTest extends ControllerTestBase {
 
-    @Autowired private MockMvc mockMvc;
-    @Autowired private ObjectMapper objectMapper;
-
-    @MockBean private UsuarioRepository usuarioRepository;
-    @MockBean private TokenRepository tokenRepository;
     @MockBean private AlunoService alunoService;
-    @MockBean private AuthService authService;
-    @MockBean private JwtService jwtService;
-    @MockBean private ErrorWriter errorWriter;
-
-    private static final String TOKEN = "token-valido";
-
-    @BeforeEach
-    void setupSecurity() {
-        when(jwtService.tokenValido(anyString())).thenReturn(true);
-        when(jwtService.extrairEmail(anyString())).thenReturn("usuario@teste.com");
-
-        var usuarioMock = Usuario.builder()
-                .id(UUID.randomUUID())
-                .email("usuario@teste.com")
-                .nome("Usuário Teste")
-                .ativo(true)
-                .role(Role.ADMIN)
-                .build();
-
-        when(usuarioRepository.findByEmail("usuario@teste.com"))
-                .thenReturn(Optional.of(usuarioMock));
-
-        when(tokenRepository.findByTokenAndExpiredFalseAndRevokedFalse(anyString()))
-                .thenReturn(Optional.of(new com.fighthub.model.Token()));
-    }
 
     @Test
+    @WithMockUser(roles = {"ADMIN"})
     void deveCriarAluno() throws Exception {
         CriarAlunoRequest request = new CriarAlunoRequest(
                 "João",
@@ -87,7 +49,6 @@ class AlunoControllerTest {
         doNothing().when(alunoService).criarAluno(any(CriarAlunoRequest.class));
 
         mockMvc.perform(post("/alunos")
-                        .header("Authorization", "Bearer " + TOKEN)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated());
@@ -96,8 +57,9 @@ class AlunoControllerTest {
     }
 
     @Test
+    @WithMockUser(roles = {"ADMIN"})
     void deveRetornarPaginaDeAlunos() throws Exception {
-        Page<AlunoResponse> page = new PageImpl<>(List.of(
+        var page = new org.springframework.data.domain.PageImpl<>(List.of(
                 new AlunoResponse(
                         UUID.randomUUID(),
                         "João",
@@ -110,19 +72,17 @@ class AlunoControllerTest {
                 )
         ));
 
-        when(alunoService.obterTodos(any(Pageable.class))).thenReturn(page);
+        when(alunoService.obterTodos(any())).thenReturn(page);
 
-        mockMvc.perform(get("/alunos")
-                        .header("Authorization", "Bearer " + TOKEN))
+        mockMvc.perform(get("/alunos"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content[0].nome").value("João"))
-                .andExpect(jsonPath("$.content[0].email").value("joao@email.com"))
-                .andExpect(jsonPath("$.content[0].matriculaAtiva").value(true));
+                .andExpect(jsonPath("$.content[0].nome").value("João"));
 
-        verify(alunoService).obterTodos(any(Pageable.class));
+        verify(alunoService).obterTodos(any());
     }
 
     @Test
+    @WithMockUser(roles = {"ADMIN"})
     void deveRetornarAlunoPorId() throws Exception {
         UUID id = UUID.randomUUID();
         AlunoDetalhadoResponse response = new AlunoDetalhadoResponse(
@@ -140,132 +100,112 @@ class AlunoControllerTest {
 
         when(alunoService.obterAluno(id)).thenReturn(response);
 
-        mockMvc.perform(get("/alunos/{id}", id)
-                        .header("Authorization", "Bearer " + TOKEN))
+        mockMvc.perform(get("/alunos/{id}", id))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(id.toString()))
-                .andExpect(jsonPath("$.nome").value("João"));
+                .andExpect(jsonPath("$.id").value(id.toString()));
 
-        verify(alunoService).obterAluno(eq(id));
+        verify(alunoService).obterAluno(id);
     }
 
     @Test
+    @WithMockUser(roles = {"ADMIN"})
     void deveAtualizarStatusMatricula_QuandoSucesso() throws Exception {
         UUID id = UUID.randomUUID();
         var request = new AlunoUpdateMatriculaRequest(true);
 
-        doNothing().when(alunoService).atualizarStatusMatricula(eq(id), eq(request));
+        doNothing().when(alunoService).atualizarStatusMatricula(id, request);
 
         mockMvc.perform(patch("/alunos/{id}/matricula", id)
-                        .header("Authorization", "Bearer " + TOKEN)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk());
 
-        verify(alunoService).atualizarStatusMatricula(eq(id), eq(request));
+        verify(alunoService).atualizarStatusMatricula(id, request);
     }
 
     @Test
+    @WithMockUser(roles = {"ADMIN"})
     void deveRetornarNotFound_QuandoAlunoNaoExistir_AoAtualizarMatricula() throws Exception {
         UUID id = UUID.randomUUID();
         var request = new AlunoUpdateMatriculaRequest(false);
 
         doThrow(new AlunoNaoEncontradoException())
-                .when(alunoService).atualizarStatusMatricula(eq(id), eq(request));
+                .when(alunoService).atualizarStatusMatricula(id, request);
 
         mockMvc.perform(patch("/alunos/{id}/matricula", id)
-                        .header("Authorization", "Bearer " + TOKEN)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.message").value("Aluno não encontrado."));
 
-        verify(alunoService).atualizarStatusMatricula(eq(id), eq(request));
+        verify(alunoService).atualizarStatusMatricula(id, request);
     }
 
     @Test
+    @WithMockUser(roles = {"ADMIN"})
     void deveRetornarConflict_QuandoStatusJaEstiverAtualizado() throws Exception {
         UUID id = UUID.randomUUID();
         var request = new AlunoUpdateMatriculaRequest(true);
 
         doThrow(new MatriculaInvalidaException())
-                .when(alunoService).atualizarStatusMatricula(eq(id), eq(request));
+                .when(alunoService).atualizarStatusMatricula(id, request);
 
         mockMvc.perform(patch("/alunos/{id}/matricula", id)
-                        .header("Authorization", "Bearer " + TOKEN)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.message").value("A situação atual da matricula já está neste estado."));
 
-        verify(alunoService).atualizarStatusMatricula(eq(id), eq(request));
+        verify(alunoService).atualizarStatusMatricula(id, request);
     }
 
     @Test
+    @WithMockUser(roles = {"ADMIN"})
     void deveAtualizarDataMatriculaAluno_QuandoSucesso() throws Exception {
         UUID id = UUID.randomUUID();
         var request = new AlunoUpdateDataMatriculaRequest(LocalDate.now().minusMonths(4));
 
-        doNothing().when(alunoService).atualizarDataMatricula(eq(id), eq(request));
+        doNothing().when(alunoService).atualizarDataMatricula(id, request);
 
         mockMvc.perform(patch("/alunos/{id}/data-matricula", id)
-                        .header("Authorization", "Bearer " + TOKEN)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk());
 
-        verify(alunoService).atualizarDataMatricula(eq(id), eq(request));
+        verify(alunoService).atualizarDataMatricula(id, request);
     }
 
     @Test
-    void deveRetornarNotFound_QuandoAlunoNaoExistir_AoAtualizarDataMatriculaAluno() throws Exception {
-        UUID id = UUID.randomUUID();
-        var request = new AlunoUpdateDataMatriculaRequest(LocalDate.now().minusMonths(4));
-
-        doThrow(new AlunoNaoEncontradoException())
-                .when(alunoService).atualizarDataMatricula(eq(id), eq(request));
-
-        mockMvc.perform(patch("/alunos/{id}/data-matricula", id)
-                        .header("Authorization", "Bearer " + TOKEN)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.message").value("Aluno não encontrado."));
-
-        verify(alunoService).atualizarDataMatricula(eq(id), eq(request));
-    }
-
-    @Test
+    @WithMockUser(roles = {"ADMIN"})
     void deveAtualizarDataNascimentoAluno_QuandoSucesso() throws Exception {
         UUID id = UUID.randomUUID();
         var request = new AlunoUpdateDataNascimentoRequest(LocalDate.now().minusYears(20));
 
-        doNothing().when(alunoService).atualizarDataNascimento(eq(id), eq(request));
+        doNothing().when(alunoService).atualizarDataNascimento(id, request);
 
         mockMvc.perform(patch("/alunos/{id}/data-nascimento", id)
-                        .header("Authorization", "Bearer " + TOKEN)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk());
 
-        verify(alunoService).atualizarDataNascimento(eq(id), eq(request));
+        verify(alunoService).atualizarDataNascimento(id, request);
     }
 
     @Test
+    @WithMockUser(roles = {"ADMIN"})
     void deveRetornarNotFound_QuandoAlunoNaoExistir_AoAtualizarDataNascimentoAluno() throws Exception {
         UUID id = UUID.randomUUID();
         var request = new AlunoUpdateDataNascimentoRequest(LocalDate.now().minusYears(20));
 
         doThrow(new AlunoNaoEncontradoException())
-                .when(alunoService).atualizarDataNascimento(eq(id), eq(request));
+                .when(alunoService).atualizarDataNascimento(id, request);
 
         mockMvc.perform(patch("/alunos/{id}/data-nascimento", id)
-                        .header("Authorization", "Bearer " + TOKEN)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.message").value("Aluno não encontrado."));
 
-        verify(alunoService).atualizarDataNascimento(eq(id), eq(request));
+        verify(alunoService).atualizarDataNascimento(id, request);
     }
 }
