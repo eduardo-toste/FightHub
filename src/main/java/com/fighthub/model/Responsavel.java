@@ -24,7 +24,12 @@ public class Responsavel {
     @JoinColumn(name = "usuario_id", nullable = false)
     private Usuario usuario;
 
-    @ManyToMany(mappedBy = "responsaveis")
+    @ManyToMany
+    @JoinTable(
+            name = "alunos_responsaveis",
+            joinColumns = @JoinColumn(name = "responsavel_id"),
+            inverseJoinColumns = @JoinColumn(name = "aluno_id")
+    )
     private List<Aluno> alunos = new ArrayList<>();
 
 }

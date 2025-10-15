@@ -20,17 +20,13 @@ import java.util.List;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(UsuarioNaoEncontradoException.class)
-    public ResponseEntity<ErrorResponse> handleUsuarioNaoEncontrado(
-            UsuarioNaoEncontradoException ex,
-            HttpServletRequest request
-    ) {
-        return ErrorBuilder.build(HttpStatus.NOT_FOUND, ex.getMessage(), request.getRequestURI());
-    }
-
-    @ExceptionHandler(AlunoNaoEncontradoException.class)
-    public ResponseEntity<ErrorResponse> handleAlunoNaoEncontrado(
-            AlunoNaoEncontradoException ex,
+    @ExceptionHandler({
+            UsuarioNaoEncontradoException.class,
+            AlunoNaoEncontradoException.class,
+            ResponsavelNaoEncontradoException.class
+    })
+    public ResponseEntity<ErrorResponse> handleNotFoundExceptions(
+            RuntimeException ex,
             HttpServletRequest request
     ) {
         return ErrorBuilder.build(HttpStatus.NOT_FOUND, ex.getMessage(), request.getRequestURI());

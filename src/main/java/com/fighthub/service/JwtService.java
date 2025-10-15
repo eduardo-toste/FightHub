@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import java.security.Key;
 import java.util.Date;
+import java.util.UUID;
 
 @Service
 public class JwtService {
@@ -34,6 +35,7 @@ public class JwtService {
 
     public String gerarToken(Usuario usuario) {
         return Jwts.builder()
+                .setId(UUID.randomUUID().toString())
                 .setSubject(usuario.getEmail())
                 .claim("role", usuario.getRole().name())
                 .setIssuedAt(new Date())
@@ -44,6 +46,7 @@ public class JwtService {
 
     public String gerarRefreshToken(Usuario usuario) {
         return Jwts.builder()
+                .setId(UUID.randomUUID().toString())
                 .setSubject(usuario.getEmail())
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + refreshExpiration))
@@ -53,6 +56,7 @@ public class JwtService {
 
     public String gerarTokenAtivacao(Usuario usuario) {
         return Jwts.builder()
+                .setId(UUID.randomUUID().toString())
                 .setSubject(usuario.getEmail())
                 .claim("role", usuario.getRole().name())
                 .claim("tipo", TokenType.ATIVACAO.name())
