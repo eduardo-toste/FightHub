@@ -1,56 +1,31 @@
 package com.fighthub.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fighthub.config.TestSecurityConfig;
 import com.fighthub.dto.auth.AtivacaoRequest;
 import com.fighthub.dto.endereco.EnderecoRequest;
-import com.fighthub.repository.TokenRepository;
-import com.fighthub.repository.UsuarioRepository;
+import com.fighthub.exception.TokenExpiradoException;
+import com.fighthub.exception.UsuarioNaoEncontradoException;
+import com.fighthub.utils.ControllerTestBase;
 import com.fighthub.service.AtivacaoService;
-import com.fighthub.service.JwtService;
-import com.fighthub.utils.ErrorWriter;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
 
-import java.util.Optional;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(controllers = AtivacaoController.class)
 @Import(TestSecurityConfig.class)
-class AtivacaoControllerTest {
+class AtivacaoControllerTest extends ControllerTestBase {
 
-    @Autowired private MockMvc mockMvc;
-    @Autowired private ObjectMapper objectMapper;
+    @MockBean
+    private AtivacaoService ativacaoService;
 
-    @MockBean private AtivacaoService ativacaoService;
-    @MockBean private JwtService jwtService;
-    @MockBean private UsuarioRepository usuarioRepository;
-    @MockBean private TokenRepository tokenRepository;
-    @MockBean private ErrorWriter errorWriter;
-
-    @BeforeEach
-    void setupSecurity() {
-        when(jwtService.tokenValido(any())).thenReturn(true);
-        when(jwtService.extrairEmail(any())).thenReturn("usuario@teste.com");
-        when(usuarioRepository.findByEmail("usuario@teste.com")).thenReturn(Optional.empty());
-        when(tokenRepository.findByTokenAndExpiredFalseAndRevokedFalse(any()))
-                .thenReturn(Optional.of(new com.fighthub.model.Token()));
-    }
-
-    @Test
-    void deveAtivarContaComSucesso() throws Exception {
-        var endereco = new EnderecoRequest(
+    private AtivacaoRequest criarRequestValido() {
+        EnderecoRequest endereco = new EnderecoRequest(
                 "12345-678",
                 "Rua das Flores",
                 "123",
@@ -60,18 +35,74 @@ class AtivacaoControllerTest {
                 "SP"
         );
 
-        var request = new AtivacaoRequest(
-                "token-de-ativacao",
-                "senhaSegura123",
-                "(11)12345-6789",
+        return new AtivacaoRequest(
+                "token-valido",
+                "SenhaForte123",
+                "(11)91234-5678",
                 endereco
         );
+    }
 
-        doNothing().when(ativacaoService).ativarConta(any(AtivacaoRequest.class));
+    @Test
+    void deveAtivarContaComSucesso() throws Exception {
+        AtivacaoRequest request = criarRequestValido();
+
+        doNothing().when(ativacaoService).ativarConta(request);
 
         mockMvc.perform(post("/ativar")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk());
+
+        verify(ativacaoService).ativarConta(request);
+    }
+
+    @Test
+    void deveRetornarBadRequest_QuandoRequestInvalido() throws Exception {
+        AtivacaoRequest requestInvalido = new AtivacaoRequest(
+                "",
+                "",
+                "",
+                null
+        );
+
+        mockMvc.perform(post("/ativar")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(requestInvalido)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Erro de validação"))
+                .andExpect(jsonPath("$.validationError").isArray());
+    }
+
+    @Test
+    void deveRetornarUnauthorized_QuandoTokenExpiradoOuInvalido() throws Exception {
+        AtivacaoRequest request = criarRequestValido();
+
+        doThrow(new TokenExpiradoException())
+                .when(ativacaoService).ativarConta(request);
+
+        mockMvc.perform(post("/ativar")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.message").value("Token expirado."));
+
+        verify(ativacaoService).ativarConta(request);
+    }
+
+    @Test
+    void deveRetornarNotFound_QuandoUsuarioNaoEncontrado() throws Exception {
+        AtivacaoRequest request = criarRequestValido();
+
+        doThrow(new UsuarioNaoEncontradoException())
+                .when(ativacaoService).ativarConta(request);
+
+        mockMvc.perform(post("/ativar")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").value("Usuário não encontrado."));
+
+        verify(ativacaoService).ativarConta(request);
     }
 }

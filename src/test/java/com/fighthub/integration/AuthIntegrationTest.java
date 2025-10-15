@@ -1,7 +1,7 @@
 package com.fighthub.integration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fighthub.dto.auth.AuthRequest;
+import com.fighthub.dto.auth.*;
 import com.fighthub.model.Endereco;
 import com.fighthub.model.Usuario;
 import com.fighthub.model.enums.Role;
@@ -98,5 +98,86 @@ class AuthIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void deveAtualizarToken_QuandoRefreshTokenValido() throws Exception {
+        // Arrange
+        usuarioRepository.save(usuario);
+        
+        // Fazer login para obter refresh token
+        var loginRequest = new AuthRequest("teste@gmail.com", "123456");
+        var loginResponse = mockMvc.perform(post("/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(loginRequest)))
+                .andExpect(status().isOk())
+                .andReturn();
+        
+        var loginResult = objectMapper.readTree(loginResponse.getResponse().getContentAsString());
+        String refreshToken = loginResult.get("refreshToken").asText();
+        
+        var refreshRequest = new RefreshTokenRequest(refreshToken);
+
+        // Act & Assert
+        mockMvc.perform(post("/auth/refresh")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(refreshRequest)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.newAccessToken").isNotEmpty());
+    }
+
+    @Test
+    void deveNegarRefresh_QuandoTokenInvalido() throws Exception {
+        var request = new RefreshTokenRequest("token-invalido");
+
+        mockMvc.perform(post("/auth/refresh")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void deveFazerLogout_QuandoTokenValido() throws Exception {
+        // Arrange
+        usuarioRepository.save(usuario);
+        
+        var loginRequest = new AuthRequest("teste@gmail.com", "123456");
+        var loginResponse = mockMvc.perform(post("/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(loginRequest)))
+                .andExpect(status().isOk())
+                .andReturn();
+        
+        var loginResult = objectMapper.readTree(loginResponse.getResponse().getContentAsString());
+        String accessToken = loginResult.get("accessToken").asText();
+
+        // Act & Assert
+        mockMvc.perform(post("/auth/logout")
+                        .header("Authorization", "Bearer " + accessToken)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void deveRecuperarSenha_QuandoEmailValido() throws Exception {
+        // Arrange
+        usuarioRepository.save(usuario);
+        var request = new RecuperarSenhaRequest("teste@gmail.com");
+
+        // Act & Assert
+        mockMvc.perform(post("/auth/recuperar-senha")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void deveNegarRecuperacao_QuandoEmailInvalido() throws Exception {
+        var request = new RecuperarSenhaRequest("email@inexistente.com");
+
+        mockMvc.perform(post("/auth/recuperar-senha")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isNotFound());
     }
 }
