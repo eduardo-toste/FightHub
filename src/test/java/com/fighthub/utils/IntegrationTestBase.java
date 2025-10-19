@@ -1,7 +1,10 @@
 package com.fighthub.utils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fighthub.repository.AlunoRepository;
+import com.fighthub.repository.TokenRepository;
 import com.fighthub.repository.UsuarioRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -15,6 +18,15 @@ public abstract class IntegrationTestBase {
 
     @Autowired protected MockMvc mockMvc;
     @Autowired protected ObjectMapper objectMapper;
-    @Autowired protected UsuarioRepository usuarioRepository;
 
+    @Autowired protected UsuarioRepository usuarioRepository;
+    @Autowired protected TokenRepository tokenRepository;
+    @Autowired protected AlunoRepository alunoRepository;
+
+    @BeforeEach
+    void limparBaseDeDados() {
+        alunoRepository.deleteAll();
+        tokenRepository.deleteAll();
+        usuarioRepository.deleteAll();
+    }
 }
