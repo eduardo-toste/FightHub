@@ -8,7 +8,6 @@ import com.fighthub.model.Usuario;
 import com.fighthub.model.enums.Role;
 import com.fighthub.model.enums.TokenType;
 import com.fighthub.repository.AlunoRepository;
-import com.fighthub.repository.TokenRepository;
 import com.fighthub.service.JwtService;
 import com.fighthub.utils.IntegrationTestBase;
 import org.junit.jupiter.api.BeforeEach;
@@ -25,7 +24,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 class AtivacaoIntegrationTest extends IntegrationTestBase {
 
-    @Autowired private TokenRepository tokenRepository;
     @Autowired private JwtService jwtService;
 
     private Usuario usuario;
@@ -35,10 +33,6 @@ class AtivacaoIntegrationTest extends IntegrationTestBase {
 
     @BeforeEach
     void setup() {
-        tokenRepository.deleteAll();
-        alunoRepository.deleteAll();
-        usuarioRepository.deleteAll();
-
         usuario = usuarioRepository.saveAndFlush(
                 Usuario.builder()
                         .nome("Usuário Teste")
@@ -58,8 +52,8 @@ class AtivacaoIntegrationTest extends IntegrationTestBase {
                 Aluno.builder()
                         .usuario(usuario)
                         .matriculaAtiva(false)
-                        .dataNascimento(LocalDate.of(2000, 1, 1)) // obrigatório!
-                        .dataMatricula(LocalDate.now()) // opcional, mas bom ter
+                        .dataNascimento(LocalDate.of(2000, 1, 1))
+                        .dataMatricula(LocalDate.now())
                         .build()
         );
 
@@ -120,9 +114,9 @@ class AtivacaoIntegrationTest extends IntegrationTestBase {
     void deveNegarAtivacao_QuandoDadosInvalidos() throws Exception {
         var request = new AtivacaoRequest(
                 tokenAtivacao.getToken(),
-                "", // senha inválida
-                "", // telefone inválido
-                null // endereço ausente
+                "",
+                "",
+                null
         );
 
         mockMvc.perform(post("/ativar")
@@ -159,7 +153,6 @@ class AtivacaoIntegrationTest extends IntegrationTestBase {
                 .build();
         outroToken = tokenRepository.saveAndFlush(outroToken);
 
-        // Deleta o token antes do usuário
         tokenRepository.delete(outroToken);
         tokenRepository.flush();
         usuarioRepository.delete(usuarioFalso);
