@@ -31,7 +31,7 @@ class AtivacaoIntegrationTest extends IntegrationTestBase {
 
     @BeforeEach
     void setup() {
-        usuario = usuarioRepository.saveAndFlush(
+        usuario = usuarioRepository.save(
                 Usuario.builder()
                         .nome("Usuário Teste")
                         .email("usuario@email.com")
@@ -46,7 +46,7 @@ class AtivacaoIntegrationTest extends IntegrationTestBase {
                         .build()
         );
 
-        alunoRepository.saveAndFlush(
+        alunoRepository.save(
                 Aluno.builder()
                         .usuario(usuario)
                         .matriculaAtiva(false)
@@ -57,7 +57,7 @@ class AtivacaoIntegrationTest extends IntegrationTestBase {
 
         String jwt = jwtService.gerarTokenAtivacao(usuario);
 
-        tokenAtivacao = tokenRepository.saveAndFlush(
+        tokenAtivacao = tokenRepository.save(
                 Token.builder()
                         .token(jwt)
                         .tokenType(TokenType.ATIVACAO)
