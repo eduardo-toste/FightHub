@@ -7,7 +7,6 @@ import com.fighthub.model.Token;
 import com.fighthub.model.Usuario;
 import com.fighthub.model.enums.Role;
 import com.fighthub.model.enums.TokenType;
-import com.fighthub.repository.AlunoRepository;
 import com.fighthub.service.JwtService;
 import com.fighthub.utils.IntegrationTestBase;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,7 +19,8 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 class AtivacaoIntegrationTest extends IntegrationTestBase {
 
@@ -28,8 +28,6 @@ class AtivacaoIntegrationTest extends IntegrationTestBase {
 
     private Usuario usuario;
     private Token tokenAtivacao;
-
-    @Autowired private AlunoRepository alunoRepository;
 
     @BeforeEach
     void setup() {
