@@ -8,7 +8,6 @@ import com.fighthub.exception.CpfExistenteException;
 import com.fighthub.exception.ResponsavelNaoEncontradoException;
 import com.fighthub.exception.ValidacaoException;
 import com.fighthub.mapper.ResponsavelMapper;
-import com.fighthub.model.Aluno;
 import com.fighthub.model.Responsavel;
 import com.fighthub.model.Usuario;
 import com.fighthub.model.enums.Role;
@@ -21,7 +20,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.util.UUID;
 
 @Service
