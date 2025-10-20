@@ -1,0 +1,669 @@
+package com.fighthub.integration;
+
+import com.fighthub.dto.responsavel.CriarResponsavelRequest;
+import com.fighthub.model.Aluno;
+import com.fighthub.model.Endereco;
+import com.fighthub.model.Responsavel;
+import com.fighthub.model.Usuario;
+import com.fighthub.model.enums.Role;
+import com.fighthub.service.EmailService;
+import com.fighthub.service.JwtService;
+import com.fighthub.service.TokenService;
+import com.fighthub.utils.IntegrationTestBase;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
+
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
+import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+public class ResponsavelIntegrationTest extends IntegrationTestBase {
+
+    @Autowired private TokenService tokenService;
+    @Autowired private EmailService emailService;
+    @Autowired private JwtService jwtService;
+
+    private Usuario usuario;
+    private String accessToken;
+
+    @BeforeEach
+    void setup() {
+        Endereco endereco = Endereco.builder()
+                .cep("12345-678")
+                .logradouro("Rua das Flores")
+                .numero("123")
+                .complemento("Apto 45")
+                .bairro("Centro")
+                .cidade("São Paulo")
+                .estado("SP")
+                .build();
+
+        usuario = usuarioRepository.save(
+                Usuario.builder()
+                        .nome("Usuário Teste")
+                        .email("usuario@email.com")
+                        .senha(null)
+                        .foto(null)
+                        .role(Role.ADMIN)
+                        .loginSocial(false)
+                        .ativo(true)
+                        .telefone("(11)98888-0000")
+                        .cpf("935.449.680-61")
+                        .endereco(endereco)
+                        .build()
+        );
+
+        accessToken = jwtService.gerarToken(usuario);
+        tokenService.salvarAccessToken(usuario, accessToken);
+    }
+
+    @Test
+    void deveCriarResponsavelComDadosValidos() throws Exception {
+        var request = new CriarResponsavelRequest(
+                "Responsavel novo",
+                "responsavel@email.com",
+                "571.320.290-96"
+        );
+
+        mockMvc.perform(post("/responsaveis")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + accessToken)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated());
+
+        var usuarioSalvo = usuarioRepository.findByEmail("responsavel@email.com");
+        assertTrue(usuarioSalvo.isPresent());
+
+        var responsavelSalvo = responsavelRepository.findByUsuario(usuarioSalvo.get());
+        assertTrue(responsavelSalvo.isPresent());
+    }
+
+    @Test
+    void deveRetornar400_aoCriarResponsavel_quandoUsarDadosInvalidos() throws Exception {
+        var request = new CriarResponsavelRequest(
+                "",
+                "",
+                "111.111.111-22"
+        );
+
+        mockMvc.perform(post("/responsaveis")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + accessToken)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void deveRetornar409_aoCriarResponsavel_quandoEmailJaCadastrado() throws Exception {
+        usuarioRepository.save(usuario);
+        var request = new CriarResponsavelRequest(
+                "Responsavel novo",
+                "usuario@email.com",
+                "571.320.290-96"
+        );
+
+        mockMvc.perform(post("/responsaveis")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + accessToken)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isConflict());
+    }
+
+    @Test
+    void deveRetornar409_aoCriarResponsavel_quandoCpfJaCadastrado() throws Exception {
+        usuarioRepository.save(usuario);
+        var request = new CriarResponsavelRequest(
+                "Responsavel novo",
+                "responsavel@email.com",
+                "935.449.680-61"
+        );
+
+        mockMvc.perform(post("/responsaveis")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + accessToken)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isConflict());
+    }
+
+    @Test
+    void deveRetornar401_quandoNaoAutenticado() throws Exception {
+        var request = new CriarResponsavelRequest(
+                "Responsável",
+                "email@naoautenticado.com",
+                "123.456.789-00"
+        );
+
+        mockMvc.perform(post("/responsaveis")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void deveRetornar403_quandoUsuarioSemPermissao() throws Exception {
+        var usuarioAluno = usuarioRepository.save(
+                Usuario.builder()
+                        .nome("Aluno")
+                        .email("aluno@email.com")
+                        .cpf("302.514.990-10")
+                        .role(Role.ALUNO)
+                        .ativo(true)
+                        .build()
+        );
+
+        var tokenAluno = jwtService.gerarToken(usuarioAluno);
+        tokenService.salvarAccessToken(usuarioAluno, tokenAluno);
+
+        var request = new CriarResponsavelRequest(
+                "Resp não autorizado",
+                "resp@sempermissao.com",
+                "935.449.680-61"
+        );
+
+        mockMvc.perform(post("/responsaveis")
+                        .header("Authorization", "Bearer " + tokenAluno)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void deveRetornarPageDeResponsaveisComConteudoCorreto() throws Exception {
+        // Arrange
+        Usuario u1 = usuarioRepository.save(Usuario.builder()
+                .nome("Responsável Um")
+                .email("um@email.com")
+                .cpf("123.456.789-00")
+                .telefone("(11)98888-0001")
+                .role(Role.RESPONSAVEL)
+                .ativo(true)
+                .loginSocial(false)
+                .senha("123456")
+                .build());
+
+        responsavelRepository.save(new Responsavel(
+                UUID.randomUUID(),
+                u1,
+                List.of()
+        ));
+
+        Usuario u2 = usuarioRepository.save(Usuario.builder()
+                .nome("Responsável Dois")
+                .email("dois@email.com")
+                .cpf("987.654.321-00")
+                .telefone("(11)98888-0002")
+                .role(Role.RESPONSAVEL)
+                .ativo(true)
+                .loginSocial(false)
+                .senha("123456")
+                .build());
+
+        responsavelRepository.save(new Responsavel(
+                UUID.randomUUID(),
+                u2,
+                List.of()
+        ));
+
+        // Act + Assert
+        mockMvc.perform(get("/responsaveis")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content").isArray())
+                .andExpect(jsonPath("$.content.length()").value(2))
+                .andExpect(jsonPath("$.content[0].nome").value("Responsável Um"))
+                .andExpect(jsonPath("$.content[0].email").value("um@email.com"))
+                .andExpect(jsonPath("$.content[1].nome").value("Responsável Dois"))
+                .andExpect(jsonPath("$.content[1].email").value("dois@email.com"))
+                .andExpect(jsonPath("$.totalElements").value(2))
+                .andExpect(jsonPath("$.totalPages").value(1))
+                .andExpect(jsonPath("$.size").value(20))
+                .andExpect(jsonPath("$.number").value(0));
+    }
+
+    @Test
+    void deveRetornarPageVaziaDeResponsaveisComConteudoCorreto() throws Exception {
+        mockMvc.perform(get("/responsaveis")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content").isArray())
+                .andExpect(jsonPath("$.content.length()").value(0));
+    }
+
+    @Test
+    void deveRetornarDadosDoResponsavelBuscadoPorId() throws Exception {
+        var responsavel = responsavelRepository.save(new Responsavel(
+                UUID.randomUUID(),
+                usuario,
+                List.of()
+        ));
+        mockMvc.perform(get("/responsaveis/{id}", responsavel.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(responsavel.getId().toString()))
+                .andExpect(jsonPath("$.nome").value("Usuário Teste"))
+                .andExpect(jsonPath("$.email").value("usuario@email.com"));;
+    }
+
+    @Test
+    void deveRetornar404_AoBuscarResponsavelPorId_QuandoResponsavelNaoExistir() throws Exception {
+        var usuario = Usuario.builder()
+                .nome("Responsável Dois")
+                .email("dois@email.com")
+                .cpf("987.654.321-00")
+                .telefone("(11)98888-0002")
+                .role(Role.RESPONSAVEL)
+                .ativo(true)
+                .loginSocial(false)
+                .senha("123456")
+                .build();
+
+        var responsavel = new Responsavel(
+                UUID.randomUUID(),
+                usuario,
+                List.of()
+        );
+
+        mockMvc.perform(get("/responsaveis/{id}", responsavel.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void deveVincularAlunoAoResponsavelCorretamente() throws Exception {
+        // Arrange
+        Usuario u1 = usuarioRepository.save(Usuario.builder()
+                .nome("Responsável Um")
+                .email("um@email.com")
+                .cpf("123.456.789-00")
+                .telefone("(11)98888-0001")
+                .role(Role.RESPONSAVEL)
+                .ativo(true)
+                .loginSocial(false)
+                .senha("123456")
+                .build());
+
+        var responsavel = responsavelRepository.save(new Responsavel(
+                UUID.randomUUID(),
+                u1,
+                new ArrayList<>()
+        ));
+
+        Usuario u2 = usuarioRepository.save(Usuario.builder()
+                .nome("Aluno Dois")
+                .email("dois@email.com")
+                .cpf("987.654.321-00")
+                .telefone("(11)98888-0002")
+                .role(Role.ALUNO)
+                .ativo(true)
+                .loginSocial(false)
+                .senha("123456")
+                .build());
+
+        var aluno = alunoRepository.save(Aluno.builder()
+                .id(UUID.randomUUID())
+                .usuario(u2)
+                .dataMatricula(LocalDate.now())
+                .dataNascimento(LocalDate.now().minusYears(20))
+                .matriculaAtiva(true)
+                .responsaveis(new ArrayList<>())
+                .build());
+
+        // Act
+        mockMvc.perform(patch("/responsaveis/{idResponsavel}/alunos/{idAluno}", responsavel.getId(), aluno.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isOk());
+
+        var responsavelAtualizado = responsavelRepository.findById(responsavel.getId()).orElseThrow();
+
+        assertThat(responsavelAtualizado.getAlunos()).hasSize(1);
+        assertThat(responsavelAtualizado.getAlunos().get(0).getId()).isEqualTo(aluno.getId());
+    }
+
+    @Test
+    void deveRetornar404_AoVincularAlunoAoResponsavel_QuandoResponsavelNaoExistir() throws Exception {
+        // Arrange
+        Usuario u1 = Usuario.builder()
+                .nome("Responsável Um")
+                .email("um@email.com")
+                .cpf("123.456.789-00")
+                .telefone("(11)98888-0001")
+                .role(Role.RESPONSAVEL)
+                .ativo(true)
+                .loginSocial(false)
+                .senha("123456")
+                .build();
+
+        var responsavel = new Responsavel(
+                UUID.randomUUID(),
+                u1,
+                new ArrayList<>()
+        );
+
+        Usuario u2 = usuarioRepository.save(Usuario.builder()
+                .nome("Aluno Dois")
+                .email("dois@email.com")
+                .cpf("987.654.321-00")
+                .telefone("(11)98888-0002")
+                .role(Role.ALUNO)
+                .ativo(true)
+                .loginSocial(false)
+                .senha("123456")
+                .build());
+
+        var aluno = alunoRepository.save(Aluno.builder()
+                .id(UUID.randomUUID())
+                .usuario(u2)
+                .dataMatricula(LocalDate.now())
+                .dataNascimento(LocalDate.now().minusYears(20))
+                .matriculaAtiva(true)
+                .responsaveis(new ArrayList<>())
+                .build());
+
+        // Act
+        mockMvc.perform(patch("/responsaveis/{idResponsavel}/alunos/{idAluno}", responsavel.getId(), aluno.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void deveRetornar404_AoVincularAlunoAoResponsavel_QuandoAlunoNaoExistir() throws Exception {
+        // Arrange
+        Usuario u1 = usuarioRepository.save(Usuario.builder()
+                .nome("Responsável Um")
+                .email("um@email.com")
+                .cpf("123.456.789-00")
+                .telefone("(11)98888-0001")
+                .role(Role.RESPONSAVEL)
+                .ativo(true)
+                .loginSocial(false)
+                .senha("123456")
+                .build());
+
+        var responsavel = responsavelRepository.save(new Responsavel(
+                UUID.randomUUID(),
+                u1,
+                new ArrayList<>()
+        ));
+
+        Usuario u2 = Usuario.builder()
+                .nome("Aluno Dois")
+                .email("dois@email.com")
+                .cpf("987.654.321-00")
+                .telefone("(11)98888-0002")
+                .role(Role.ALUNO)
+                .ativo(true)
+                .loginSocial(false)
+                .senha("123456")
+                .build();
+
+        var aluno = Aluno.builder()
+                .id(UUID.randomUUID())
+                .usuario(u2)
+                .dataMatricula(LocalDate.now())
+                .dataNascimento(LocalDate.now().minusYears(20))
+                .matriculaAtiva(true)
+                .responsaveis(new ArrayList<>())
+                .build();
+
+        // Act
+        mockMvc.perform(patch("/responsaveis/{idResponsavel}/alunos/{idAluno}", responsavel.getId(), aluno.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void deveRetornar409_AoVincularAlunoAoResponsavel_QuandoJaEstiveremVinculados() throws Exception {
+        // Arrange
+        Usuario u2 = usuarioRepository.save(Usuario.builder()
+                .nome("Aluno Dois")
+                .email("dois@email.com")
+                .cpf("987.654.321-00")
+                .telefone("(11)98888-0002")
+                .role(Role.ALUNO)
+                .ativo(true)
+                .loginSocial(false)
+                .senha("123456")
+                .build());
+
+        var aluno = alunoRepository.save(Aluno.builder()
+                .id(UUID.randomUUID())
+                .usuario(u2)
+                .dataMatricula(LocalDate.now())
+                .dataNascimento(LocalDate.now().minusYears(20))
+                .matriculaAtiva(true)
+                .responsaveis(new ArrayList<>())
+                .build());
+
+        Usuario u1 = usuarioRepository.save(Usuario.builder()
+                .nome("Responsável Um")
+                .email("um@email.com")
+                .cpf("123.456.789-00")
+                .telefone("(11)98888-0001")
+                .role(Role.RESPONSAVEL)
+                .ativo(true)
+                .loginSocial(false)
+                .senha("123456")
+                .build());
+
+        var responsavel = responsavelRepository.save(new Responsavel(
+                UUID.randomUUID(),
+                u1,
+                List.of(aluno)
+        ));
+
+        // Act
+        mockMvc.perform(patch("/responsaveis/{idResponsavel}/alunos/{idAluno}", responsavel.getId(), aluno.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isConflict());
+    }
+
+    @Test
+    void deveDesvincularAlunoDoResponsavelCorretamente() throws Exception {
+        // Arrange
+        Usuario u2 = usuarioRepository.save(Usuario.builder()
+                .nome("Aluno Dois")
+                .email("dois@email.com")
+                .cpf("987.654.321-00")
+                .telefone("(11)98888-0002")
+                .role(Role.ALUNO)
+                .ativo(true)
+                .loginSocial(false)
+                .senha("123456")
+                .build());
+
+        var aluno = alunoRepository.save(Aluno.builder()
+                .id(UUID.randomUUID())
+                .usuario(u2)
+                .dataMatricula(LocalDate.now())
+                .dataNascimento(LocalDate.now().minusYears(20))
+                .matriculaAtiva(true)
+                .responsaveis(new ArrayList<>())
+                .build());
+
+        Usuario u1 = usuarioRepository.save(Usuario.builder()
+                .nome("Responsável Um")
+                .email("um@email.com")
+                .cpf("123.456.789-00")
+                .telefone("(11)98888-0001")
+                .role(Role.RESPONSAVEL)
+                .ativo(true)
+                .loginSocial(false)
+                .senha("123456")
+                .build());
+
+        var responsavel = responsavelRepository.save(new Responsavel(
+                UUID.randomUUID(),
+                u1,
+                List.of(aluno)
+        ));
+
+        // Act
+        mockMvc.perform(delete("/responsaveis/{idResponsavel}/alunos/{idAluno}", responsavel.getId(), aluno.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isOk());
+
+        var responsavelAtualizado = responsavelRepository.findById(responsavel.getId()).orElseThrow();
+
+        assertThat(responsavelAtualizado.getAlunos()).hasSize(0);
+    }
+
+    @Test
+    void deveRetornar404_AoDesvincularAlunoDoResponsavel_QuandoResponsavelNaoExistir() throws Exception {
+        // Arrange
+        Usuario u2 = usuarioRepository.save(Usuario.builder()
+                .nome("Aluno Dois")
+                .email("dois@email.com")
+                .cpf("987.654.321-00")
+                .telefone("(11)98888-0002")
+                .role(Role.ALUNO)
+                .ativo(true)
+                .loginSocial(false)
+                .senha("123456")
+                .build());
+
+        var aluno = alunoRepository.save(Aluno.builder()
+                .id(UUID.randomUUID())
+                .usuario(u2)
+                .dataMatricula(LocalDate.now())
+                .dataNascimento(LocalDate.now().minusYears(20))
+                .matriculaAtiva(true)
+                .responsaveis(new ArrayList<>())
+                .build());
+
+        Usuario u1 = Usuario.builder()
+                .nome("Responsável Um")
+                .email("um@email.com")
+                .cpf("123.456.789-00")
+                .telefone("(11)98888-0001")
+                .role(Role.RESPONSAVEL)
+                .ativo(true)
+                .loginSocial(false)
+                .senha("123456")
+                .build();
+
+        var responsavel = new Responsavel(
+                UUID.randomUUID(),
+                u1,
+                List.of(aluno)
+        );
+
+        // Act
+        mockMvc.perform(delete("/responsaveis/{idResponsavel}/alunos/{idAluno}", responsavel.getId(), aluno.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void deveRetornar404_AoDesvincularAlunoDoResponsavel_QuandoAlunoNaoExistir() throws Exception {
+        // Arrange
+        Usuario u1 = Usuario.builder()
+                .nome("Responsável Um")
+                .email("um@email.com")
+                .cpf("123.456.789-00")
+                .telefone("(11)98888-0001")
+                .role(Role.RESPONSAVEL)
+                .ativo(true)
+                .loginSocial(false)
+                .senha("123456")
+                .build();
+
+        var responsavel = new Responsavel(
+                UUID.randomUUID(),
+                u1,
+                new ArrayList<>()
+        );
+
+        Usuario u2 = Usuario.builder()
+                .nome("Aluno Dois")
+                .email("dois@email.com")
+                .cpf("987.654.321-00")
+                .telefone("(11)98888-0002")
+                .role(Role.ALUNO)
+                .ativo(true)
+                .loginSocial(false)
+                .senha("123456")
+                .build();
+
+        var aluno = Aluno.builder()
+                .id(UUID.randomUUID())
+                .usuario(u2)
+                .dataMatricula(LocalDate.now())
+                .dataNascimento(LocalDate.now().minusYears(20))
+                .matriculaAtiva(true)
+                .responsaveis(new ArrayList<>())
+                .build();
+
+        // Act
+        mockMvc.perform(patch("/responsaveis/{idResponsavel}/alunos/{idAluno}", responsavel.getId(), aluno.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void deveRetornar409_AoDesvincularAlunoDoResponsavel_QuandoAindaNaoEstiveremVinculados() throws Exception {
+        // Arrange
+        Usuario u2 = usuarioRepository.save(Usuario.builder()
+                .nome("Aluno Dois")
+                .email("dois@email.com")
+                .cpf("987.654.321-00")
+                .telefone("(11)98888-0002")
+                .role(Role.ALUNO)
+                .ativo(true)
+                .loginSocial(false)
+                .senha("123456")
+                .build());
+
+        var aluno = alunoRepository.save(Aluno.builder()
+                .id(UUID.randomUUID())
+                .usuario(u2)
+                .dataMatricula(LocalDate.now())
+                .dataNascimento(LocalDate.now().minusYears(20))
+                .matriculaAtiva(true)
+                .responsaveis(new ArrayList<>())
+                .build());
+
+        Usuario u1 = usuarioRepository.save(Usuario.builder()
+                .nome("Responsável Um")
+                .email("um@email.com")
+                .cpf("123.456.789-00")
+                .telefone("(11)98888-0001")
+                .role(Role.RESPONSAVEL)
+                .ativo(true)
+                .loginSocial(false)
+                .senha("123456")
+                .build());
+
+        var responsavel = responsavelRepository.save(new Responsavel(
+                UUID.randomUUID(),
+                u1,
+                new ArrayList<>()
+        ));
+
+        // Act
+        mockMvc.perform(delete("/responsaveis/{idResponsavel}/alunos/{idAluno}", responsavel.getId(), aluno.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isConflict());
+    }
+
+}
