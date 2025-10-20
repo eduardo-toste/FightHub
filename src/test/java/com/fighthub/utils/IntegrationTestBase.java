@@ -2,6 +2,7 @@ package com.fighthub.utils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fighthub.repository.AlunoRepository;
+import com.fighthub.repository.ResponsavelRepository;
 import com.fighthub.repository.TokenRepository;
 import com.fighthub.repository.UsuarioRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -22,10 +23,12 @@ public abstract class IntegrationTestBase {
     @Autowired protected UsuarioRepository usuarioRepository;
     @Autowired protected TokenRepository tokenRepository;
     @Autowired protected AlunoRepository alunoRepository;
+    @Autowired protected ResponsavelRepository responsavelRepository;
 
     @BeforeEach
     void limparBaseDeDados() {
         alunoRepository.deleteAll();
+        responsavelRepository.deleteAll();
         tokenRepository.deleteAll();
         usuarioRepository.deleteAll();
     }
