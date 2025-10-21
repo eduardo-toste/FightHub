@@ -7,13 +7,12 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import org.springframework.web.context.request.WebRequest;
 
-import javax.management.BadAttributeValueExpException;
 import java.util.Arrays;
 import java.util.List;
 
@@ -94,6 +93,18 @@ public class GlobalExceptionHandler {
             HttpServletRequest request
     ) {
         return ErrorBuilder.build(HttpStatus.UNAUTHORIZED, ex.getMessage(), request.getRequestURI());
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ErrorResponse> handleAccessDeniedException(
+            AccessDeniedException ex,
+            HttpServletRequest request
+    ) {
+        return ErrorBuilder.build(
+                HttpStatus.FORBIDDEN,
+                "Você não tem permissão para acessar este recurso.",
+                request.getRequestURI()
+        );
     }
 
     @ExceptionHandler(Exception.class)

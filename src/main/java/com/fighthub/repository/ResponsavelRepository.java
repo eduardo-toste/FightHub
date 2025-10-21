@@ -1,7 +1,7 @@
 package com.fighthub.repository;
 
-import com.fighthub.model.Aluno;
 import com.fighthub.model.Responsavel;
+import com.fighthub.model.Usuario;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
@@ -19,5 +19,7 @@ public interface ResponsavelRepository extends JpaRepository<Responsavel, UUID> 
     @Override
     @EntityGraph(attributePaths = {"usuario"})
     Optional<Responsavel> findById(UUID id);
+
+    Optional<Responsavel> findByUsuario(Usuario usuario);
 
 }
