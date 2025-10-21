@@ -1,0 +1,47 @@
+package com.fighthub.utils;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fighthub.repository.AlunoRepository;
+import com.fighthub.repository.ResponsavelRepository;
+import com.fighthub.repository.TokenRepository;
+import com.fighthub.repository.UsuarioRepository;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import org.junit.jupiter.api.BeforeEach;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.web.servlet.MockMvc;
+
+import jakarta.transaction.Transactional;
+
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@AutoConfigureMockMvc
+@ActiveProfiles("test")
+@Transactional
+public abstract class IntegrationTestBase {
+
+    @Autowired protected MockMvc mockMvc;
+    @Autowired protected ObjectMapper objectMapper;
+
+    @Autowired protected UsuarioRepository usuarioRepository;
+    @Autowired protected TokenRepository tokenRepository;
+    @Autowired protected AlunoRepository alunoRepository;
+    @Autowired protected ResponsavelRepository responsavelRepository;
+
+    @PersistenceContext
+    private EntityManager entityManager;
+
+    @BeforeEach
+    void limparBaseDeDados() {
+        entityManager.createNativeQuery("DELETE FROM alunos_responsaveis").executeUpdate();
+
+        alunoRepository.deleteAll();
+        responsavelRepository.deleteAll();
+        tokenRepository.deleteAll();
+        usuarioRepository.deleteAll();
+
+        entityManager.flush();
+    }
+}

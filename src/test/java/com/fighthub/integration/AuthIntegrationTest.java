@@ -1,54 +1,29 @@
 package com.fighthub.integration;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fighthub.dto.auth.*;
 import com.fighthub.model.Endereco;
 import com.fighthub.model.Usuario;
 import com.fighthub.model.enums.Role;
-import com.fighthub.repository.TokenRepository;
-import com.fighthub.repository.UsuarioRepository;
+import com.fighthub.utils.IntegrationTestBase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.UUID;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@AutoConfigureMockMvc
-@ActiveProfiles("test")
-class AuthIntegrationTest {
+class AuthIntegrationTest extends IntegrationTestBase {
 
-    @Autowired
-    private MockMvc mockMvc;
-
-    @Autowired
-    private UsuarioRepository usuarioRepository;
-
-    @Autowired
-    private ObjectMapper objectMapper;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-
-    @Autowired
-    private TokenRepository tokenRepository;
+    @Autowired private PasswordEncoder passwordEncoder;
 
     private Usuario usuario;
 
     @BeforeEach
     void setup() {
-        tokenRepository.deleteAll();
-        usuarioRepository.deleteAll();
-
         Endereco endereco = Endereco.builder()
                 .cep("12345-678")
                 .logradouro("Rua Exemplo")
@@ -64,12 +39,12 @@ class AuthIntegrationTest {
                 "Teste",
                 "teste@gmail.com",
                 passwordEncoder.encode("123456"),
-                null, // foto
+                null,
                 Role.ALUNO,
-                false, // loginSocial
-                true,  // ativo
-                "123.456.789-00", // cpf
-                "(11)91234-5678", // telefone
+                false,
+                true,
+                "123.456.789-00",
+                "(11)91234-5678",
                 endereco
         );
     }
@@ -104,8 +79,7 @@ class AuthIntegrationTest {
     void deveAtualizarToken_QuandoRefreshTokenValido() throws Exception {
         // Arrange
         usuarioRepository.save(usuario);
-        
-        // Fazer login para obter refresh token
+
         var loginRequest = new AuthRequest("teste@gmail.com", "123456");
         var loginResponse = mockMvc.perform(post("/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
