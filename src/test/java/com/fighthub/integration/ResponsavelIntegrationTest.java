@@ -13,6 +13,7 @@ import com.fighthub.utils.IntegrationTestBase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.http.MediaType;
 
 import java.time.LocalDate;
@@ -22,14 +23,17 @@ import java.util.UUID;
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 public class ResponsavelIntegrationTest extends IntegrationTestBase {
 
-    @Autowired private TokenService tokenService;
-    @Autowired private EmailService emailService;
+    @SpyBean private TokenService tokenService;
+    @SpyBean private EmailService emailService;
     @Autowired private JwtService jwtService;
 
     private Usuario usuario;
@@ -85,6 +89,9 @@ public class ResponsavelIntegrationTest extends IntegrationTestBase {
 
         var responsavelSalvo = responsavelRepository.findByUsuario(usuarioSalvo.get());
         assertTrue(responsavelSalvo.isPresent());
+
+        verify(tokenService).salvarTokenAtivacao(usuarioSalvo.get());
+        verify(emailService).enviarEmailAtivacao(eq(usuarioSalvo.get()), anyString());
     }
 
     @Test
