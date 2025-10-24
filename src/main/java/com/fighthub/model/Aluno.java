@@ -40,7 +40,4 @@ public class Aluno {
     @ManyToMany(mappedBy = "alunos")
     private List<Responsavel> responsaveis = new ArrayList<>();
 
-    @OneToMany(mappedBy = "aluno", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<AlunoModalidade> modalidades = new ArrayList<>();
-
 }
