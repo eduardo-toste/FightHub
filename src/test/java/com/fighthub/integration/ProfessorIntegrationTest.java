@@ -1,7 +1,6 @@
 package com.fighthub.integration;
 
 import com.fighthub.dto.professor.CriarProfessorRequest;
-import com.fighthub.dto.responsavel.CriarResponsavelRequest;
 import com.fighthub.model.Endereco;
 import com.fighthub.model.Professor;
 import com.fighthub.model.Usuario;
@@ -108,7 +107,7 @@ public class ProfessorIntegrationTest extends IntegrationTestBase {
 
     @Test
     void deveRetornar409_aoCriarProfessor_quandoEmailJaCadastrado() throws Exception {
-        var request = new CriarResponsavelRequest(
+        var request = new CriarProfessorRequest(
                 "Professor novo",
                 "usuario@email.com",
                 "571.320.290-96"

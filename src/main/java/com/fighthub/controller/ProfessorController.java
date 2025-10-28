@@ -62,7 +62,7 @@ public class ProfessorController {
             content = @Content(schema = @Schema(implementation = ProfessorResponse.class)))
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'COORDENADOR')")
-    public ResponseEntity<Page<ProfessorResponse>> obterResponsaveis(Pageable pageable) {
+    public ResponseEntity<Page<ProfessorResponse>> obterProfessores(Pageable pageable) {
         var professores = professorService.buscarProfessores(pageable);
         return ResponseEntity.status(HttpStatus.OK).body(professores);
     }
@@ -80,7 +80,7 @@ public class ProfessorController {
     })
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'COORDENADOR')")
-    public ResponseEntity<ProfessorDetalhadoResponse> obterResponsavel(@PathVariable UUID id) {
+    public ResponseEntity<ProfessorDetalhadoResponse> obterProfessor(@PathVariable UUID id) {
         var professor = professorService.buscarProfessorPorId(id);
         return ResponseEntity.status(HttpStatus.OK).body(professor);
     }
