@@ -1,6 +1,7 @@
 package com.fighthub.repository;
 
 import com.fighthub.model.Professor;
+import com.fighthub.model.Usuario;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
@@ -18,5 +19,7 @@ public interface ProfessorRepository extends JpaRepository<Professor, UUID> {
     @Override
     @EntityGraph(attributePaths = {"usuario"})
     Optional<Professor> findById(UUID id);
+
+    Optional<Professor> findByUsuario(Usuario usuario);
 
 }
