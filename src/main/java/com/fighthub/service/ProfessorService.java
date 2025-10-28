@@ -16,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
@@ -28,6 +29,7 @@ public class ProfessorService {
     private final TokenService tokenService;
     private final EmailService emailService;
 
+    @Transactional
     public void criacaoProfessor(CriarProfessorRequest request) {
         if (usuarioRepository.existsByEmail(request.email())) {
             throw new ValidacaoException("E-mail já cadastrado");
