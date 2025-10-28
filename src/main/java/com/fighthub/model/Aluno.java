@@ -1,6 +1,5 @@
 package com.fighthub.model;
 
-import com.fighthub.mapper.EnderecoMapper;
 import jakarta.persistence.*;
 import lombok.*;
 

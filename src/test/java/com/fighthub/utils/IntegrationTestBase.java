@@ -1,10 +1,7 @@
 package com.fighthub.utils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fighthub.repository.AlunoRepository;
-import com.fighthub.repository.ResponsavelRepository;
-import com.fighthub.repository.TokenRepository;
-import com.fighthub.repository.UsuarioRepository;
+import com.fighthub.repository.*;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.junit.jupiter.api.BeforeEach;
@@ -16,7 +13,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import jakarta.transaction.Transactional;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @Transactional
@@ -29,6 +26,7 @@ public abstract class IntegrationTestBase {
     @Autowired protected TokenRepository tokenRepository;
     @Autowired protected AlunoRepository alunoRepository;
     @Autowired protected ResponsavelRepository responsavelRepository;
+    @Autowired protected ProfessorRepository professorRepository;
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -39,6 +37,7 @@ public abstract class IntegrationTestBase {
 
         alunoRepository.deleteAll();
         responsavelRepository.deleteAll();
+        professorRepository.deleteAll();
         tokenRepository.deleteAll();
         usuarioRepository.deleteAll();
 
