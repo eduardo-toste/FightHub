@@ -85,6 +85,14 @@ public class SwaggerExamples {
         }
     """;
 
+    public static final String TURMA_NAO_ENCONTRADA = """
+        {
+          "status": 404,
+          "titulo": "Turma não encontrada",
+          "detalhes": "Nenhuma turma foi encontrada com o ID fornecido."
+        }
+    """;
+
     public static final String STATUS_INVALIDO = """
         {
           "timestamp": "2025-09-23T15:13:12.123456-03:00",
