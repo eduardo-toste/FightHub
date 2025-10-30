@@ -1,5 +1,6 @@
 package com.fighthub.model;
 
+import com.fighthub.dto.turma.TurmaUpdateCompletoRequest;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -37,5 +38,12 @@ public class Turma {
         this.horario = horario;
         this.professor = professor;
         this.ativo = true;
+    }
+
+    public void putUpdate(TurmaUpdateCompletoRequest request, Professor professor) {
+        this.nome = request.nome();
+        this.horario = request.horario();
+        this.professor = professor;
+        this.ativo = request.ativo();
     }
 }
