@@ -1,0 +1,3 @@
+ALTER TABLE turmas
+ALTER COLUMN horario TYPE VARCHAR(255)
+USING horario::text;
