@@ -27,6 +27,7 @@ public abstract class IntegrationTestBase {
     @Autowired protected AlunoRepository alunoRepository;
     @Autowired protected ResponsavelRepository responsavelRepository;
     @Autowired protected ProfessorRepository professorRepository;
+    @Autowired protected TurmaRepository turmaRepository;
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -40,6 +41,7 @@ public abstract class IntegrationTestBase {
         professorRepository.deleteAll();
         tokenRepository.deleteAll();
         usuarioRepository.deleteAll();
+        turmaRepository.deleteAll();
 
         entityManager.flush();
     }

@@ -23,7 +23,8 @@ public class GlobalExceptionHandler {
             UsuarioNaoEncontradoException.class,
             AlunoNaoEncontradoException.class,
             ResponsavelNaoEncontradoException.class,
-            ProfessorNaoEncontradoException.class
+            ProfessorNaoEncontradoException.class,
+            TurmaNaoEncontradaException.class
     })
     public ResponseEntity<ErrorResponse> handleNotFoundExceptions(
             RuntimeException ex,
