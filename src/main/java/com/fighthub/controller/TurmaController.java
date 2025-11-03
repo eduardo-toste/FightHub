@@ -119,4 +119,33 @@ public class TurmaController {
         turmaService.excluirTurma(id);
         return ResponseEntity.status(HttpStatus.OK).build();
     }
+
+    @PatchMapping("/{idTurma}/professores/{idProfessor}")
+    @PreAuthorize("hasAnyRole('ADMIN','COORDENADOR')")
+    public ResponseEntity<TurmaResponse> vincularProfessor(@PathVariable UUID idTurma, @PathVariable UUID idProfessor) {
+        var turma = turmaService.vincularProfessor(idTurma, idProfessor);
+        return ResponseEntity.status(HttpStatus.OK).body(turma);
+    }
+
+    @DeleteMapping("/{idTurma}/professores/{idProfessor}")
+    @PreAuthorize("hasAnyRole('ADMIN','COORDENADOR')")
+    public ResponseEntity<TurmaResponse> desvincularProfessor(@PathVariable UUID idTurma, @PathVariable UUID idProfessor) {
+        var turma = turmaService.desvincularProfessor(idTurma, idProfessor);
+        return ResponseEntity.status(HttpStatus.OK).body(turma);
+    }
+
+    @PatchMapping("/{idTurma}/alunos/{idAluno}")
+    @PreAuthorize("hasAnyRole('ADMIN','COORDENADOR')")
+    public ResponseEntity<TurmaResponse> vincularAluno(@PathVariable UUID idTurma, @PathVariable UUID idAluno) {
+        var turma = turmaService.vincularAluno(idTurma, idAluno);
+        return ResponseEntity.status(HttpStatus.OK).body(turma);
+    }
+
+    @DeleteMapping("/{idTurma}/alunos/{idAluno}")
+    @PreAuthorize("hasAnyRole('ADMIN','COORDENADOR')")
+    public ResponseEntity<TurmaResponse> desvincularAluno(@PathVariable UUID idTurma, @PathVariable UUID idAluno) {
+        var turma = turmaService.desvincularAluno(idTurma, idAluno);
+        return ResponseEntity.status(HttpStatus.OK).body(turma);
+    }
+
 }
