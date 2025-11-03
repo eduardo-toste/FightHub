@@ -231,6 +231,7 @@ public class AlunoIntegrationTest extends IntegrationTestBase {
                 LocalDate.now().minusYears(20),
                 LocalDate.now(),
                 true,
+                List.of(),
                 List.of()
         ));
 
@@ -251,6 +252,7 @@ public class AlunoIntegrationTest extends IntegrationTestBase {
                 LocalDate.now().minusYears(20),
                 LocalDate.now(),
                 true,
+                List.of(),
                 List.of()
         ));
 
@@ -289,6 +291,7 @@ public class AlunoIntegrationTest extends IntegrationTestBase {
                 LocalDate.now().minusYears(20),
                 LocalDate.now(),
                 true,
+                List.of(),
                 List.of()
         ));
         mockMvc.perform(get("/alunos/{id}", aluno.getId())
@@ -319,6 +322,7 @@ public class AlunoIntegrationTest extends IntegrationTestBase {
                 LocalDate.now().minusYears(20),
                 LocalDate.now(),
                 true,
+                List.of(),
                 List.of()
         );
 
@@ -336,6 +340,7 @@ public class AlunoIntegrationTest extends IntegrationTestBase {
                 LocalDate.now().minusYears(20),
                 LocalDate.now(),
                 true,
+                List.of(),
                 List.of()
         ));
         var request = new AlunoUpdateMatriculaRequest(false);
@@ -358,6 +363,7 @@ public class AlunoIntegrationTest extends IntegrationTestBase {
                 LocalDate.now().minusYears(20),
                 LocalDate.now(),
                 true,
+                List.of(),
                 List.of()
         );
         var request = new AlunoUpdateMatriculaRequest(false);
@@ -377,6 +383,7 @@ public class AlunoIntegrationTest extends IntegrationTestBase {
                 LocalDate.now().minusYears(20),
                 LocalDate.now(),
                 true,
+                List.of(),
                 List.of()
         ));
         var request = new AlunoUpdateMatriculaRequest(true);
@@ -396,6 +403,7 @@ public class AlunoIntegrationTest extends IntegrationTestBase {
                 LocalDate.now().minusYears(20),
                 LocalDate.now(),
                 true,
+                List.of(),
                 List.of()
         ));
         var request = new AlunoUpdateDataMatriculaRequest(LocalDate.now().minusDays(1));
@@ -418,6 +426,7 @@ public class AlunoIntegrationTest extends IntegrationTestBase {
                 LocalDate.now().minusYears(20),
                 LocalDate.now(),
                 true,
+                List.of(),
                 List.of()
         );
         var request = new AlunoUpdateDataMatriculaRequest(LocalDate.now().minusDays(1));
@@ -437,6 +446,7 @@ public class AlunoIntegrationTest extends IntegrationTestBase {
                 LocalDate.now().minusYears(20),
                 LocalDate.now(),
                 true,
+                List.of(),
                 List.of()
         ));
         var request = new AlunoUpdateDataNascimentoRequest(LocalDate.now().minusYears(18));
@@ -459,6 +469,7 @@ public class AlunoIntegrationTest extends IntegrationTestBase {
                 LocalDate.now().minusYears(20),
                 LocalDate.now(),
                 true,
+                List.of(),
                 List.of()
         );
         var request = new AlunoUpdateDataNascimentoRequest(LocalDate.now().minusYears(18));
