@@ -70,7 +70,7 @@ public class TurmaService {
         Professor professor = buscarProfessorOuLancar(idProfessor);
 
         if (turma.getProfessor().equals(professor)) {
-            throw new ValidacaoException("Professor já é o responsável pela turma.");
+            throw new ValidacaoException("Professor já está vinculado à turma.");
         }
 
         turma.setProfessor(professor);
