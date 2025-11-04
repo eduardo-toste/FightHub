@@ -16,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
@@ -27,6 +28,7 @@ public class TurmaService {
     private final ProfessorRepository professorRepository;
     private final AlunoRepository alunoRepository;
 
+    @Transactional
     public void criarTurma(TurmaRequest request) {
         Professor professor = buscarProfessorOuLancar(request.professorId());
         turmaRepository.save(TurmaMapper.toEntity(request, professor));
@@ -41,6 +43,7 @@ public class TurmaService {
         return TurmaMapper.toDTO(turma);
     }
 
+    @Transactional
     public TurmaResponse atualizarTurma(UUID id, TurmaUpdateCompletoRequest request) {
         Turma turma = buscarTurmaOuLancar(id);
         Professor professor = buscarProfessorOuLancar(request.professorId());
@@ -48,17 +51,20 @@ public class TurmaService {
         return TurmaMapper.toDTO(turmaRepository.save(turma));
     }
 
+    @Transactional
     public TurmaResponse atualizarStatusTurma(UUID id, TurmaUpdateStatusRequest request) {
         Turma turma = buscarTurmaOuLancar(id);
         turma.setAtivo(request.ativo());
         return TurmaMapper.toDTO(turmaRepository.save(turma));
     }
 
+    @Transactional
     public void excluirTurma(UUID id) {
         Turma turma = buscarTurmaOuLancar(id);
         turmaRepository.delete(turma);
     }
 
+    @Transactional
     public TurmaResponse vincularProfessor(UUID idTurma, UUID idProfessor) {
         Turma turma = buscarTurmaOuLancar(idTurma);
         Professor professor = buscarProfessorOuLancar(idProfessor);
@@ -71,6 +77,7 @@ public class TurmaService {
         return TurmaMapper.toDTO(turmaRepository.save(turma));
     }
 
+    @Transactional
     public TurmaResponse desvincularProfessor(UUID idTurma, UUID idProfessor) {
         Turma turma = buscarTurmaOuLancar(idTurma);
         Professor professor = buscarProfessorOuLancar(idProfessor);
@@ -83,6 +90,7 @@ public class TurmaService {
         return TurmaMapper.toDTO(turmaRepository.save(turma));
     }
 
+    @Transactional
     public TurmaResponse vincularAluno(UUID idTurma, UUID idAluno) {
         Turma turma = buscarTurmaOuLancar(idTurma);
         Aluno aluno = buscarAlunoOuLancar(idAluno);
@@ -95,6 +103,7 @@ public class TurmaService {
         return TurmaMapper.toDTO(turmaRepository.save(turma));
     }
 
+    @Transactional
     public TurmaResponse desvincularAluno(UUID idTurma, UUID idAluno) {
         Turma turma = buscarTurmaOuLancar(idTurma);
         Aluno aluno = buscarAlunoOuLancar(idAluno);
