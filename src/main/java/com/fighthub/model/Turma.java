@@ -29,7 +29,7 @@ public class Turma {
     private String horario;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "professor_id", nullable = false)
+    @JoinColumn(name = "professor_id")
     private Professor professor;
 
     @Column(nullable = false)
