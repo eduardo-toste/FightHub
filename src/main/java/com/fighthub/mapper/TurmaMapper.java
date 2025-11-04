@@ -13,7 +13,7 @@ public class TurmaMapper {
                 turma.getId(),
                 turma.getNome(),
                 turma.getHorario(),
-                turma.getProfessor().getId(),
+                turma.getProfessor() != null ? turma.getProfessor().getId() : null,
                 turma.isAtivo()
         );
     }
