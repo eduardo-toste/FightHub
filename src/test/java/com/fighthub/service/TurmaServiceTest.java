@@ -3,13 +3,10 @@ package com.fighthub.service;
 import com.fighthub.dto.turma.TurmaRequest;
 import com.fighthub.dto.turma.TurmaUpdateCompletoRequest;
 import com.fighthub.dto.turma.TurmaUpdateStatusRequest;
-import com.fighthub.exception.ProfessorNaoEncontradoException;
-import com.fighthub.exception.TurmaNaoEncontradaException;
-import com.fighthub.model.Endereco;
-import com.fighthub.model.Professor;
-import com.fighthub.model.Turma;
-import com.fighthub.model.Usuario;
+import com.fighthub.exception.*;
+import com.fighthub.model.*;
 import com.fighthub.model.enums.Role;
+import com.fighthub.repository.AlunoRepository;
 import com.fighthub.repository.ProfessorRepository;
 import com.fighthub.repository.TurmaRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -23,6 +20,8 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
+import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -36,6 +35,7 @@ class TurmaServiceTest {
 
     @Mock private TurmaRepository turmaRepository;
     @Mock private ProfessorRepository professorRepository;
+    @Mock private AlunoRepository alunoRepository;
 
     @InjectMocks private TurmaService turmaService;
 
@@ -43,6 +43,7 @@ class TurmaServiceTest {
     private Usuario usuario;
     private Professor professor;
     private Turma turma;
+    private Aluno aluno;
 
     @BeforeEach
     void setup() {
@@ -67,6 +68,15 @@ class TurmaServiceTest {
                 .endereco(endereco)
                 .build();
 
+        aluno = Aluno.builder()
+                .id(UUID.randomUUID())
+                .usuario(usuario)
+                .dataMatricula(LocalDate.now())
+                .dataNascimento(LocalDate.now().minusYears(20))
+                .matriculaAtiva(true)
+                .responsaveis(new ArrayList<>())
+                .build();
+
         professor = Professor.builder()
                 .id(UUID.randomUUID())
                 .usuario(usuario)
@@ -78,6 +88,7 @@ class TurmaServiceTest {
                 .horario("Segunda 19:00")
                 .professor(professor)
                 .ativo(true)
+                .alunos(new ArrayList<>())
                 .build();
     }
 
@@ -271,6 +282,293 @@ class TurmaServiceTest {
 
         verify(turmaRepository).findById(idTurma);
         verify(turmaRepository, never()).delete(any());
+    }
+
+    @Test
+    void deveVincularAlunoATurmaComSucesso() {
+        var idTurma = UUID.randomUUID();
+        var idAluno = UUID.randomUUID();
+        when(turmaRepository.findById(idTurma)).thenReturn(Optional.of(turma));
+        when(alunoRepository.findById(idAluno)).thenReturn(Optional.of(aluno));
+
+        turmaService.vincularAluno(idTurma, idAluno);
+
+        assertTrue(turma.getAlunos().contains(aluno));
+        verify(turmaRepository).findById(idTurma);
+        verify(alunoRepository).findById(idAluno);
+        verify(turmaRepository).save(any());
+    }
+
+    @Test
+    void deveLancarExcecao_QuandoTurmaNaoEncontrado_AoVincularAlunoATurma() {
+        var idTurma = UUID.randomUUID();
+        var idAluno = UUID.randomUUID();
+        when(turmaRepository.findById(idTurma)).thenReturn(Optional.empty());
+
+        var ex = assertThrows(TurmaNaoEncontradaException.class,
+                () -> turmaService.vincularAluno(idTurma, idAluno));
+
+        assertNotNull(ex);
+        assertEquals("Turma não encontrada.", ex.getMessage());
+        verify(turmaRepository).findById(idTurma);
+        verify(alunoRepository, never()).findById(idAluno);
+        verify(turmaRepository, never()).save(any());
+    }
+
+    @Test
+    void deveLancarExcecao_QuandoAlunoNaoEncontrado_AoVincularAlunoATurma() {
+        var idTurma = UUID.randomUUID();
+        var idAluno = UUID.randomUUID();
+        when(turmaRepository.findById(idTurma)).thenReturn(Optional.of(turma));
+        when(alunoRepository.findById(idAluno)).thenReturn(Optional.empty());
+
+        var ex = assertThrows(AlunoNaoEncontradoException.class,
+                () -> turmaService.vincularAluno(idTurma, idAluno));
+
+        assertNotNull(ex);
+        assertEquals("Aluno não encontrado.", ex.getMessage());
+        verify(turmaRepository).findById(idTurma);
+        verify(alunoRepository).findById(idAluno);
+        verify(turmaRepository, never()).save(any());
+    }
+
+    @Test
+    void deveLancarExcecao_QuandoAlunoJaEstiverVinculado_AoVincularAlunoATurma() {
+        var idTurma = UUID.randomUUID();
+        var idAluno = UUID.randomUUID();
+        turma.getAlunos().add(aluno);
+        when(turmaRepository.findById(idTurma)).thenReturn(Optional.of(turma));
+        when(alunoRepository.findById(idAluno)).thenReturn(Optional.of(aluno));
+
+        var ex = assertThrows(ValidacaoException.class,
+                () -> turmaService.vincularAluno(idTurma, idAluno));
+
+        assertNotNull(ex);
+        assertEquals("Aluno já está vinculado à turma.", ex.getMessage());
+        verify(turmaRepository).findById(idTurma);
+        verify(alunoRepository).findById(idAluno);
+        verify(turmaRepository, never()).save(any());
+    }
+
+    @Test
+    void deveVincularProfessorATurmaComSucesso() {
+        var idTurma = UUID.randomUUID();
+        var idProfessor = UUID.randomUUID();
+        turma = Turma.builder()
+                .id(UUID.randomUUID())
+                .nome("Turma de Segunda")
+                .horario("Segunda 19:00")
+                .professor(null)
+                .ativo(true)
+                .alunos(new ArrayList<>())
+                .build();
+        when(turmaRepository.findById(idTurma)).thenReturn(Optional.of(turma));
+        when(professorRepository.findById(idProfessor)).thenReturn(Optional.of(professor));
+
+        turmaService.vincularProfessor(idTurma, idProfessor);
+
+        assertEquals(turma.getProfessor(), professor);
+        verify(turmaRepository).findById(idTurma);
+        verify(professorRepository).findById(idProfessor);
+        verify(turmaRepository).save(any());
+    }
+
+    @Test
+    void deveLancarExcecao_QuandoTurmaNaoEncontrada_AoVincularProfessorATurma() {
+        var idTurma = UUID.randomUUID();
+        var idProfessor = UUID.randomUUID();
+        when(turmaRepository.findById(idTurma)).thenReturn(Optional.empty());
+
+        var ex = assertThrows(TurmaNaoEncontradaException.class,
+                () -> turmaService.vincularProfessor(idTurma, idProfessor));
+
+        assertNotNull(ex);
+        assertEquals("Turma não encontrada.", ex.getMessage());
+        verify(turmaRepository).findById(idTurma);
+        verify(professorRepository, never()).findById(idProfessor);
+        verify(turmaRepository, never()).save(any());
+    }
+
+    @Test
+    void deveLancarExcecao_QuandoProfessorNaoEncontrado_AoVincularProfessorATurma() {
+        var idTurma = UUID.randomUUID();
+        var idProfessor = UUID.randomUUID();
+        when(turmaRepository.findById(idTurma)).thenReturn(Optional.of(turma));
+        when(professorRepository.findById(idProfessor)).thenReturn(Optional.empty());
+
+        var ex = assertThrows(ProfessorNaoEncontradoException.class,
+                () -> turmaService.vincularProfessor(idTurma, idProfessor));
+
+        assertNotNull(ex);
+        assertEquals("Professor não encontrado.", ex.getMessage());
+        verify(turmaRepository).findById(idTurma);
+        verify(professorRepository).findById(idProfessor);
+        verify(turmaRepository, never()).save(any());
+    }
+
+    @Test
+    void deveLancarExcecao_QuandoProfessorJaVinculado_AoVincularProfessorATurma() {
+        var idTurma = UUID.randomUUID();
+        var idProfessor = UUID.randomUUID();
+        when(turmaRepository.findById(idTurma)).thenReturn(Optional.of(turma));
+        when(professorRepository.findById(idProfessor)).thenReturn(Optional.of(professor));
+
+        var ex = assertThrows(ValidacaoException.class,
+                () -> turmaService.vincularProfessor(idTurma, idProfessor));
+
+        assertNotNull(ex);
+        assertEquals("Professor já está vinculado à turma.", ex.getMessage());
+        verify(turmaRepository).findById(idTurma);
+        verify(professorRepository).findById(idProfessor);
+        verify(turmaRepository, never()).save(any());
+    }
+
+    @Test
+    void deveDesvincularProfessorDaTurmaComSucesso() {
+        var idTurma = UUID.randomUUID();
+        var idProfessor = professor.getId();
+        when(turmaRepository.findById(idTurma)).thenReturn(Optional.of(turma));
+        when(professorRepository.findById(idProfessor)).thenReturn(Optional.of(professor));
+
+        turmaService.desvincularProfessor(idTurma, idProfessor);
+
+        assertNull(turma.getProfessor());
+        verify(turmaRepository).findById(idTurma);
+        verify(professorRepository).findById(idProfessor);
+        verify(turmaRepository).save(any());
+    }
+
+    @Test
+    void deveLancarExcecao_QuandoTurmaNaoEncontrada_AoDesvincularProfessor() {
+        var idTurma = UUID.randomUUID();
+        var idProfessor = UUID.randomUUID();
+        when(turmaRepository.findById(idTurma)).thenReturn(Optional.empty());
+
+        var ex = assertThrows(TurmaNaoEncontradaException.class,
+                () -> turmaService.desvincularProfessor(idTurma, idProfessor));
+
+        assertEquals("Turma não encontrada.", ex.getMessage());
+        verify(turmaRepository).findById(idTurma);
+        verify(professorRepository, never()).findById(idProfessor);
+        verify(turmaRepository, never()).save(any());
+    }
+
+    @Test
+    void deveLancarExcecao_QuandoProfessorNaoEncontrado_AoDesvincularProfessor() {
+        var idTurma = UUID.randomUUID();
+        var idProfessor = UUID.randomUUID();
+        when(turmaRepository.findById(idTurma)).thenReturn(Optional.of(turma));
+        when(professorRepository.findById(idProfessor)).thenReturn(Optional.empty());
+
+        var ex = assertThrows(ProfessorNaoEncontradoException.class,
+                () -> turmaService.desvincularProfessor(idTurma, idProfessor));
+
+        assertEquals("Professor não encontrado.", ex.getMessage());
+        verify(turmaRepository).findById(idTurma);
+        verify(professorRepository).findById(idProfessor);
+        verify(turmaRepository, never()).save(any());
+    }
+
+    @Test
+    void deveLancarExcecao_QuandoNaoHaProfessorVinculado_AoDesvincularProfessor() {
+        var idTurma = UUID.randomUUID();
+        var idProfessor = UUID.randomUUID();
+        turma.setProfessor(null);
+        when(turmaRepository.findById(idTurma)).thenReturn(Optional.of(turma));
+        when(professorRepository.findById(idProfessor)).thenReturn(Optional.of(professor));
+
+        var ex = assertThrows(ValidacaoException.class,
+                () -> turmaService.desvincularProfessor(idTurma, idProfessor));
+
+        assertEquals("Ainda não há professor vinculado à turma.", ex.getMessage());
+        verify(turmaRepository).findById(idTurma);
+        verify(professorRepository).findById(idProfessor);
+        verify(turmaRepository, never()).save(any());
+    }
+
+    @Test
+    void deveLancarExcecao_QuandoProfessorNaoForOMesmoVinculado_AoDesvincularProfessor() {
+        var idTurma = UUID.randomUUID();
+        var outroProfessor = Professor.builder()
+                .id(UUID.randomUUID())
+                .usuario(usuario)
+                .build();
+
+        when(turmaRepository.findById(idTurma)).thenReturn(Optional.of(turma));
+        when(professorRepository.findById(outroProfessor.getId())).thenReturn(Optional.of(outroProfessor));
+
+        var ex = assertThrows(ValidacaoException.class,
+                () -> turmaService.desvincularProfessor(idTurma, outroProfessor.getId()));
+
+        assertEquals("Professor não está vinculado à turma.", ex.getMessage());
+        verify(turmaRepository).findById(idTurma);
+        verify(professorRepository).findById(outroProfessor.getId());
+        verify(turmaRepository, never()).save(any());
+    }
+
+    @Test
+    void deveDesvincularAlunoDaTurmaComSucesso() {
+        var idTurma = UUID.randomUUID();
+        var idAluno = aluno.getId();
+        turma.getAlunos().add(aluno);
+
+        when(turmaRepository.findById(idTurma)).thenReturn(Optional.of(turma));
+        when(alunoRepository.findById(idAluno)).thenReturn(Optional.of(aluno));
+
+        turmaService.desvincularAluno(idTurma, idAluno);
+
+        assertFalse(turma.getAlunos().contains(aluno));
+        verify(turmaRepository).findById(idTurma);
+        verify(alunoRepository).findById(idAluno);
+        verify(turmaRepository).save(any());
+    }
+
+    @Test
+    void deveLancarExcecao_QuandoTurmaNaoEncontrada_AoDesvincularAluno() {
+        var idTurma = UUID.randomUUID();
+        var idAluno = UUID.randomUUID();
+        when(turmaRepository.findById(idTurma)).thenReturn(Optional.empty());
+
+        var ex = assertThrows(TurmaNaoEncontradaException.class,
+                () -> turmaService.desvincularAluno(idTurma, idAluno));
+
+        assertEquals("Turma não encontrada.", ex.getMessage());
+        verify(turmaRepository).findById(idTurma);
+        verify(alunoRepository, never()).findById(idAluno);
+        verify(turmaRepository, never()).save(any());
+    }
+
+    @Test
+    void deveLancarExcecao_QuandoAlunoNaoEncontrado_AoDesvincularAluno() {
+        var idTurma = UUID.randomUUID();
+        var idAluno = UUID.randomUUID();
+        when(turmaRepository.findById(idTurma)).thenReturn(Optional.of(turma));
+        when(alunoRepository.findById(idAluno)).thenReturn(Optional.empty());
+
+        var ex = assertThrows(AlunoNaoEncontradoException.class,
+                () -> turmaService.desvincularAluno(idTurma, idAluno));
+
+        assertEquals("Aluno não encontrado.", ex.getMessage());
+        verify(turmaRepository).findById(idTurma);
+        verify(alunoRepository).findById(idAluno);
+        verify(turmaRepository, never()).save(any());
+    }
+
+    @Test
+    void deveLancarExcecao_QuandoAlunoNaoEstiverVinculado_AoDesvincularAluno() {
+        var idTurma = UUID.randomUUID();
+        var idAluno = UUID.randomUUID();
+
+        when(turmaRepository.findById(idTurma)).thenReturn(Optional.of(turma));
+        when(alunoRepository.findById(idAluno)).thenReturn(Optional.of(aluno));
+
+        var ex = assertThrows(ValidacaoException.class,
+                () -> turmaService.desvincularAluno(idTurma, idAluno));
+
+        assertEquals("Aluno não está vinculado à turma.", ex.getMessage());
+        verify(turmaRepository).findById(idTurma);
+        verify(alunoRepository).findById(idAluno);
+        verify(turmaRepository, never()).save(any());
     }
 
 }
