@@ -65,7 +65,7 @@ public class TurmaService {
     }
 
     @Transactional
-    public TurmaResponse vincularProfessor(UUID idTurma, UUID idProfessor) {
+    public void vincularProfessor(UUID idTurma, UUID idProfessor) {
         Turma turma = buscarTurmaOuLancar(idTurma);
         Professor professor = buscarProfessorOuLancar(idProfessor);
 
@@ -74,11 +74,11 @@ public class TurmaService {
         }
 
         turma.setProfessor(professor);
-        return TurmaMapper.toDTO(turmaRepository.save(turma));
+        turmaRepository.save(turma);
     }
 
     @Transactional
-    public TurmaResponse desvincularProfessor(UUID idTurma, UUID idProfessor) {
+    public void desvincularProfessor(UUID idTurma, UUID idProfessor) {
         Turma turma = buscarTurmaOuLancar(idTurma);
         Professor professor = buscarProfessorOuLancar(idProfessor);
 
@@ -86,11 +86,11 @@ public class TurmaService {
         if (!turma.getProfessor().equals(professor)) throw new ValidacaoException("Professor não está vinculado à turma.");
 
         turma.setProfessor(null);
-        return TurmaMapper.toDTO(turmaRepository.save(turma));
+        turmaRepository.save(turma);
     }
 
     @Transactional
-    public TurmaResponse vincularAluno(UUID idTurma, UUID idAluno) {
+    public void vincularAluno(UUID idTurma, UUID idAluno) {
         Turma turma = buscarTurmaOuLancar(idTurma);
         Aluno aluno = buscarAlunoOuLancar(idAluno);
 
@@ -99,11 +99,11 @@ public class TurmaService {
         }
 
         turma.getAlunos().add(aluno);
-        return TurmaMapper.toDTO(turmaRepository.save(turma));
+        turmaRepository.save(turma);
     }
 
     @Transactional
-    public TurmaResponse desvincularAluno(UUID idTurma, UUID idAluno) {
+    public void desvincularAluno(UUID idTurma, UUID idAluno) {
         Turma turma = buscarTurmaOuLancar(idTurma);
         Aluno aluno = buscarAlunoOuLancar(idAluno);
 
@@ -112,7 +112,7 @@ public class TurmaService {
         }
 
         turma.getAlunos().remove(aluno);
-        return TurmaMapper.toDTO(turmaRepository.save(turma));
+        turmaRepository.save(turma);
     }
 
     private Turma buscarTurmaOuLancar(UUID idTurma) {
