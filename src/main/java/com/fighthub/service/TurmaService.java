@@ -69,7 +69,7 @@ public class TurmaService {
         Turma turma = buscarTurmaOuLancar(idTurma);
         Professor professor = buscarProfessorOuLancar(idProfessor);
 
-        if (turma.getProfessor().equals(professor)) {
+        if (turma.getProfessor() != null && turma.getProfessor().getId().equals(professor.getId())) {
             throw new ValidacaoException("Professor já está vinculado à turma.");
         }
 
@@ -82,9 +82,8 @@ public class TurmaService {
         Turma turma = buscarTurmaOuLancar(idTurma);
         Professor professor = buscarProfessorOuLancar(idProfessor);
 
-        if (!turma.getProfessor().equals(professor)) {
-            throw new ValidacaoException("Professor não está vinculado à turma.");
-        }
+        if (turma.getProfessor() == null) throw new ValidacaoException("Ainda não há professor vinculado à turma.");
+        if (!turma.getProfessor().equals(professor)) throw new ValidacaoException("Professor não está vinculado à turma.");
 
         turma.setProfessor(null);
         return TurmaMapper.toDTO(turmaRepository.save(turma));
