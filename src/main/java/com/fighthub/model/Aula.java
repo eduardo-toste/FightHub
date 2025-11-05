@@ -32,4 +32,11 @@ public class Aula {
 
     private boolean ativo;
 
+    public Aula(String titulo, String descricao, LocalDate data, Turma turma, int limiteAlunos) {
+        this.titulo = titulo;
+        this.descricao = descricao;
+        this.data = data;
+        this.turma = turma;
+        this.limiteAlunos = limiteAlunos;
+    }
 }
