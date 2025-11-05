@@ -1,7 +1,6 @@
 package com.fighthub.dto.turma;
 
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 
 import java.util.UUID;
 
@@ -13,7 +12,6 @@ public record TurmaRequest(
     @NotBlank(message = "Horário é obrigatório.")
     String horario,
 
-    @NotNull(message = "Id do professor é obrigatório.")
     UUID professorId
 
 ) {
