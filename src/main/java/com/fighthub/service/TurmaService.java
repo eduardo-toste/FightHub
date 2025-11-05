@@ -30,7 +30,12 @@ public class TurmaService {
 
     @Transactional
     public void criarTurma(TurmaRequest request) {
-        Professor professor = buscarProfessorOuLancar(request.professorId());
+        Professor professor = null;
+
+        if (request.professorId() != null) {
+            professor = buscarProfessorOuLancar(request.professorId());
+        }
+
         turmaRepository.save(TurmaMapper.toEntity(request, professor));
     }
 
