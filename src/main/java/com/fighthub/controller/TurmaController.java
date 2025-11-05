@@ -140,7 +140,7 @@ public class TurmaController {
     })
     @PatchMapping("/{idTurma}/professores/{idProfessor}")
     @PreAuthorize("hasAnyRole('ADMIN','COORDENADOR')")
-    public ResponseEntity<TurmaResponse> vincularProfessor(@PathVariable UUID idTurma, @PathVariable UUID idProfessor) {
+    public ResponseEntity<Void> vincularProfessor(@PathVariable UUID idTurma, @PathVariable UUID idProfessor) {
         turmaService.vincularProfessor(idTurma, idProfessor);
         return ResponseEntity.status(HttpStatus.OK).build();
     }
@@ -165,7 +165,7 @@ public class TurmaController {
     })
     @DeleteMapping("/{idTurma}/professores/{idProfessor}")
     @PreAuthorize("hasAnyRole('ADMIN','COORDENADOR')")
-    public ResponseEntity<TurmaResponse> desvincularProfessor(@PathVariable UUID idTurma, @PathVariable UUID idProfessor) {
+    public ResponseEntity<Void> desvincularProfessor(@PathVariable UUID idTurma, @PathVariable UUID idProfessor) {
         turmaService.desvincularProfessor(idTurma, idProfessor);
         return ResponseEntity.status(HttpStatus.OK).build();
     }
@@ -190,7 +190,7 @@ public class TurmaController {
     })
     @PatchMapping("/{idTurma}/alunos/{idAluno}")
     @PreAuthorize("hasAnyRole('ADMIN','COORDENADOR')")
-    public ResponseEntity<TurmaResponse> vincularAluno(@PathVariable UUID idTurma, @PathVariable UUID idAluno) {
+    public ResponseEntity<Void> vincularAluno(@PathVariable UUID idTurma, @PathVariable UUID idAluno) {
         turmaService.vincularAluno(idTurma, idAluno);
         return ResponseEntity.status(HttpStatus.OK).build();
     }
@@ -215,7 +215,7 @@ public class TurmaController {
     })
     @DeleteMapping("/{idTurma}/alunos/{idAluno}")
     @PreAuthorize("hasAnyRole('ADMIN','COORDENADOR')")
-    public ResponseEntity<TurmaResponse> desvincularAluno(@PathVariable UUID idTurma, @PathVariable UUID idAluno) {
+    public ResponseEntity<Void> desvincularAluno(@PathVariable UUID idTurma, @PathVariable UUID idAluno) {
         turmaService.desvincularAluno(idTurma, idAluno);
         return ResponseEntity.status(HttpStatus.OK).build();
     }
