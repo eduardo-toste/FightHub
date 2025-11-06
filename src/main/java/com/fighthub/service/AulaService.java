@@ -1,6 +1,7 @@
 package com.fighthub.service;
 
 import com.fighthub.dto.aula.AulaRequest;
+import com.fighthub.dto.aula.AulaResponse;
 import com.fighthub.exception.AulaNaoEncontradaException;
 import com.fighthub.exception.TurmaNaoEncontradaException;
 import com.fighthub.exception.ValidacaoException;
@@ -10,6 +11,8 @@ import com.fighthub.model.Turma;
 import com.fighthub.repository.AulaRepository;
 import com.fighthub.repository.TurmaRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,6 +30,14 @@ public class AulaService {
         Turma turma = null;
         if (request.turmaId() != null) turma = buscarTurmaOuLancar(request.turmaId());
         aulaRepository.save(AulaMapper.toEntity(request, turma));
+    }
+
+    public Page<AulaResponse> buscarAulas(Pageable pageable) {
+        return AulaMapper.toPageDTO(aulaRepository.findAll(pageable));
+    }
+
+    public AulaResponse buscarAulaPorId(UUID idAula) {
+        return AulaMapper.toDTO(buscarAulaOuLancar(idAula));
     }
 
     @Transactional
