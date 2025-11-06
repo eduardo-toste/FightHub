@@ -30,7 +30,7 @@ public class Aula {
     @Column(name = "limite_alunos")
     private int limiteAlunos;
 
-    private boolean ativo;
+    private boolean ativo = true;
 
     public Aula(String titulo, String descricao, LocalDate data, Turma turma, int limiteAlunos) {
         this.titulo = titulo;
