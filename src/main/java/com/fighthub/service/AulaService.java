@@ -2,20 +2,25 @@ package com.fighthub.service;
 
 import com.fighthub.dto.aula.AulaRequest;
 import com.fighthub.dto.aula.AulaResponse;
-import com.fighthub.exception.AulaNaoEncontradaException;
-import com.fighthub.exception.TurmaNaoEncontradaException;
-import com.fighthub.exception.ValidacaoException;
+import com.fighthub.exception.*;
 import com.fighthub.mapper.AulaMapper;
+import com.fighthub.model.Aluno;
 import com.fighthub.model.Aula;
 import com.fighthub.model.Turma;
+import com.fighthub.model.Usuario;
+import com.fighthub.repository.AlunoRepository;
 import com.fighthub.repository.AulaRepository;
 import com.fighthub.repository.TurmaRepository;
+import com.fighthub.repository.UsuarioRepository;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -24,6 +29,9 @@ public class AulaService {
 
     private final AulaRepository aulaRepository;
     private final TurmaRepository turmaRepository;
+    private final UsuarioRepository usuarioRepository;
+    private final AlunoRepository alunoRepository;
+    private final JwtService jwtService;
 
     @Transactional
     public void criarAula(AulaRequest request) {
@@ -34,6 +42,13 @@ public class AulaService {
 
     public Page<AulaResponse> buscarAulas(Pageable pageable) {
         return AulaMapper.toPageDTO(aulaRepository.findAll(pageable));
+    }
+
+    public Page<AulaResponse> buscarAulasDisponiveisAluno(Pageable pageable, HttpServletRequest request) {
+        List<Turma> turmasMatriculadas = buscarTurmasMatriculadasPorAluno(request);
+
+        return aulaRepository.findByTurmaIn(turmasMatriculadas, pageable)
+                .map(AulaMapper::toDTO);
     }
 
     public AulaResponse buscarAulaPorId(UUID idAula) {
@@ -70,5 +85,18 @@ public class AulaService {
     private Aula buscarAulaOuLancar(UUID idAula) {
         return aulaRepository.findById(idAula)
                 .orElseThrow(AulaNaoEncontradaException::new);
+    }
+
+    private List<Turma> buscarTurmasMatriculadasPorAluno(HttpServletRequest request) {
+        String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
+        String email = jwtService.extrairEmail(authHeader.substring(7));
+
+        Usuario usuario = usuarioRepository.findByEmail(email)
+                .orElseThrow(UsuarioNaoEncontradoException::new);
+
+        Aluno aluno = alunoRepository.findByUsuarioId(usuario.getId())
+                .orElseThrow(AlunoNaoEncontradoException::new);
+
+        return turmaRepository.findAllByAlunos(aluno);
     }
 }
