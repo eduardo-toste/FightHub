@@ -5,6 +5,8 @@ import com.fighthub.dto.aula.AulaResponse;
 import com.fighthub.service.AulaService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -24,6 +26,18 @@ public class AulaController {
     public ResponseEntity<AulaResponse> criarAula(@RequestBody @Valid AulaRequest request) {
         aulaService.criarAula(request);
         return ResponseEntity.status(HttpStatus.OK).build();
+    }
+
+    @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'COORDENADOR', 'PROFESSOR')")
+    public ResponseEntity<Page<AulaResponse>> buscarAulas(Pageable pageable) {
+        return ResponseEntity.status(HttpStatus.OK).body(aulaService.buscarAulas(pageable));
+    }
+
+    @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'COORDENADOR', 'PROFESSOR')")
+    public ResponseEntity<AulaResponse> buscarAulaPorId(@PathVariable UUID id) {
+        return ResponseEntity.status(HttpStatus.OK).body(aulaService.buscarAulaPorId(id));
     }
 
     @PatchMapping("/{idAula}/turmas/{idTurma}")
