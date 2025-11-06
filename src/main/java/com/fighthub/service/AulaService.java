@@ -3,6 +3,7 @@ package com.fighthub.service;
 import com.fighthub.dto.aula.AulaRequest;
 import com.fighthub.exception.AulaNaoEncontradaException;
 import com.fighthub.exception.TurmaNaoEncontradaException;
+import com.fighthub.exception.ValidacaoException;
 import com.fighthub.mapper.AulaMapper;
 import com.fighthub.model.Aula;
 import com.fighthub.model.Turma;
@@ -32,6 +33,9 @@ public class AulaService {
     public void vincularTurma(UUID idAula, UUID idTurma) {
         Aula aula = buscarAulaOuLancar(idAula);
         Turma turma = buscarTurmaOuLancar(idTurma);
+
+        if (aula.getTurma() != null && aula.getTurma().getId().equals(turma.getId())) throw new ValidacaoException("Turma já está vinculada à aula.");
+
         aula.setTurma(turma);
         aulaRepository.save(aula);
     }
@@ -39,7 +43,10 @@ public class AulaService {
     @Transactional
     public void desvincularTurma(UUID idAula, UUID idTurma) {
         Aula aula = buscarAulaOuLancar(idAula);
-        buscarTurmaOuLancar(idTurma);
+        Turma turma = buscarTurmaOuLancar(idTurma);
+
+        if (aula.getTurma() != turma) throw new ValidacaoException("Turma ainda não vinculada à aula.");
+
         aula.setTurma(null);
         aulaRepository.save(aula);
     }
