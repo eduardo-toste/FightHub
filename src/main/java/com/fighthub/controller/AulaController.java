@@ -3,6 +3,7 @@ package com.fighthub.controller;
 import com.fighthub.dto.aula.AulaRequest;
 import com.fighthub.dto.aula.AulaResponse;
 import com.fighthub.service.AulaService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -34,8 +35,13 @@ public class AulaController {
         return ResponseEntity.status(HttpStatus.OK).body(aulaService.buscarAulas(pageable));
     }
 
+    @GetMapping("/alunos")
+    @PreAuthorize("hasAnyRole('ADMIN', 'ALUNO')")
+    public ResponseEntity<Page<AulaResponse>> buscarAulasDisponiveisAluno(Pageable pageable, HttpServletRequest request) {
+        return ResponseEntity.status(HttpStatus.OK).body(aulaService.buscarAulasDisponiveisAluno(pageable,request));
+    }
+
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'COORDENADOR', 'PROFESSOR')")
     public ResponseEntity<AulaResponse> buscarAulaPorId(@PathVariable UUID id) {
         return ResponseEntity.status(HttpStatus.OK).body(aulaService.buscarAulaPorId(id));
     }
