@@ -24,7 +24,7 @@ public class AulaMapper {
                 aula.getTitulo(),
                 aula.getDescricao(),
                 aula.getData(),
-                aula.getTurma().getId(),
+                aula.getTurma() != null ? aula.getTurma().getId() : null,
                 aula.getLimiteAlunos(),
                 aula.isAtivo()
         );
