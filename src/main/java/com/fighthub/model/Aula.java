@@ -1,5 +1,6 @@
 package com.fighthub.model;
 
+import com.fighthub.dto.aula.AulaUpdateCompletoRequest;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -38,5 +39,14 @@ public class Aula {
         this.data = data;
         this.turma = turma;
         this.limiteAlunos = limiteAlunos;
+    }
+
+    public void putUpdate(AulaUpdateCompletoRequest request, Turma turma) {
+        this.titulo = request.titulo();
+        this.descricao = request.descricao();
+        this.data = request.data();
+        this.turma = turma;
+        this.limiteAlunos = request.limiteAlunos();
+        this.ativo = request.ativo();
     }
 }
