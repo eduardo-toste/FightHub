@@ -2,6 +2,7 @@ package com.fighthub.controller;
 
 import com.fighthub.dto.aula.AulaRequest;
 import com.fighthub.dto.aula.AulaResponse;
+import com.fighthub.dto.aula.AulaUpdateCompletoRequest;
 import com.fighthub.service.AulaService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -46,6 +47,11 @@ public class AulaController {
         return ResponseEntity.status(HttpStatus.OK).body(aulaService.buscarAulaPorId(id));
     }
 
+    @PutMapping("/{id}")
+    public ResponseEntity<AulaResponse> atualizarAula(@RequestBody @Valid AulaUpdateCompletoRequest request, @PathVariable UUID id) {
+        return ResponseEntity.status(HttpStatus.OK).body(aulaService.atualizarAula(request, id));
+    }
+
     @PatchMapping("/{idAula}/turmas/{idTurma}")
     @PreAuthorize("hasAnyRole('ADMIN', 'COORDENADOR', 'PROFESSOR')")
     public ResponseEntity<Void> vincularTurma(@PathVariable UUID idAula, @PathVariable UUID idTurma) {
@@ -57,6 +63,12 @@ public class AulaController {
     @PreAuthorize("hasAnyRole('ADMIN', 'COORDENADOR', 'PROFESSOR')")
     public ResponseEntity<Void> desvincularTurma(@PathVariable UUID idAula, @PathVariable UUID idTurma) {
         aulaService.desvincularTurma(idAula, idTurma);
+        return ResponseEntity.status(HttpStatus.OK).build();
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> excluirAula(@PathVariable UUID id) {
+        aulaService.excluirAula(id);
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
