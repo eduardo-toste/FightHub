@@ -2,6 +2,7 @@ package com.fighthub.service;
 
 import com.fighthub.dto.aula.AulaRequest;
 import com.fighthub.dto.aula.AulaResponse;
+import com.fighthub.dto.aula.AulaUpdateCompletoRequest;
 import com.fighthub.exception.*;
 import com.fighthub.mapper.AulaMapper;
 import com.fighthub.model.Aluno;
@@ -56,6 +57,14 @@ public class AulaService {
     }
 
     @Transactional
+    public AulaResponse atualizarAula(AulaUpdateCompletoRequest request, UUID id) {
+        Aula aula = buscarAulaOuLancar(id);
+        Turma turma = buscarTurmaOuLancar(request.turmaId());
+        aula.putUpdate(request, turma);
+        return AulaMapper.toDTO(aulaRepository.save(aula));
+    }
+
+    @Transactional
     public void vincularTurma(UUID idAula, UUID idTurma) {
         Aula aula = buscarAulaOuLancar(idAula);
         Turma turma = buscarTurmaOuLancar(idTurma);
@@ -75,6 +84,11 @@ public class AulaService {
 
         aula.setTurma(null);
         aulaRepository.save(aula);
+    }
+
+    public void excluirAula(UUID id) {
+        buscarAulaOuLancar(id);
+        aulaRepository.deleteById(id);
     }
 
     private Turma buscarTurmaOuLancar(UUID idTurma) {
