@@ -3,6 +3,7 @@ package com.fighthub.controller;
 import com.fighthub.dto.aula.AulaRequest;
 import com.fighthub.dto.aula.AulaResponse;
 import com.fighthub.dto.aula.AulaUpdateCompletoRequest;
+import com.fighthub.dto.aula.AulaUpdateStatusRequest;
 import com.fighthub.service.AulaService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -45,6 +46,12 @@ public class AulaController {
     @GetMapping("/{id}")
     public ResponseEntity<AulaResponse> buscarAulaPorId(@PathVariable UUID id) {
         return ResponseEntity.status(HttpStatus.OK).body(aulaService.buscarAulaPorId(id));
+    }
+
+    @PatchMapping("/{id}/status")
+    @PreAuthorize("hasAnyRole('ADMIN', 'COORDENADOR', 'PROFESSOR')")
+    public ResponseEntity<AulaResponse> atualizarStatusAula(@PathVariable UUID id, @RequestBody @Valid AulaUpdateStatusRequest request) {
+        return ResponseEntity.status(HttpStatus.OK).body(aulaService.atualizarStatus(id, request));
     }
 
     @PutMapping("/{id}")
