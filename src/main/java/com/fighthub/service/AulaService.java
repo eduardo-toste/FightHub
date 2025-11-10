@@ -3,12 +3,14 @@ package com.fighthub.service;
 import com.fighthub.dto.aula.AulaRequest;
 import com.fighthub.dto.aula.AulaResponse;
 import com.fighthub.dto.aula.AulaUpdateCompletoRequest;
+import com.fighthub.dto.aula.AulaUpdateStatusRequest;
 import com.fighthub.exception.*;
 import com.fighthub.mapper.AulaMapper;
 import com.fighthub.model.Aluno;
 import com.fighthub.model.Aula;
 import com.fighthub.model.Turma;
 import com.fighthub.model.Usuario;
+import com.fighthub.model.enums.ClassStatus;
 import com.fighthub.repository.AlunoRepository;
 import com.fighthub.repository.AulaRepository;
 import com.fighthub.repository.TurmaRepository;
@@ -48,7 +50,7 @@ public class AulaService {
     public Page<AulaResponse> buscarAulasDisponiveisAluno(Pageable pageable, HttpServletRequest request) {
         List<Turma> turmasMatriculadas = buscarTurmasMatriculadasPorAluno(request);
 
-        return aulaRepository.findByTurmaIn(turmasMatriculadas, pageable)
+        return aulaRepository.findByStatusAndTurmaIn(ClassStatus.DISPONIVEL ,turmasMatriculadas, pageable)
                 .map(AulaMapper::toDTO);
     }
 
@@ -61,6 +63,13 @@ public class AulaService {
         Aula aula = buscarAulaOuLancar(id);
         Turma turma = buscarTurmaOuLancar(request.turmaId());
         aula.putUpdate(request, turma);
+        return AulaMapper.toDTO(aulaRepository.save(aula));
+    }
+
+    @Transactional
+    public AulaResponse atualizarStatus(UUID id, AulaUpdateStatusRequest request) {
+        Aula aula = buscarAulaOuLancar(id);
+        aula.setStatus(request.status());
         return AulaMapper.toDTO(aulaRepository.save(aula));
     }
 
