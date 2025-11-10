@@ -1,6 +1,7 @@
 package com.fighthub.model;
 
 import com.fighthub.dto.aula.AulaUpdateCompletoRequest;
+import com.fighthub.model.enums.ClassStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -30,6 +31,9 @@ public class Aula {
 
     @Column(name = "limite_alunos")
     private int limiteAlunos;
+
+    @Enumerated(EnumType.STRING)
+    private ClassStatus status;
 
     private boolean ativo = true;
 
