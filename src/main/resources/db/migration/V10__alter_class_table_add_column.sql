@@ -1,0 +1,8 @@
+ALTER TABLE aulas
+ADD COLUMN status VARCHAR(30);
+
+UPDATE aulas
+SET status = 'AGENDADA';
+
+ALTER TABLE aulas
+ALTER COLUMN status SET NOT NULL;
