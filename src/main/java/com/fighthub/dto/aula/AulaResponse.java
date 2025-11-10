@@ -1,5 +1,7 @@
 package com.fighthub.dto.aula;
 
+import com.fighthub.model.enums.ClassStatus;
+
 import java.time.LocalDate;
 import java.util.UUID;
 
@@ -11,6 +13,7 @@ public record AulaResponse(
         LocalDate data,
         UUID turmaId,
         int limiteAlunos,
+        ClassStatus status,
         boolean ativo
 
 ) {
