@@ -43,6 +43,7 @@ public class Aula {
         this.data = data;
         this.turma = turma;
         this.limiteAlunos = limiteAlunos;
+        this.status = ClassStatus.DISPONIVEL;
     }
 
     public void putUpdate(AulaUpdateCompletoRequest request, Turma turma) {
