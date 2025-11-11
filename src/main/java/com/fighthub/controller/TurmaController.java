@@ -119,4 +119,105 @@ public class TurmaController {
         turmaService.excluirTurma(id);
         return ResponseEntity.status(HttpStatus.OK).build();
     }
+
+    @Operation(
+            summary = "Vínculo de professor",
+            description = "Vincula o professor à turma sem retornar nenhum conteúdo."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Professor vinculado com sucesso"),
+            @ApiResponse(responseCode = "404", description = "Turma ou professor não encontrado",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class),
+                            examples = {
+                                    @ExampleObject(name = "Turma não encontrada", value = SwaggerExamples.TURMA_NAO_ENCONTRADA),
+                                    @ExampleObject(name = "Professor não encontrado", value = SwaggerExamples.PROFESSOR_NAO_ENCONTRADO)
+                            })),
+            @ApiResponse(responseCode = "409", description = "Professor já vinculado à turma.",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class),
+                            examples = @ExampleObject(
+                                    name = "Professor já vinculado",
+                                    value = SwaggerExamples.PROFESSOR_NAO_ENCONTRADO)))
+    })
+    @PatchMapping("/{idTurma}/professores/{idProfessor}")
+    @PreAuthorize("hasAnyRole('ADMIN','COORDENADOR')")
+    public ResponseEntity<Void> vincularProfessor(@PathVariable UUID idTurma, @PathVariable UUID idProfessor) {
+        turmaService.vincularProfessor(idTurma, idProfessor);
+        return ResponseEntity.status(HttpStatus.OK).build();
+    }
+
+    @Operation(
+            summary = "Desvínculo de professor",
+            description = "Desvincula o professor da turma sem retornar nenhum conteúdo."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Professor desvinculado com sucesso"),
+            @ApiResponse(responseCode = "404", description = "Turma ou professor não encontrado",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class),
+                            examples = {
+                                    @ExampleObject(name = "Turma não encontrada", value = SwaggerExamples.TURMA_NAO_ENCONTRADA),
+                                    @ExampleObject(name = "Professor não encontrado", value = SwaggerExamples.PROFESSOR_NAO_ENCONTRADO)
+                            })),
+            @ApiResponse(responseCode = "409", description = "Professor não está vinculado à turma",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class),
+                            examples = @ExampleObject(
+                                    name = "Professor já vinculado",
+                                    value = SwaggerExamples.PROFESSOR_NAO_ENCONTRADO)))
+    })
+    @DeleteMapping("/{idTurma}/professores/{idProfessor}")
+    @PreAuthorize("hasAnyRole('ADMIN','COORDENADOR')")
+    public ResponseEntity<Void> desvincularProfessor(@PathVariable UUID idTurma, @PathVariable UUID idProfessor) {
+        turmaService.desvincularProfessor(idTurma, idProfessor);
+        return ResponseEntity.status(HttpStatus.OK).build();
+    }
+
+    @Operation(
+            summary = "Vínculo de aluno",
+            description = "Vincula o aluno á turma sem retornar nenhum conteúdo."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Aluno vinculado com sucesso"),
+            @ApiResponse(responseCode = "404", description = "Turma ou aluno não encontrado",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class),
+                            examples = {
+                                    @ExampleObject(name = "Turma não encontrada", value = SwaggerExamples.TURMA_NAO_ENCONTRADA),
+                                    @ExampleObject(name = "Aluno não encontrado", value = SwaggerExamples.ALUNO_NAO_ENCONTRADO)
+                            })),
+            @ApiResponse(responseCode = "409", description = "Aluno já vinculado à turma.",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class),
+                            examples = @ExampleObject(
+                                    name = "Aluno já vinculado",
+                                    value = SwaggerExamples.ALUNO_JA_VINCULADO)))
+    })
+    @PatchMapping("/{idTurma}/alunos/{idAluno}")
+    @PreAuthorize("hasAnyRole('ADMIN','COORDENADOR')")
+    public ResponseEntity<Void> vincularAluno(@PathVariable UUID idTurma, @PathVariable UUID idAluno) {
+        turmaService.vincularAluno(idTurma, idAluno);
+        return ResponseEntity.status(HttpStatus.OK).build();
+    }
+
+    @Operation(
+            summary = "Desvínculo de aluno",
+            description = "Desvincula o aluno da turma sem retornar nenhum conteúdo."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Aluno desvinculado com sucesso"),
+            @ApiResponse(responseCode = "404", description = "Responsável ou aluno não encontrado",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class),
+                            examples = {
+                                    @ExampleObject(name = "Turma não encontrada", value = SwaggerExamples.TURMA_NAO_ENCONTRADA),
+                                    @ExampleObject(name = "Aluno não encontrado", value = SwaggerExamples.ALUNO_NAO_ENCONTRADO)
+                            })),
+            @ApiResponse(responseCode = "409", description = "Aluno não está vinculado à turma",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class),
+                            examples = @ExampleObject(
+                                    name = "Aluno não está vinculado à turma.",
+                                    value = SwaggerExamples.ALUNO_NAO_VINCULADO)))
+    })
+    @DeleteMapping("/{idTurma}/alunos/{idAluno}")
+    @PreAuthorize("hasAnyRole('ADMIN','COORDENADOR')")
+    public ResponseEntity<Void> desvincularAluno(@PathVariable UUID idTurma, @PathVariable UUID idAluno) {
+        turmaService.desvincularAluno(idTurma, idAluno);
+        return ResponseEntity.status(HttpStatus.OK).build();
+    }
+
 }

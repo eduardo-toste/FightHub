@@ -1,0 +1,2 @@
+ALTER TABLE turmas
+ALTER COLUMN professor_id DROP NOT NULL;

@@ -1,0 +1,1 @@
+ALTER TABLE aulas ALTER COLUMN turma_id DROP NOT NULL;

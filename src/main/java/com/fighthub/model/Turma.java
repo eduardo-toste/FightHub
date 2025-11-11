@@ -4,6 +4,8 @@ import com.fighthub.dto.turma.TurmaUpdateCompletoRequest;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -27,11 +29,19 @@ public class Turma {
     private String horario;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "professor_id", nullable = false)
+    @JoinColumn(name = "professor_id")
     private Professor professor;
 
     @Column(nullable = false)
     private boolean ativo;
+
+    @ManyToMany
+    @JoinTable(
+            name = "alunos_turmas",
+            joinColumns = @JoinColumn(name = "turma_id"),
+            inverseJoinColumns = @JoinColumn(name = "aluno_id")
+    )
+    private List<Aluno> alunos = new ArrayList<>();
 
     public Turma(String nome, String horario, Professor professor) {
         this.nome = nome;
