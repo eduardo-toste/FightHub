@@ -172,6 +172,7 @@ public class AulaController {
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'COORDENADOR', 'PROFESSOR')")
     public ResponseEntity<Void> excluirAula(@PathVariable UUID id) {
         aulaService.excluirAula(id);
         return ResponseEntity.status(HttpStatus.OK).build();
