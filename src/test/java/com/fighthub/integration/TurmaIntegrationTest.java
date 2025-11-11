@@ -3,10 +3,7 @@ package com.fighthub.integration;
 import com.fighthub.dto.turma.TurmaRequest;
 import com.fighthub.dto.turma.TurmaUpdateCompletoRequest;
 import com.fighthub.dto.turma.TurmaUpdateStatusRequest;
-import com.fighthub.model.Endereco;
-import com.fighthub.model.Professor;
-import com.fighthub.model.Turma;
-import com.fighthub.model.Usuario;
+import com.fighthub.model.*;
 import com.fighthub.model.enums.Role;
 import com.fighthub.service.JwtService;
 import com.fighthub.service.TokenService;
@@ -17,12 +14,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.http.MediaType;
 
+import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.UUID;
 
 import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 public class TurmaIntegrationTest extends IntegrationTestBase {
 
@@ -68,6 +68,7 @@ public class TurmaIntegrationTest extends IntegrationTestBase {
                 .horario("Segunda 19:00")
                 .professor(professor)
                 .ativo(true)
+                .alunos(new ArrayList<>())
                 .build());
     }
 
@@ -206,5 +207,117 @@ public class TurmaIntegrationTest extends IntegrationTestBase {
         mockMvc.perform(delete("/turmas/{id}", UUID.randomUUID())
                         .header("Authorization", "Bearer " + accessToken))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void deveVincularProfessorComSucesso() throws Exception {
+        Professor novoProfessor = professorRepository.save(
+                Professor.builder().usuario(usuarioRepository.save(
+                        Usuario.builder()
+                                .nome("Outro Professor")
+                                .email("outro@email.com")
+                                .cpf("563.184.170-40")
+                                .telefone("(11)97777-1111")
+                                .role(Role.PROFESSOR)
+                                .ativo(true)
+                                .loginSocial(false)
+                                .endereco(usuario.getEndereco())
+                                .build()
+                )).build()
+        );
+
+        mockMvc.perform(patch("/turmas/{idTurma}/professores/{idProfessor}", turma.getId(), novoProfessor.getId())
+                        .header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isOk());
+
+        var turmaAtualizada = turmaRepository.findById(turma.getId()).orElseThrow();
+        assertEquals(novoProfessor.getId(), turmaAtualizada.getProfessor().getId());
+    }
+
+    @Test
+    void deveRetornar404_AoVincularProfessorInexistente() throws Exception {
+        mockMvc.perform(patch("/turmas/{idTurma}/professores/{idProfessor}", turma.getId(), UUID.randomUUID())
+                        .header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void deveDesvincularProfessorComSucesso() throws Exception {
+        mockMvc.perform(delete("/turmas/{idTurma}/professores/{idProfessor}", turma.getId(), professor.getId())
+                        .header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isOk());
+
+        var turmaAtualizada = turmaRepository.findById(turma.getId()).orElseThrow();
+        assertNull(turmaAtualizada.getProfessor());
+    }
+
+    @Test
+    void deveRetornar404_AoDesvincularProfessorInexistente() throws Exception {
+        mockMvc.perform(delete("/turmas/{idTurma}/professores/{idProfessor}", turma.getId(), UUID.randomUUID())
+                        .header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void deveVincularAlunoComSucesso() throws Exception {
+        var aluno = alunoRepository.save(buildAlunoValido(usuario.getEndereco()));
+
+        mockMvc.perform(patch("/turmas/{idTurma}/alunos/{idAluno}", turma.getId(), aluno.getId())
+                        .header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isOk());
+
+        var turmaAtualizada = turmaRepository.findById(turma.getId()).orElseThrow();
+        assertTrue(turmaAtualizada.getAlunos().contains(aluno));
+    }
+
+    @Test
+    void deveRetornar404_AoVincularAlunoInexistente() throws Exception {
+        mockMvc.perform(patch("/turmas/{idTurma}/alunos/{idAluno}", turma.getId(), UUID.randomUUID())
+                        .header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void deveDesvincularAlunoComSucesso() throws Exception {
+        var aluno = alunoRepository.save(buildAlunoValido(usuario.getEndereco()));
+        turma.getAlunos().add(aluno);
+        turmaRepository.saveAndFlush(turma);
+
+        mockMvc.perform(delete("/turmas/{idTurma}/alunos/{idAluno}", turma.getId(), aluno.getId())
+                        .header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isOk());
+
+        var turmaAtualizada = turmaRepository.findById(turma.getId()).orElseThrow();
+        assertFalse(turmaAtualizada.getAlunos().contains(aluno));
+    }
+
+    @Test
+    void deveRetornar404_AoDesvincularAlunoInexistente() throws Exception {
+        mockMvc.perform(delete("/turmas/{idTurma}/alunos/{idAluno}", turma.getId(), UUID.randomUUID())
+                        .header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isNotFound());
+    }
+
+    private Aluno buildAlunoValido(Endereco endereco) {
+        Usuario user = usuarioRepository.save(
+                Usuario.builder()
+                        .nome("Aluno Teste")
+                        .email("aluno@email.com")
+                        .cpf("329.235.300-85")
+                        .telefone("(11)99999-1234")
+                        .role(Role.ALUNO)
+                        .ativo(true)
+                        .loginSocial(false)
+                        .endereco(endereco)
+                        .build()
+        );
+
+        return alunoRepository.save(Aluno.builder()
+                .usuario(user)
+                .dataNascimento(LocalDate.of(2000, 1, 1)) // ou LocalDate.now().minusYears(18)
+                .dataMatricula(LocalDate.now())
+                .matriculaAtiva(true)
+                .build()
+        );
     }
 }

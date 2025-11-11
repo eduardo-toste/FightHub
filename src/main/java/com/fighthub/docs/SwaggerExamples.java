@@ -87,9 +87,21 @@ public class SwaggerExamples {
 
     public static final String TURMA_NAO_ENCONTRADA = """
         {
+          "timestamp": "2025-09-23T15:13:12.123456-03:00",
           "status": 404,
-          "titulo": "Turma não encontrada",
-          "detalhes": "Nenhuma turma foi encontrada com o ID fornecido."
+          "error": "Not Found",
+          "message": "Turma não encontrada.",
+          "path": "/turmas/{id}"
+        }
+    """;
+
+    public static final String PROFESSOR_NAO_ENCONTRADO = """
+        {
+          "timestamp": "2025-09-23T15:13:12.123456-03:00",
+          "status": 404,
+          "error": "Not Found",
+          "message": "Professor não encontrado.",
+          "path": "/professores/{id}"
         }
     """;
 

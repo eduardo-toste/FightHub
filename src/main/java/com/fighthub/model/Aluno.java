@@ -40,4 +40,7 @@ public class Aluno {
     @ManyToMany(mappedBy = "alunos")
     private List<Responsavel> responsaveis = new ArrayList<>();
 
+    @ManyToMany(mappedBy = "alunos")
+    private List<Turma> turmas = new ArrayList<>();
+
 }
