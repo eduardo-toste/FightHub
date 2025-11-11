@@ -6,6 +6,7 @@ public enum ClassStatus {
     AGENDADA,
     PENDENTE,
     EM_PROGRESSO,
+    CANCELADA,
     FINALIZADA
 
 }
