@@ -3,6 +3,7 @@ package com.fighthub.repository;
 import com.fighthub.model.Aluno;
 import com.fighthub.model.Aula;
 import com.fighthub.model.Inscricao;
+import com.fighthub.model.enums.SubscriptionStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -16,6 +17,6 @@ public interface InscricaoRepository extends JpaRepository<Inscricao, UUID> {
 
     Page<Inscricao> findAllByAula(Aula aula, Pageable pageable);
 
-    Page<Inscricao> findAllByAluno(Aluno aluno, Pageable pageable);
+    Page<Inscricao> findAllByAlunoAndStatus(Aluno aluno, SubscriptionStatus status, Pageable pageable);
 
 }
