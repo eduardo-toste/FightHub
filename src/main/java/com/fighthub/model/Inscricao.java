@@ -35,4 +35,10 @@ public class Inscricao {
     @Column(name = "data_inscricao")
     private LocalDate dataInscricao;
 
+    public Inscricao(Aluno aluno, Aula aula, SubscriptionStatus status, LocalDate dataInscricao) {
+        this.aluno = aluno;
+        this.aula = aula;
+        this.status = status;
+        this.dataInscricao = dataInscricao;
+    }
 }
