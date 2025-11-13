@@ -1,6 +1,8 @@
 package com.fighthub.service;
 
+import com.fighthub.dto.inscricao.InscricaoResponse;
 import com.fighthub.exception.*;
+import com.fighthub.mapper.InscricaoMapper;
 import com.fighthub.model.Aluno;
 import com.fighthub.model.Aula;
 import com.fighthub.model.Inscricao;
@@ -12,6 +14,8 @@ import com.fighthub.repository.InscricaoRepository;
 import com.fighthub.repository.UsuarioRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
 
@@ -46,6 +50,16 @@ public class InscricaoService {
         inscricaoRepository.save(inscricao);
     }
 
+    public Page<InscricaoResponse> buscarInscricoesPorAula(UUID idAula, Pageable pageable) {
+        Aula aula = buscarAulaPorId(idAula);
+        return InscricaoMapper.toPageDTO(inscricaoRepository.findAllByAula(aula, pageable));
+    }
+
+    public Page<InscricaoResponse> buscarInscricoesProprias(HttpServletRequest request, Pageable pageable) {
+        Aluno aluno = obterAlunoLogado(request);
+        return InscricaoMapper.toPageDTO(inscricaoRepository.findAllByAluno(aluno, pageable));
+    }
+
     private Aluno obterAlunoLogado(HttpServletRequest request) {
         String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
         String email = jwtService.extrairEmail(authHeader.substring(7));
@@ -61,5 +75,4 @@ public class InscricaoService {
         return aulaRepository.findById(idAula)
                 .orElseThrow(AulaNaoEncontradaException::new);
     }
-
 }
