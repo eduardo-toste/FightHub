@@ -20,28 +20,28 @@ public class InscricaoController {
     private final InscricaoService inscricaoService;
 
     @PostMapping("/aulas/{idAula}/inscricoes")
-    @PreAuthorize("hasRole('ALUNO')")
+    @PreAuthorize("hasAnyRole('ALUNO')")
     public ResponseEntity<Void> inscreverAluno(@PathVariable UUID idAula, HttpServletRequest request) {
         inscricaoService.inscreverAluno(idAula, request);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
     @DeleteMapping("/aulas/{idAula}/inscricoes")
-    @PreAuthorize("hasRole('ALUNO')")
+    @PreAuthorize("hasAnyRole('ALUNO')")
     public ResponseEntity<Void> cancelarInscricaoAluno(@PathVariable UUID idAula, HttpServletRequest request) {
         inscricaoService.cancelarInscricao(idAula, request);
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/aulas/{idAula}/inscricoes")
-    @PreAuthorize("hasRole('ADMIN', 'COORDENADOR', 'PROFESSOR')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'COORDENADOR', 'PROFESSOR')")
     public ResponseEntity<Page<InscricaoResponse>> buscarInscricoes(@PathVariable UUID idAula, Pageable pageable) {
         var inscricoes = inscricaoService.buscarInscricoesPorAula(idAula, pageable);
         return ResponseEntity.status(HttpStatus.OK).body(inscricoes);
     }
 
     @GetMapping("/aulas/inscricoes/minhas")
-    @PreAuthorize("hasRole('ALUNO')")
+    @PreAuthorize("hasAnyRole('ALUNO')")
     public ResponseEntity<Page<InscricaoResponse>> buscarInscricoesProprias(HttpServletRequest request,  Pageable pageable) {
         var inscricoes = inscricaoService.buscarInscricoesProprias(request, pageable);
         return ResponseEntity.status(HttpStatus.OK).body(inscricoes);
