@@ -17,16 +17,16 @@ public class InscricaoController {
     private final InscricaoService inscricaoService;
 
     @PostMapping("/aulas/{idAula}/inscricoes")
-    @PreAuthorize("hasAnyRole('ALUNO')")
+    @PreAuthorize("hasRole('ALUNO')")
     public ResponseEntity<Void> inscreverAluno(@PathVariable UUID idAula, HttpServletRequest request) {
-        inscricaoService.inscricaoAluno(idAula, request);
-        return ResponseEntity.status(HttpStatus.OK).build();
+        inscricaoService.inscreverAluno(idAula, request);
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
     @DeleteMapping("/aulas/{idAula}/inscricoes")
-    @PreAuthorize("hasAnyRole('ALUNO')")
-    public ResponseEntity<Void> desinscreverAluno(@PathVariable UUID idAula, HttpServletRequest request) {
-        inscricaoService.desinscricaoAluno(idAula, request);
-        return ResponseEntity.status(HttpStatus.OK).build();
+    @PreAuthorize("hasRole('ALUNO')")
+    public ResponseEntity<Void> cancelarInscricaoAluno(@PathVariable UUID idAula, HttpServletRequest request) {
+        inscricaoService.cancelarInscricao(idAula, request);
+        return ResponseEntity.noContent().build();
     }
 }
