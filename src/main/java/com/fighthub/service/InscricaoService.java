@@ -28,17 +28,20 @@ public class InscricaoService {
     private final AulaRepository aulaRepository;
     private final JwtService jwtService;
 
-    public void inscricaoAluno(UUID idAula, HttpServletRequest request) {
+    public void inscreverAluno(UUID idAula, HttpServletRequest request) {
         Aula aula = buscarAulaPorId(idAula);
         Aluno aluno = obterAlunoLogado(request);
         if (inscricaoRepository.findByAulaAndAluno(aula, aluno).isPresent()) throw new ValidacaoException("Aluno já inscrito na aula.");
         inscricaoRepository.save(new Inscricao(aluno, aula, SubscriptionStatus.INSCRITO, LocalDate.now()));
     }
 
-    public void desinscricaoAluno(UUID idAula, HttpServletRequest request) {
+    public void cancelarInscricao(UUID idAula, HttpServletRequest request) {
         Aula aula = buscarAulaPorId(idAula);
         Aluno aluno = obterAlunoLogado(request);
-        Inscricao inscricao = buscarInscricaoPorAulaEAluno(aula, aluno);
+
+        Inscricao inscricao = inscricaoRepository.findByAulaAndAluno(aula, aluno)
+                .orElseThrow(() -> new ValidacaoException("Aluno não está inscrito na aula."));
+
         inscricao.setStatus(SubscriptionStatus.CANCELADO);
         inscricaoRepository.save(inscricao);
     }
@@ -59,8 +62,4 @@ public class InscricaoService {
                 .orElseThrow(AulaNaoEncontradaException::new);
     }
 
-    private Inscricao buscarInscricaoPorAulaEAluno(Aula aula, Aluno aluno) {
-        return inscricaoRepository.findByAulaAndAluno(aula, aluno)
-                .orElseThrow(InscricaoNaoEncontradaException::new);
-    }
 }
