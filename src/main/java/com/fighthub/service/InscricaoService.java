@@ -57,7 +57,7 @@ public class InscricaoService {
 
     public Page<InscricaoResponse> buscarInscricoesProprias(HttpServletRequest request, Pageable pageable) {
         Aluno aluno = obterAlunoLogado(request);
-        return InscricaoMapper.toPageDTO(inscricaoRepository.findAllByAluno(aluno, pageable));
+        return InscricaoMapper.toPageDTO(inscricaoRepository.findAllByAlunoAndStatus(aluno, SubscriptionStatus.INSCRITO, pageable));
     }
 
     private Aluno obterAlunoLogado(HttpServletRequest request) {
