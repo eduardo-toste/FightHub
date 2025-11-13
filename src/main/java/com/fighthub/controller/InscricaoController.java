@@ -40,7 +40,7 @@ public class InscricaoController {
         return ResponseEntity.status(HttpStatus.OK).body(inscricoes);
     }
 
-    @DeleteMapping("/minhas-inscricoes")
+    @DeleteMapping("/aulas/minhas-inscricoes")
     @PreAuthorize("hasRole('ALUNO')")
     public ResponseEntity<Page<InscricaoResponse>> buscarInscricoesProprias(HttpServletRequest request,  Pageable pageable) {
         var inscricoes = inscricaoService.buscarInscricoesProprias(request, pageable);
