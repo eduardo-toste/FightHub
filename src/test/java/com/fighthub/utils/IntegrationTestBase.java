@@ -29,6 +29,7 @@ public abstract class IntegrationTestBase {
     @Autowired protected ProfessorRepository professorRepository;
     @Autowired protected TurmaRepository turmaRepository;
     @Autowired protected AulaRepository aulaRepository;
+    @Autowired protected  InscricaoRepository inscricaoRepository;
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -37,6 +38,7 @@ public abstract class IntegrationTestBase {
     void limparBaseDeDados() {
         entityManager.createNativeQuery("DELETE FROM alunos_responsaveis").executeUpdate();
 
+        inscricaoRepository.deleteAll();
         alunoRepository.deleteAll();
         responsavelRepository.deleteAll();
         professorRepository.deleteAll();
