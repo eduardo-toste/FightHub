@@ -1,7 +1,10 @@
 package com.fighthub.service;
 
 import com.fighthub.dto.inscricao.InscricaoResponse;
-import com.fighthub.exception.*;
+import com.fighthub.exception.AlunoNaoEncontradoException;
+import com.fighthub.exception.AulaNaoEncontradaException;
+import com.fighthub.exception.UsuarioNaoEncontradoException;
+import com.fighthub.exception.ValidacaoException;
 import com.fighthub.mapper.InscricaoMapper;
 import com.fighthub.model.Aluno;
 import com.fighthub.model.Aula;
@@ -18,6 +21,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.UUID;
@@ -32,19 +36,39 @@ public class InscricaoService {
     private final AulaRepository aulaRepository;
     private final JwtService jwtService;
 
+    @Transactional
     public void inscreverAluno(UUID idAula, HttpServletRequest request) {
         Aula aula = buscarAulaPorId(idAula);
         Aluno aluno = obterAlunoLogado(request);
-        if (inscricaoRepository.findByAulaAndAluno(aula, aluno).isPresent()) throw new ValidacaoException("Aluno já inscrito na aula.");
+
+        var optional = inscricaoRepository.findByAulaAndAluno(aula, aluno);
+        if (optional.isPresent()) {
+            Inscricao inscricao = optional.get();
+
+            if (inscricao.getStatus() == SubscriptionStatus.INSCRITO) {
+                throw new ValidacaoException("Aluno já inscrito na aula.");
+            }
+
+            inscricao.setStatus(SubscriptionStatus.INSCRITO);
+            inscricao.setDataInscricao(LocalDate.now());
+            inscricaoRepository.save(inscricao);
+            return;
+        }
+
         inscricaoRepository.save(new Inscricao(aluno, aula, SubscriptionStatus.INSCRITO, LocalDate.now()));
     }
 
+    @Transactional
     public void cancelarInscricao(UUID idAula, HttpServletRequest request) {
         Aula aula = buscarAulaPorId(idAula);
         Aluno aluno = obterAlunoLogado(request);
 
         Inscricao inscricao = inscricaoRepository.findByAulaAndAluno(aula, aluno)
                 .orElseThrow(() -> new ValidacaoException("Aluno não está inscrito na aula."));
+
+        if (inscricao.getStatus().equals(SubscriptionStatus.CANCELADO)) {
+            throw new ValidacaoException("Inscrição já está cancelada.");
+        }
 
         inscricao.setStatus(SubscriptionStatus.CANCELADO);
         inscricaoRepository.save(inscricao);
