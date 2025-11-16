@@ -4,7 +4,7 @@ import com.fighthub.model.enums.SubscriptionStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
@@ -32,13 +32,13 @@ public class Inscricao {
     @Enumerated(EnumType.STRING)
     private SubscriptionStatus status;
 
-    @Column(name = "data_inscricao")
-    private LocalDate dataInscricao;
+    @Column(name = "inscrito_em", nullable = false)
+    private LocalDateTime inscritoEm;
 
-    public Inscricao(Aluno aluno, Aula aula, SubscriptionStatus status, LocalDate dataInscricao) {
+    public Inscricao(Aluno aluno, Aula aula, SubscriptionStatus status, LocalDateTime inscritoEm) {
         this.aluno = aluno;
         this.aula = aula;
         this.status = status;
-        this.dataInscricao = dataInscricao;
+        this.inscritoEm = inscritoEm;
     }
 }
