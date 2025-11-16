@@ -2,7 +2,7 @@ package com.fighthub.dto.inscricao;
 
 import com.fighthub.model.enums.SubscriptionStatus;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 public record InscricaoResponse(
@@ -11,7 +11,7 @@ public record InscricaoResponse(
         UUID alunoId,
         UUID aulaId,
         SubscriptionStatus status,
-        LocalDate dataInscricao
+        LocalDateTime inscritoEm
 
 ) {
 }

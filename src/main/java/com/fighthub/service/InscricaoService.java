@@ -23,7 +23,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Service
@@ -50,12 +50,12 @@ public class InscricaoService {
             }
 
             inscricao.setStatus(SubscriptionStatus.INSCRITO);
-            inscricao.setDataInscricao(LocalDate.now());
+            inscricao.setInscritoEm(LocalDateTime.now());
             inscricaoRepository.save(inscricao);
             return;
         }
 
-        inscricaoRepository.save(new Inscricao(aluno, aula, SubscriptionStatus.INSCRITO, LocalDate.now()));
+        inscricaoRepository.save(new Inscricao(aluno, aula, SubscriptionStatus.INSCRITO, LocalDateTime.now()));
     }
 
     @Transactional

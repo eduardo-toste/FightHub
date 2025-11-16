@@ -14,6 +14,7 @@ import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.http.MediaType;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -110,7 +111,7 @@ public class InscricoesIntegrationTest extends IntegrationTestBase {
 
     @Test
     void deveRetornar409_AoInscreverQuandoJaInscrito() throws Exception {
-        inscricaoRepository.save(new Inscricao(aluno, aula, SubscriptionStatus.INSCRITO, LocalDate.now()));
+        inscricaoRepository.save(new Inscricao(aluno, aula, SubscriptionStatus.INSCRITO, LocalDateTime.now()));
 
         mockMvc.perform(post("/aulas/{idAula}/inscricoes", aula.getId())
                         .header("Authorization", "Bearer " + tokenAluno)
@@ -135,7 +136,7 @@ public class InscricoesIntegrationTest extends IntegrationTestBase {
 
     @Test
     void deveCancelarInscricaoComSucesso() throws Exception {
-        inscricaoRepository.save(new Inscricao(aluno, aula, SubscriptionStatus.INSCRITO, LocalDate.now()));
+        inscricaoRepository.save(new Inscricao(aluno, aula, SubscriptionStatus.INSCRITO, LocalDateTime.now()));
 
         mockMvc.perform(delete("/aulas/{idAula}/inscricoes", aula.getId())
                         .header("Authorization", "Bearer " + tokenAluno))
@@ -148,7 +149,7 @@ public class InscricoesIntegrationTest extends IntegrationTestBase {
 
     @Test
     void deveRetornar200_AoBuscarInscricoesPorAula_ComPermissao() throws Exception {
-        inscricaoRepository.save(new Inscricao(aluno, aula, SubscriptionStatus.INSCRITO, LocalDate.now()));
+        inscricaoRepository.save(new Inscricao(aluno, aula, SubscriptionStatus.INSCRITO, LocalDateTime.now()));
 
         mockMvc.perform(get("/aulas/{idAula}/inscricoes", aula.getId())
                         .header("Authorization", "Bearer " + tokenAdmin)
@@ -213,7 +214,7 @@ public class InscricoesIntegrationTest extends IntegrationTestBase {
         tokenService.salvarAccessToken(professor, tokenProf);
         tokenService.salvarAccessToken(coordenador, tokenCoord);
 
-        inscricaoRepository.save(new Inscricao(aluno, aula, SubscriptionStatus.INSCRITO, LocalDate.now()));
+        inscricaoRepository.save(new Inscricao(aluno, aula, SubscriptionStatus.INSCRITO, LocalDateTime.now()));
 
         mockMvc.perform(get("/aulas/{idAula}/inscricoes", aula.getId())
                         .header("Authorization", "Bearer " + tokenProf)
@@ -230,7 +231,7 @@ public class InscricoesIntegrationTest extends IntegrationTestBase {
 
     @Test
     void deveRetornar200_AoBuscarInscricoesProprias_ComPermissao() throws Exception {
-        inscricaoRepository.save(new Inscricao(aluno, aula, SubscriptionStatus.INSCRITO, LocalDate.now()));
+        inscricaoRepository.save(new Inscricao(aluno, aula, SubscriptionStatus.INSCRITO, LocalDateTime.now()));
 
         mockMvc.perform(get("/aulas/inscricoes/minhas")
                         .header("Authorization", "Bearer " + tokenAluno)
@@ -281,7 +282,7 @@ public class InscricoesIntegrationTest extends IntegrationTestBase {
         String tokenAluno2 = jwtService.gerarToken(alunoUsuario2);
         tokenService.salvarAccessToken(alunoUsuario2, tokenAluno2);
 
-        inscricaoRepository.save(new Inscricao(aluno, aula, SubscriptionStatus.INSCRITO, LocalDate.now()));
+        inscricaoRepository.save(new Inscricao(aluno, aula, SubscriptionStatus.INSCRITO, LocalDateTime.now()));
 
         mockMvc.perform(delete("/aulas/{idAula}/inscricoes", aula.getId())
                         .header("Authorization", "Bearer " + tokenAluno2))

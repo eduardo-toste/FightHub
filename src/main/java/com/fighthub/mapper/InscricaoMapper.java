@@ -12,7 +12,7 @@ public class InscricaoMapper {
                 inscricao.getAluno().getId(),
                 inscricao.getAula().getId(),
                 inscricao.getStatus(),
-                inscricao.getDataInscricao()
+                inscricao.getInscritoEm()
         );
     }
 

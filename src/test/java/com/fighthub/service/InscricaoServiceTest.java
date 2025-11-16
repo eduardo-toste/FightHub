@@ -29,7 +29,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -78,7 +78,7 @@ class InscricaoServiceTest {
     @Test
     void deveLancarExcecao_QuandoAlunoJaInscrito_AoInscrever() {
         UUID aulaId = aula.getId();
-        Inscricao inscricao = new Inscricao(aluno, aula, SubscriptionStatus.INSCRITO, LocalDate.now());
+        Inscricao inscricao = new Inscricao(aluno, aula, SubscriptionStatus.INSCRITO, LocalDateTime.now());
 
         when(aulaRepository.findById(aulaId)).thenReturn(Optional.of(aula));
         when(jwtService.extrairEmail(anyString())).thenReturn(usuario.getEmail());
@@ -97,7 +97,7 @@ class InscricaoServiceTest {
     @Test
     void deveReativarInscricaoCancelada_AoInscrever() {
         UUID aulaId = aula.getId();
-        Inscricao inscricao = new Inscricao(aluno, aula, SubscriptionStatus.CANCELADO, LocalDate.of(2020,1,1));
+        Inscricao inscricao = new Inscricao(aluno, aula, SubscriptionStatus.CANCELADO, LocalDateTime.of(2020, 1, 1, 0, 0));
 
         when(aulaRepository.findById(aulaId)).thenReturn(Optional.of(aula));
         when(jwtService.extrairEmail(anyString())).thenReturn(usuario.getEmail());
@@ -114,7 +114,7 @@ class InscricaoServiceTest {
         Inscricao saved = captor.getValue();
 
         assertEquals(SubscriptionStatus.INSCRITO, saved.getStatus());
-        assertEquals(LocalDate.now(), saved.getDataInscricao());
+        assertTrue(saved.getInscritoEm().toLocalDate().isEqual(LocalDateTime.now().toLocalDate()));
     }
 
     @Test
@@ -136,7 +136,7 @@ class InscricaoServiceTest {
         Inscricao created = captor.getValue();
 
         assertEquals(SubscriptionStatus.INSCRITO, created.getStatus());
-        assertEquals(LocalDate.now(), created.getDataInscricao());
+        assertTrue(created.getInscritoEm().toLocalDate().isEqual(LocalDateTime.now().toLocalDate()));
         assertNotNull(created.getAluno());
         assertNotNull(created.getAula());
     }
@@ -162,7 +162,7 @@ class InscricaoServiceTest {
     @Test
     void deveLancarExcecao_QuandoJaCancelada_AoCancelar() {
         UUID aulaId = aula.getId();
-        Inscricao inscricao = new Inscricao(aluno, aula, SubscriptionStatus.CANCELADO, LocalDate.now());
+        Inscricao inscricao = new Inscricao(aluno, aula, SubscriptionStatus.CANCELADO, LocalDateTime.now());
 
         when(aulaRepository.findById(aulaId)).thenReturn(Optional.of(aula));
         when(jwtService.extrairEmail(anyString())).thenReturn(usuario.getEmail());
@@ -181,7 +181,7 @@ class InscricaoServiceTest {
     @Test
     void deveCancelarInscricaoComSucesso() {
         UUID aulaId = aula.getId();
-        Inscricao inscricao = new Inscricao(aluno, aula, SubscriptionStatus.INSCRITO, LocalDate.now());
+        Inscricao inscricao = new Inscricao(aluno, aula, SubscriptionStatus.INSCRITO, LocalDateTime.now());
 
         when(aulaRepository.findById(aulaId)).thenReturn(Optional.of(aula));
         when(jwtService.extrairEmail(anyString())).thenReturn(usuario.getEmail());
