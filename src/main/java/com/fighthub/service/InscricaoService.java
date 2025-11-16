@@ -10,6 +10,7 @@ import com.fighthub.model.Aluno;
 import com.fighthub.model.Aula;
 import com.fighthub.model.Inscricao;
 import com.fighthub.model.Usuario;
+import com.fighthub.model.enums.ClassStatus;
 import com.fighthub.model.enums.SubscriptionStatus;
 import com.fighthub.repository.AlunoRepository;
 import com.fighthub.repository.AulaRepository;
@@ -49,12 +50,15 @@ public class InscricaoService {
                 throw new ValidacaoException("Aluno já inscrito na aula.");
             }
 
+            verificaDisponibilidadeInscricao(aula);
+
             inscricao.setStatus(SubscriptionStatus.INSCRITO);
             inscricao.setInscritoEm(LocalDateTime.now());
             inscricaoRepository.save(inscricao);
             return;
         }
 
+        verificaDisponibilidadeInscricao(aula);
         inscricaoRepository.save(new Inscricao(aluno, aula, SubscriptionStatus.INSCRITO, LocalDateTime.now()));
     }
 
@@ -98,5 +102,19 @@ public class InscricaoService {
     private Aula buscarAulaPorId(UUID idAula) {
         return aulaRepository.findById(idAula)
                 .orElseThrow(AulaNaoEncontradaException::new);
+    }
+
+    private void verificaDisponibilidadeInscricao(Aula aula) {
+        if (aula == null) {
+            throw new ValidacaoException("Aula não encontrada.");
+        }
+
+        if (LocalDateTime.now().isAfter(aula.getData().minusHours(1))) {
+            throw new ValidacaoException("Inscrições para esta aula estão encerradas.");
+        }
+
+        if (aula.getStatus() != ClassStatus.DISPONIVEL) {
+            throw new ValidacaoException("Aula não está disponível para inscrições.");
+        }
     }
 }
