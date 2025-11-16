@@ -3,7 +3,10 @@ package com.fighthub.integration;
 import com.fighthub.dto.aula.AulaRequest;
 import com.fighthub.dto.aula.AulaUpdateCompletoRequest;
 import com.fighthub.dto.aula.AulaUpdateStatusRequest;
-import com.fighthub.model.*;
+import com.fighthub.model.Aula;
+import com.fighthub.model.Endereco;
+import com.fighthub.model.Turma;
+import com.fighthub.model.Usuario;
 import com.fighthub.model.enums.ClassStatus;
 import com.fighthub.model.enums.Role;
 import com.fighthub.service.JwtService;
@@ -15,14 +18,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.http.MediaType;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.UUID;
 
-import static org.hamcrest.Matchers.*;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 public class AulaIntegrationTest extends IntegrationTestBase {
 
@@ -69,7 +75,7 @@ public class AulaIntegrationTest extends IntegrationTestBase {
         aula = aulaRepository.save(Aula.builder()
                 .titulo("Aula Inicial")
                 .descricao("Descrição da Aula")
-                .data(LocalDate.now().plusDays(1))
+                .data(LocalDateTime.now().plusDays(1))
                 .status(ClassStatus.DISPONIVEL)
                 .limiteAlunos(20)
                 .ativo(true)
@@ -79,7 +85,7 @@ public class AulaIntegrationTest extends IntegrationTestBase {
 
     @Test
     void deveCriarAulaComSucesso() throws Exception {
-        AulaRequest request = new AulaRequest("Nova Aula", "Conteúdo", LocalDate.now().plusDays(5), turma.getId(), 15);
+        AulaRequest request = new AulaRequest("Nova Aula", "Conteúdo", LocalDateTime.now().plusDays(5), turma.getId(), 15);
 
         mockMvc.perform(post("/aulas")
                         .header("Authorization", "Bearer " + accessToken)
@@ -90,7 +96,7 @@ public class AulaIntegrationTest extends IntegrationTestBase {
 
     @Test
     void deveCriarAulaSemTurma() throws Exception {
-        AulaRequest request = new AulaRequest("Aula Solta", "Sem turma", LocalDate.now().plusDays(3), null, 10);
+        AulaRequest request = new AulaRequest("Aula Solta", "Sem turma", LocalDateTime.now().plusDays(3), null, 10);
 
         mockMvc.perform(post("/aulas")
                         .header("Authorization", "Bearer " + accessToken)
@@ -126,7 +132,7 @@ public class AulaIntegrationTest extends IntegrationTestBase {
     @Test
     void deveAtualizarAulaComSucesso() throws Exception {
         AulaUpdateCompletoRequest request = new AulaUpdateCompletoRequest(
-                "Aula Atualizada", "Nova descrição", LocalDate.now().plusDays(2), turma.getId(), 30, true);
+                "Aula Atualizada", "Nova descrição", LocalDateTime.now().plusDays(2), turma.getId(), 30, true);
 
         mockMvc.perform(put("/aulas/{id}", aula.getId())
                         .header("Authorization", "Bearer " + accessToken)

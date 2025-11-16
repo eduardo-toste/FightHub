@@ -87,7 +87,7 @@ public class InscricoesIntegrationTest extends IntegrationTestBase {
         aula = aulaRepository.save(Aula.builder()
                 .id(UUID.randomUUID())
                 .titulo("Aula Teste")
-                .data(LocalDate.now())
+                .data(LocalDateTime.now())
                 .build());
 
         tokenAdmin = jwtService.gerarToken(admin);

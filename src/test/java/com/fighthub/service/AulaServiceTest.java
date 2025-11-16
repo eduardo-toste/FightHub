@@ -26,6 +26,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -109,7 +110,7 @@ class AulaServiceTest {
                 .id(UUID.randomUUID())
                 .titulo("Aula Teste")
                 .descricao("Descricao Teste")
-                .data(LocalDate.now().plusDays(2))
+                .data(LocalDateTime.now().plusDays(2))
                 .turma(turma)
                 .limiteAlunos(10)
                 .status(ClassStatus.DISPONIVEL)
@@ -122,7 +123,7 @@ class AulaServiceTest {
         var request = new AulaRequest(
                 "Aula Teste",
                 "Descricao Teste",
-                LocalDate.now().plusDays(2),
+                LocalDateTime.now().plusDays(2),
                 turma.getId(),
                 10
         );
@@ -139,7 +140,7 @@ class AulaServiceTest {
         var request = new AulaRequest(
                 "Aula Teste",
                 "Descricao Teste",
-                LocalDate.now().plusDays(2),
+                LocalDateTime.now().plusDays(2),
                 null,
                 10
         );
@@ -287,7 +288,7 @@ class AulaServiceTest {
     @Test
     void deveAtualizarAulaComSucesso() {
         AulaUpdateCompletoRequest request = new AulaUpdateCompletoRequest(
-                "Novo Título", "Nova descrição", LocalDate.now().plusDays(10), turma.getId(), 15, true);
+                "Novo Título", "Nova descrição", LocalDateTime.now().plusDays(10), turma.getId(), 15, true);
 
         when(aulaRepository.findById(aula.getId())).thenReturn(Optional.of(aula));
         when(turmaRepository.findById(turma.getId())).thenReturn(Optional.of(turma));
@@ -303,7 +304,7 @@ class AulaServiceTest {
     @Test
     void deveLancarExcecao_QuandoAtualizarAulaComIdInexistente() {
         AulaUpdateCompletoRequest request = new AulaUpdateCompletoRequest(
-                "Novo Título", "Nova descrição", LocalDate.now(), turma.getId(), 10, true);
+                "Novo Título", "Nova descrição", LocalDateTime.now(), turma.getId(), 10, true);
 
         when(aulaRepository.findById(aula.getId())).thenReturn(Optional.empty());
 
@@ -314,7 +315,7 @@ class AulaServiceTest {
     @Test
     void deveLancarExcecao_QuandoTurmaNaoForEncontradaNaAtualizacao() {
         AulaUpdateCompletoRequest request = new AulaUpdateCompletoRequest(
-                "Novo Título", "Nova descrição", LocalDate.now(), turma.getId(), 10, true);
+                "Novo Título", "Nova descrição", LocalDateTime.now(), turma.getId(), 10, true);
 
         when(aulaRepository.findById(aula.getId())).thenReturn(Optional.of(aula));
         when(turmaRepository.findById(turma.getId())).thenReturn(Optional.empty());
