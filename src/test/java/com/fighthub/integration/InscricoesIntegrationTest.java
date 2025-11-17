@@ -1,6 +1,7 @@
 package com.fighthub.integration;
 
 import com.fighthub.model.*;
+import com.fighthub.model.enums.ClassStatus;
 import com.fighthub.model.enums.Role;
 import com.fighthub.model.enums.SubscriptionStatus;
 import com.fighthub.repository.InscricaoRepository;
@@ -84,10 +85,12 @@ public class InscricoesIntegrationTest extends IntegrationTestBase {
                 .matriculaAtiva(true)
                 .build());
 
+        // make aula far enough in the future and available so inscriptions work in tests
         aula = aulaRepository.save(Aula.builder()
                 .id(UUID.randomUUID())
                 .titulo("Aula Teste")
-                .data(LocalDateTime.now())
+                .data(LocalDateTime.now().plusHours(2))
+                .status(ClassStatus.DISPONIVEL)
                 .build());
 
         tokenAdmin = jwtService.gerarToken(admin);
@@ -286,6 +289,53 @@ public class InscricoesIntegrationTest extends IntegrationTestBase {
 
         mockMvc.perform(delete("/aulas/{idAula}/inscricoes", aula.getId())
                         .header("Authorization", "Bearer " + tokenAluno2))
+                .andExpect(status().isConflict());
+    }
+
+    @Test
+    void deveReativarInscricaoCanceladaComSucesso() throws Exception {
+        // existing canceled inscription
+        inscricaoRepository.save(new Inscricao(aluno, aula, SubscriptionStatus.CANCELADO, LocalDateTime.of(2020, 1, 1, 0, 0)));
+
+        mockMvc.perform(post("/aulas/{idAula}/inscricoes", aula.getId())
+                        .header("Authorization", "Bearer " + tokenAluno)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isCreated());
+
+        var opt = inscricaoRepository.findByAulaAndAluno(aula, aluno);
+        assertTrue(opt.isPresent());
+        assertEquals(SubscriptionStatus.INSCRITO, opt.get().getStatus());
+    }
+
+    @Test
+    void deveBloquearReativacao_QuandoInscricoesEncerradas() throws Exception {
+        Aula aulaSoon = aulaRepository.save(Aula.builder()
+                .id(UUID.randomUUID())
+                .titulo("Aula Soon")
+                .data(LocalDateTime.now().plusMinutes(30))
+                .status(ClassStatus.DISPONIVEL)
+                .build());
+
+        inscricaoRepository.save(new Inscricao(aluno, aulaSoon, SubscriptionStatus.CANCELADO, LocalDateTime.of(2020, 1, 1, 0, 0)));
+
+        mockMvc.perform(post("/aulas/{idAula}/inscricoes", aulaSoon.getId())
+                        .header("Authorization", "Bearer " + tokenAluno)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isConflict());
+    }
+
+    @Test
+    void deveRetornar409_AoInscrever_QuandoAulaNaoDisponivel() throws Exception {
+        Aula aulaIndisponivel = aulaRepository.save(Aula.builder()
+                .id(UUID.randomUUID())
+                .titulo("Indisponivel")
+                .data(LocalDateTime.now().plusHours(2))
+                .status(ClassStatus.CANCELADA)
+                .build());
+
+        mockMvc.perform(post("/aulas/{idAula}/inscricoes", aulaIndisponivel.getId())
+                        .header("Authorization", "Bearer " + tokenAluno)
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isConflict());
     }
 }
