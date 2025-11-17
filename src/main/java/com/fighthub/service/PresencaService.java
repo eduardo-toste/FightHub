@@ -48,6 +48,9 @@ public class PresencaService {
         Optional<Presenca> presenca = buscarPresencaPorInscricao(inscricao);
         if (presenca.isPresent()) {
             Presenca presencaExistente = presenca.get();
+            if (presencaExistente.isPresente() == request.presente()) {
+                throw new ValidacaoException("Presença já registrada com o mesmo status.");
+            }
             presencaExistente.setPresente(request.presente());
             presencaRepository.save(presencaExistente);
         } else {
@@ -56,7 +59,6 @@ public class PresencaService {
                     .presente(request.presente())
                     .dataRegistro(LocalDate.now())
                     .build();
-
             presencaRepository.save(novaPresenca);
         }
     }
