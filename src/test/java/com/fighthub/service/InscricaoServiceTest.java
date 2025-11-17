@@ -10,6 +10,7 @@ import com.fighthub.model.Aluno;
 import com.fighthub.model.Aula;
 import com.fighthub.model.Inscricao;
 import com.fighthub.model.Usuario;
+import com.fighthub.model.enums.ClassStatus;
 import com.fighthub.model.enums.SubscriptionStatus;
 import com.fighthub.repository.AlunoRepository;
 import com.fighthub.repository.AulaRepository;
@@ -64,14 +65,21 @@ class InscricaoServiceTest {
 
     @BeforeEach
     void setUp() {
-        aula = Aula.builder().id(UUID.randomUUID()).build();
+        // provide sensible defaults so verificaDisponibilidadeInscricao won't NPE
+        aula = Aula.builder()
+                .id(UUID.randomUUID())
+                .data(LocalDateTime.now().plusHours(2))
+                .status(ClassStatus.DISPONIVEL)
+                .build();
+
         aluno = Aluno.builder().id(UUID.randomUUID()).build();
         usuario = Usuario.builder().id(UUID.randomUUID()).email("user@example.com").build();
     }
 
     private HttpServletRequest authRequest() {
         HttpServletRequest request = mock(HttpServletRequest.class);
-        when(request.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn("Bearer token");
+        // make this stubbing lenient because some tests throw before the header is read
+        lenient().when(request.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn("Bearer token");
         return request;
     }
 
@@ -267,5 +275,143 @@ class InscricaoServiceTest {
             assertSame(expected, result);
             mocked.verify(() -> InscricaoMapper.toPageDTO(page));
         }
+    }
+
+    @Test
+    void deveLancarAulaNaoEncontrada_AoInscrever() {
+        UUID aulaId = UUID.randomUUID();
+        when(aulaRepository.findById(aulaId)).thenReturn(Optional.empty());
+        HttpServletRequest request = authRequest();
+
+        assertThrows(AulaNaoEncontradaException.class,
+                () -> inscricaoService.inscreverAluno(aulaId, request));
+    }
+
+    @Test
+    void deveLancarUsuarioNaoEncontrado_AoInscrever() {
+        UUID aulaId = aula.getId();
+        when(aulaRepository.findById(aulaId)).thenReturn(Optional.of(aula));
+        when(jwtService.extrairEmail(anyString())).thenReturn("no@user");
+        when(usuarioRepository.findByEmail("no@user")).thenReturn(Optional.empty());
+
+        HttpServletRequest request = authRequest();
+
+        assertThrows(UsuarioNaoEncontradoException.class,
+                () -> inscricaoService.inscreverAluno(aulaId, request));
+    }
+
+    @Test
+    void deveLancarAlunoNaoEncontrado_AoInscrever() {
+        UUID aulaId = aula.getId();
+        when(aulaRepository.findById(aulaId)).thenReturn(Optional.of(aula));
+        when(jwtService.extrairEmail(anyString())).thenReturn(usuario.getEmail());
+        when(usuarioRepository.findByEmail(usuario.getEmail())).thenReturn(Optional.of(usuario));
+        when(alunoRepository.findByUsuarioId(usuario.getId())).thenReturn(Optional.empty());
+
+        HttpServletRequest request = authRequest();
+
+        assertThrows(AlunoNaoEncontradoException.class,
+                () -> inscricaoService.inscreverAluno(aulaId, request));
+    }
+
+    @Test
+    void deveLancarExcecao_QuandoInscricoesEncerradas_AoInscrever() {
+        UUID aulaId = UUID.randomUUID();
+        Aula aulaSoon = Aula.builder()
+                .id(aulaId)
+                .data(LocalDateTime.now().plusMinutes(30))
+                .status(ClassStatus.DISPONIVEL)
+                .build();
+
+        when(aulaRepository.findById(aulaId)).thenReturn(Optional.of(aulaSoon));
+        when(jwtService.extrairEmail(anyString())).thenReturn(usuario.getEmail());
+        when(usuarioRepository.findByEmail(usuario.getEmail())).thenReturn(Optional.of(usuario));
+        when(alunoRepository.findByUsuarioId(usuario.getId())).thenReturn(Optional.of(aluno));
+
+        HttpServletRequest request = authRequest();
+
+        ValidacaoException ex = assertThrows(ValidacaoException.class,
+                () -> inscricaoService.inscreverAluno(aulaId, request));
+        assertEquals("Inscrições para esta aula estão encerradas.", ex.getMessage());
+    }
+
+    @Test
+    void deveLancarExcecao_QuandoAulaNaoDisponivel_AoInscrever() {
+        UUID aulaId = UUID.randomUUID();
+        Aula aulaMock = mock(Aula.class);
+
+        when(aulaRepository.findById(aulaId)).thenReturn(Optional.of(aulaMock));
+        when(aulaMock.getData()).thenReturn(LocalDateTime.now().plusHours(2)); // passes time check
+        when(aulaMock.getStatus()).thenReturn(null); // not DISPONIVEL -> should fail
+        when(jwtService.extrairEmail(anyString())).thenReturn(usuario.getEmail());
+        when(usuarioRepository.findByEmail(usuario.getEmail())).thenReturn(Optional.of(usuario));
+        when(alunoRepository.findByUsuarioId(usuario.getId())).thenReturn(Optional.of(aluno));
+        when(inscricaoRepository.findByAulaAndAluno(aulaMock, aluno)).thenReturn(Optional.empty());
+
+        HttpServletRequest request = authRequest();
+
+        ValidacaoException ex = assertThrows(ValidacaoException.class,
+                () -> inscricaoService.inscreverAluno(aulaId, request));
+        assertEquals("Aula não está disponível para inscrições.", ex.getMessage());
+    }
+
+    @Test
+    void deveLancarAulaNaoEncontrada_AoCancelar() {
+        UUID aulaId = UUID.randomUUID();
+        when(aulaRepository.findById(aulaId)).thenReturn(Optional.empty());
+        HttpServletRequest request = authRequest();
+
+        assertThrows(AulaNaoEncontradaException.class,
+                () -> inscricaoService.cancelarInscricao(aulaId, request));
+    }
+
+    @Test
+    void deveLancarUsuarioNaoEncontrado_AoCancelar() {
+        UUID aulaId = aula.getId();
+        when(aulaRepository.findById(aulaId)).thenReturn(Optional.of(aula));
+        when(jwtService.extrairEmail(anyString())).thenReturn("no@user");
+        when(usuarioRepository.findByEmail("no@user")).thenReturn(Optional.empty());
+
+        HttpServletRequest request = authRequest();
+
+        assertThrows(UsuarioNaoEncontradoException.class,
+                () -> inscricaoService.cancelarInscricao(aulaId, request));
+    }
+
+    @Test
+    void deveLancarAlunoNaoEncontrado_AoCancelar() {
+        UUID aulaId = aula.getId();
+        when(aulaRepository.findById(aulaId)).thenReturn(Optional.of(aula));
+        when(jwtService.extrairEmail(anyString())).thenReturn(usuario.getEmail());
+        when(usuarioRepository.findByEmail(usuario.getEmail())).thenReturn(Optional.of(usuario));
+        when(alunoRepository.findByUsuarioId(usuario.getId())).thenReturn(Optional.empty());
+
+        HttpServletRequest request = authRequest();
+
+        assertThrows(AlunoNaoEncontradoException.class,
+                () -> inscricaoService.cancelarInscricao(aulaId, request));
+    }
+
+    @Test
+    void deveBloquearReativacao_QuandoInscricoesEncerradas() {
+        UUID aulaId = aula.getId();
+        Inscricao inscricao = new Inscricao(aluno, aula, SubscriptionStatus.CANCELADO, LocalDateTime.of(2020, 1, 1, 0, 0));
+        Aula aulaSoon = Aula.builder()
+                .id(aulaId)
+                .data(LocalDateTime.now().plusMinutes(30))
+                .status(ClassStatus.DISPONIVEL)
+                .build();
+
+        when(aulaRepository.findById(aulaId)).thenReturn(Optional.of(aulaSoon));
+        when(jwtService.extrairEmail(anyString())).thenReturn(usuario.getEmail());
+        when(usuarioRepository.findByEmail(usuario.getEmail())).thenReturn(Optional.of(usuario));
+        when(alunoRepository.findByUsuarioId(usuario.getId())).thenReturn(Optional.of(aluno));
+        when(inscricaoRepository.findByAulaAndAluno(aulaSoon, aluno)).thenReturn(Optional.of(inscricao));
+
+        HttpServletRequest request = authRequest();
+
+        ValidacaoException ex = assertThrows(ValidacaoException.class,
+                () -> inscricaoService.inscreverAluno(aulaId, request));
+        assertEquals("Inscrições para esta aula estão encerradas.", ex.getMessage());
     }
 }
