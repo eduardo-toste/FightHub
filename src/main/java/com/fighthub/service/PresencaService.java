@@ -33,12 +33,19 @@ public class PresencaService {
         Aula aula = buscarAulaPorId(idAula);
         Inscricao inscricao = buscarInscricaoPorId(request.inscricaoId());
         Usuario usuarioLogado = obterUsuarioLogado(httpServletRequest);
-        boolean isProfessorDaAula = verificarSeProfessorDaAula(usuarioLogado, aula);
-        Optional<Presenca> presenca = buscarPresencaPorInscricao(inscricao);
+        Role role = usuarioLogado.getRole();
 
-        if (!isProfessorDaAula && usuarioLogado.getRole() != Role.ADMIN) throw new ValidacaoException("Professor não autorizado a registrar presença para esta aula.");
+        if (role != Role.ADMIN && role != Role.PROFESSOR) {
+            throw new ValidacaoException("Professor não autorizado a registrar presença para esta aula.");
+        }
+
+        if (role == Role.PROFESSOR && !verificarSeProfessorDaAula(usuarioLogado, aula)) {
+            throw new ValidacaoException("Professor não autorizado a registrar presença para esta aula.");
+        }
+
         if (!inscricao.getAula().equals(aula)) throw new ValidacaoException("Inscrição não pertence a esta aula.");
 
+        Optional<Presenca> presenca = buscarPresencaPorInscricao(inscricao);
         if (presenca.isPresent()) {
             Presenca presencaExistente = presenca.get();
             presencaExistente.setPresente(request.presente());
