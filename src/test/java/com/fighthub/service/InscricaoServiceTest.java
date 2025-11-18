@@ -78,7 +78,6 @@ class InscricaoServiceTest {
 
     private HttpServletRequest authRequest() {
         HttpServletRequest request = mock(HttpServletRequest.class);
-        // make this stubbing lenient because some tests throw before the header is read
         lenient().when(request.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn("Bearer token");
         return request;
     }
