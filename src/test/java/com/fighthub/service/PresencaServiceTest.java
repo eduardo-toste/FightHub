@@ -79,21 +79,22 @@ class PresencaServiceTest {
 
     @Test
     void deveRegistrarNovaPresencaComSucesso() {
-        PresencaRequest request = new PresencaRequest(inscricao.getId(), true);
+        UUID inscricaoId = inscricao.getId();
+        PresencaRequest request = new PresencaRequest(true);
         String token = "token-valido";
+
         when(httpServletRequest.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn("Bearer " + token);
         when(aulaRepository.findById(aula.getId())).thenReturn(Optional.of(aula));
-        when(inscricaoRepository.findById(request.inscricaoId())).thenReturn(Optional.of(inscricao));
+        when(inscricaoRepository.findById(inscricaoId)).thenReturn(Optional.of(inscricao));
         when(jwtService.extrairEmail(token)).thenReturn(usuario.getEmail());
         when(usuarioRepository.findByEmail(usuario.getEmail())).thenReturn(Optional.of(usuario));
         when(professorRepository.findByUsuario(usuario)).thenReturn(Optional.of(professor));
-        when(turmaRepository.findAllByProfessor(professor)).thenReturn(java.util.List.of(turma));
+        when(turmaRepository.findAllByProfessor(professor)).thenReturn(List.of(turma));
         when(presencaRepository.findByInscricao(inscricao)).thenReturn(Optional.empty());
 
-        presencaService.registrarPresenca(aula.getId(), request, httpServletRequest);
+        presencaService.atualizarStatusPresencaPorInscricao(aula.getId(), inscricaoId, request, httpServletRequest);
 
         ArgumentCaptor<Presenca> captor = ArgumentCaptor.forClass(Presenca.class);
-
         verify(presencaRepository).save(captor.capture());
         Presenca saved = captor.getValue();
         assertEquals(inscricao, saved.getInscricao());
@@ -101,36 +102,44 @@ class PresencaServiceTest {
     }
 
     @Test
-    void deveRegistrarPresencaExistenteComSucesso() {
-        PresencaRequest request = new PresencaRequest(inscricao.getId(), true);
+    void deveAtualizarPresencaExistenteComSucesso_AlterandoStatus() {
+        UUID inscricaoId = inscricao.getId();
+        PresencaRequest request = new PresencaRequest(false);
         String token = "token-valido";
-        Presenca presenca = Presenca.builder().id(UUID.randomUUID()).inscricao(inscricao).build();
+        Presenca presenca = Presenca.builder().id(UUID.randomUUID()).inscricao(inscricao).presente(true).build();
+
         when(httpServletRequest.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn("Bearer " + token);
         when(aulaRepository.findById(aula.getId())).thenReturn(Optional.of(aula));
-        when(inscricaoRepository.findById(request.inscricaoId())).thenReturn(Optional.of(inscricao));
+        when(inscricaoRepository.findById(inscricaoId)).thenReturn(Optional.of(inscricao));
         when(jwtService.extrairEmail(token)).thenReturn(usuario.getEmail());
         when(usuarioRepository.findByEmail(usuario.getEmail())).thenReturn(Optional.of(usuario));
         when(professorRepository.findByUsuario(usuario)).thenReturn(Optional.of(professor));
-        when(turmaRepository.findAllByProfessor(professor)).thenReturn(java.util.List.of(turma));
+        when(turmaRepository.findAllByProfessor(professor)).thenReturn(List.of(turma));
         when(presencaRepository.findByInscricao(inscricao)).thenReturn(Optional.of(presenca));
 
-        presencaService.registrarPresenca(aula.getId(), request, httpServletRequest);
+        presencaService.atualizarStatusPresencaPorInscricao(aula.getId(), inscricaoId, request, httpServletRequest);
 
         ArgumentCaptor<Presenca> captor = ArgumentCaptor.forClass(Presenca.class);
-
         verify(presencaRepository).save(captor.capture());
         Presenca saved = captor.getValue();
         assertEquals(inscricao, saved.getInscricao());
-        assertTrue(saved.isPresente());
+        assertFalse(saved.isPresente());
     }
 
     @Test
-    void deveLancarExcecao_QuandoAulaNaoEncontrada_AoRegistrarPresenca() {
-        PresencaRequest request = new PresencaRequest(inscricao.getId(), true);
+    void deveLancarExcecao_QuandoAulaNaoEncontrada_AoAtualizarPresenca() {
+        UUID inscricaoId = inscricao.getId();
+        PresencaRequest request = new PresencaRequest(true);
+        String token = "token-valido";
+
+        when(httpServletRequest.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn("Bearer " + token);
+        when(jwtService.extrairEmail(token)).thenReturn(usuario.getEmail());
+        when(usuarioRepository.findByEmail(usuario.getEmail())).thenReturn(Optional.of(usuario));
+        when(inscricaoRepository.findById(inscricaoId)).thenReturn(Optional.of(inscricao));
         when(aulaRepository.findById(aula.getId())).thenReturn(Optional.empty());
 
         var result = assertThrows(AulaNaoEncontradaException.class,
-                () -> presencaService.registrarPresenca(aula.getId(), request, httpServletRequest));
+                () -> presencaService.atualizarStatusPresencaPorInscricao(aula.getId(), inscricaoId, request, httpServletRequest));
 
         assertNotNull(result);
         assertEquals("Aula não encontrada.", result.getMessage());
@@ -138,13 +147,18 @@ class PresencaServiceTest {
     }
 
     @Test
-    void deveLancarExcecao_QuandoInscricaoNaoEncontrada_AoRegistrarPresenca() {
-        PresencaRequest request = new PresencaRequest(inscricao.getId(), true);
-        when(aulaRepository.findById(aula.getId())).thenReturn(Optional.of(aula));
-        when(inscricaoRepository.findById(request.inscricaoId())).thenReturn(Optional.empty());
+    void deveLancarExcecao_QuandoInscricaoNaoEncontrada_AoAtualizarPresenca() {
+        UUID inscricaoId = inscricao.getId();
+        PresencaRequest request = new PresencaRequest(true);
+        String token = "token-valido";
+
+        when(httpServletRequest.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn("Bearer " + token);
+        when(jwtService.extrairEmail(token)).thenReturn(usuario.getEmail());
+        when(usuarioRepository.findByEmail(usuario.getEmail())).thenReturn(Optional.of(usuario));
+        when(inscricaoRepository.findById(inscricaoId)).thenReturn(Optional.empty());
 
         var result = assertThrows(InscricaoNaoEncontradaException.class,
-                () -> presencaService.registrarPresenca(aula.getId(), request, httpServletRequest));
+                () -> presencaService.atualizarStatusPresencaPorInscricao(aula.getId(), inscricaoId, request, httpServletRequest));
 
         assertNotNull(result);
         assertEquals("Inscrição não encontrada.", result.getMessage());
@@ -152,17 +166,17 @@ class PresencaServiceTest {
     }
 
     @Test
-    void deveLancarExcecao_QuandoUsuarioLogadoNaoEncontrado_AoRegistrarPresenca() {
-        PresencaRequest request = new PresencaRequest(inscricao.getId(), true);
+    void deveLancarExcecao_QuandoUsuarioLogadoNaoEncontrado_AoAtualizarPresenca() {
+        UUID inscricaoId = inscricao.getId();
+        PresencaRequest request = new PresencaRequest(true);
         String token = "token-valido";
+
         when(httpServletRequest.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn("Bearer " + token);
-        when(aulaRepository.findById(aula.getId())).thenReturn(Optional.of(aula));
-        when(inscricaoRepository.findById(request.inscricaoId())).thenReturn(Optional.of(inscricao));
         when(jwtService.extrairEmail(token)).thenReturn(usuario.getEmail());
         when(usuarioRepository.findByEmail(usuario.getEmail())).thenReturn(Optional.empty());
 
         var result = assertThrows(UsuarioNaoEncontradoException.class,
-                () -> presencaService.registrarPresenca(aula.getId(), request, httpServletRequest));
+                () -> presencaService.atualizarStatusPresencaPorInscricao(aula.getId(), inscricaoId, request, httpServletRequest));
 
         assertNotNull(result);
         assertEquals("Usuário não encontrado.", result.getMessage());
@@ -170,59 +184,45 @@ class PresencaServiceTest {
     }
 
     @Test
-    void deveLancarExcecao_QuandoUsuarioLogadoNaoForProfessorNemAdmin_AoRegistrarPresenca() {
-        PresencaRequest request = new PresencaRequest(inscricao.getId(), true);
+    void deveLancarExcecao_QuandoProfessorNaoDaAula_AoAtualizarPresenca() {
+        UUID inscricaoId = inscricao.getId();
+        PresencaRequest request = new PresencaRequest(true);
         String token = "token-valido";
-        usuario.setRole(Role.ALUNO);
+
         when(httpServletRequest.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn("Bearer " + token);
         when(aulaRepository.findById(aula.getId())).thenReturn(Optional.of(aula));
-        when(inscricaoRepository.findById(request.inscricaoId())).thenReturn(Optional.of(inscricao));
-        when(jwtService.extrairEmail(token)).thenReturn(usuario.getEmail());
-        when(usuarioRepository.findByEmail(usuario.getEmail())).thenReturn(Optional.of(usuario));
-
-        var result = assertThrows(ValidacaoException.class,
-                () -> presencaService.registrarPresenca(aula.getId(), request, httpServletRequest));
-
-        assertNotNull(result);
-        assertEquals("Professor não autorizado a registrar presença para esta aula.", result.getMessage());
-        verify(presencaRepository, never()).save(any());
-    }
-
-    @Test
-    void deveLancarExcecao_QuandoProfessorNaoDaAula_AoRegistrarPresenca() {
-        PresencaRequest request = new PresencaRequest(inscricao.getId(), true);
-        String token = "token-valido";
-        when(httpServletRequest.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn("Bearer " + token);
-        when(aulaRepository.findById(aula.getId())).thenReturn(Optional.of(aula));
-        when(inscricaoRepository.findById(request.inscricaoId())).thenReturn(Optional.of(inscricao));
+        when(inscricaoRepository.findById(inscricaoId)).thenReturn(Optional.of(inscricao));
         when(jwtService.extrairEmail(token)).thenReturn(usuario.getEmail());
         when(usuarioRepository.findByEmail(usuario.getEmail())).thenReturn(Optional.of(usuario));
         when(professorRepository.findByUsuario(usuario)).thenReturn(Optional.of(professor));
         when(turmaRepository.findAllByProfessor(professor)).thenReturn(List.of());
 
         var result = assertThrows(ValidacaoException.class,
-                () -> presencaService.registrarPresenca(aula.getId(), request, httpServletRequest));
+                () -> presencaService.atualizarStatusPresencaPorInscricao(aula.getId(), inscricaoId, request, httpServletRequest));
 
         assertNotNull(result);
-        assertEquals("Professor não autorizado a registrar presença para esta aula.", result.getMessage());
+        assertEquals("Professor não autorizado a registrar/cancelar presença para esta aula.", result.getMessage());
         verify(presencaRepository, never()).save(any());
     }
 
     @Test
-    void deveLancarExcecao_QuandoInscricaoNaoPertenceAAula_AoRegistrarPresenca() {
-        PresencaRequest request = new PresencaRequest(inscricao.getId(), true);
+    void deveLancarExcecao_QuandoInscricaoNaoPertenceAAula_AoAtualizarPresenca() {
+        UUID inscricaoId = inscricao.getId();
+        PresencaRequest request = new PresencaRequest(true);
         String token = "token-valido";
-        inscricao.setAula(Aula.builder().build());
+
+        inscricao.setAula(Aula.builder().id(UUID.randomUUID()).build());
+
         when(httpServletRequest.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn("Bearer " + token);
         when(aulaRepository.findById(aula.getId())).thenReturn(Optional.of(aula));
-        when(inscricaoRepository.findById(request.inscricaoId())).thenReturn(Optional.of(inscricao));
+        when(inscricaoRepository.findById(inscricaoId)).thenReturn(Optional.of(inscricao));
         when(jwtService.extrairEmail(token)).thenReturn(usuario.getEmail());
         when(usuarioRepository.findByEmail(usuario.getEmail())).thenReturn(Optional.of(usuario));
         when(professorRepository.findByUsuario(usuario)).thenReturn(Optional.of(professor));
         when(turmaRepository.findAllByProfessor(professor)).thenReturn(List.of(turma));
 
         var result = assertThrows(ValidacaoException.class,
-                () -> presencaService.registrarPresenca(aula.getId(), request, httpServletRequest));
+                () -> presencaService.atualizarStatusPresencaPorInscricao(aula.getId(), inscricaoId, request, httpServletRequest));
 
         assertNotNull(result);
         assertEquals("Inscrição não pertence a esta aula.", result.getMessage());
@@ -230,13 +230,15 @@ class PresencaServiceTest {
     }
 
     @Test
-    void deveLancarExcecao_QuandoPresencaoJaRegistrada_AoRegistrarPresenca() {
-        PresencaRequest request = new PresencaRequest(inscricao.getId(), true);
+    void deveLancarExcecao_QuandoPresencaJaRegistradaComMesmoStatus_AoAtualizarPresenca() {
+        UUID inscricaoId = inscricao.getId();
+        PresencaRequest request = new PresencaRequest(true);
         String token = "token-valido";
         Presenca presenca = Presenca.builder().id(UUID.randomUUID()).presente(true).inscricao(inscricao).build();
+
         when(httpServletRequest.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn("Bearer " + token);
         when(aulaRepository.findById(aula.getId())).thenReturn(Optional.of(aula));
-        when(inscricaoRepository.findById(request.inscricaoId())).thenReturn(Optional.of(inscricao));
+        when(inscricaoRepository.findById(inscricaoId)).thenReturn(Optional.of(inscricao));
         when(jwtService.extrairEmail(token)).thenReturn(usuario.getEmail());
         when(usuarioRepository.findByEmail(usuario.getEmail())).thenReturn(Optional.of(usuario));
         when(professorRepository.findByUsuario(usuario)).thenReturn(Optional.of(professor));
@@ -244,11 +246,10 @@ class PresencaServiceTest {
         when(presencaRepository.findByInscricao(inscricao)).thenReturn(Optional.of(presenca));
 
         var result = assertThrows(ValidacaoException.class,
-                () -> presencaService.registrarPresenca(aula.getId(), request, httpServletRequest));
+                () -> presencaService.atualizarStatusPresencaPorInscricao(aula.getId(), inscricaoId, request, httpServletRequest));
 
         assertNotNull(result);
         assertEquals("Presença já registrada com o mesmo status.", result.getMessage());
         verify(presencaRepository, never()).save(any());
     }
-
 }
