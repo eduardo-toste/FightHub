@@ -29,38 +29,45 @@ public class PresencaService {
     private final JwtService jwtService;
 
     @Transactional
-    public void registrarPresenca(UUID idAula, PresencaRequest request, HttpServletRequest httpServletRequest) {
-        Aula aula = buscarAulaPorId(idAula);
-        Inscricao inscricao = buscarInscricaoPorId(request.inscricaoId());
+    public void atualizarStatusPresencaPorInscricao(UUID idAula, 
+                                  UUID idInscricao,
+                                  PresencaRequest request, 
+                                  HttpServletRequest httpServletRequest) {
+        
         Usuario usuarioLogado = obterUsuarioLogado(httpServletRequest);
+        Inscricao inscricao = buscarInscricaoPorId(idInscricao);
+        Optional<Presenca> presenca = validarPresencaOperacao(idAula, inscricao, usuarioLogado);
+
+        presenca.ifPresentOrElse(
+                presencaExistente -> {
+                    if (presencaExistente.isPresente() == request.presente()) {
+                        throw new ValidacaoException("Presença já registrada com o mesmo status.");
+                    }
+                    presencaExistente.setPresente(request.presente());
+                    presencaRepository.save(presencaExistente);
+                },
+                () -> {
+                    Presenca novaPresenca = Presenca.builder()
+                            .inscricao(inscricao)
+                            .presente(request.presente())
+                            .dataRegistro(LocalDate.now())
+                            .build();
+                    presencaRepository.save(novaPresenca);
+                }
+        );
+    }
+
+    private Optional<Presenca> validarPresencaOperacao(UUID idAula, Inscricao inscricao, Usuario usuarioLogado) {
+        Aula aula = buscarAulaPorId(idAula);
         Role role = usuarioLogado.getRole();
 
-        if (role != Role.ADMIN && role != Role.PROFESSOR) {
-            throw new ValidacaoException("Professor não autorizado a registrar presença para esta aula.");
-        }
-
         if (role == Role.PROFESSOR && !verificarSeProfessorDaAula(usuarioLogado, aula)) {
-            throw new ValidacaoException("Professor não autorizado a registrar presença para esta aula.");
+            throw new ValidacaoException("Professor não autorizado a registrar/cancelar presença para esta aula.");
         }
-
-        if (!inscricao.getAula().equals(aula)) throw new ValidacaoException("Inscrição não pertence a esta aula.");
-
-        Optional<Presenca> presenca = buscarPresencaPorInscricao(inscricao);
-        if (presenca.isPresent()) {
-            Presenca presencaExistente = presenca.get();
-            if (presencaExistente.isPresente() == request.presente()) {
-                throw new ValidacaoException("Presença já registrada com o mesmo status.");
-            }
-            presencaExistente.setPresente(request.presente());
-            presencaRepository.save(presencaExistente);
-        } else {
-            Presenca novaPresenca = Presenca.builder()
-                    .inscricao(inscricao)
-                    .presente(request.presente())
-                    .dataRegistro(LocalDate.now())
-                    .build();
-            presencaRepository.save(novaPresenca);
+        if (!inscricao.getAula().equals(aula)) {
+            throw new ValidacaoException("Inscrição não pertence a esta aula.");
         }
+        return buscarPresencaPorInscricao(inscricao);
     }
 
     private boolean verificarSeProfessorDaAula(Usuario usuario, Aula aula) {
