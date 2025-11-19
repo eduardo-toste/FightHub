@@ -31,6 +31,7 @@ public class PresencaService {
     private final UsuarioRepository usuarioRepository;
     private final ProfessorRepository professorRepository;
     private final TurmaRepository turmaRepository;
+    private final AlunoRepository alunoRepository;
     private final JwtService jwtService;
 
     @Transactional
@@ -73,6 +74,32 @@ public class PresencaService {
         List<Inscricao> inscricoes = buscarInscricoesPorAulaEStatus(aula, SubscriptionStatus.INSCRITO);
 
         return PresencaMapper.toPageDTO(presencaRepository.findAllByInscricaoIn(inscricoes, pageable));
+    }
+
+    public Page<PresencaResponse> listarMinhasPresencas(Pageable pageable, HttpServletRequest httpServletRequest) {
+        Usuario usuarioLogado = obterUsuarioLogado(httpServletRequest);
+
+        if (usuarioLogado.getRole() != Role.ALUNO) {
+            throw new ValidacaoException("Apenas alunos podem acessar suas presenças.");
+        }
+
+        Aluno aluno = alunoRepository.findByUsuarioId(usuarioLogado.getId())
+                .orElseThrow(AlunoNaoEncontradoException::new);
+
+        Page<Inscricao> inscricoesDoAluno = inscricaoRepository.findAllByAlunoAndStatus(
+                aluno,
+                SubscriptionStatus.INSCRITO,
+                pageable
+        );
+
+        List<Inscricao> inscricoesList = inscricoesDoAluno.getContent();
+
+        if (inscricoesList.isEmpty()) {
+            return Page.empty(pageable);
+        }
+
+        Page<Presenca> presencas = presencaRepository.findAllByInscricaoIn(inscricoesList, pageable);
+        return PresencaMapper.toPageDTO(presencas);
     }
 
     private Optional<Presenca> validarPresencaOperacao(UUID idAula, Inscricao inscricao, Usuario usuarioLogado) {
