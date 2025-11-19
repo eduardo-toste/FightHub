@@ -41,4 +41,13 @@ public class PresencaController {
         var presencas = presencaService.listarPresencasPorAula(idAula, pageable, httpServletRequest);
         return ResponseEntity.status(HttpStatus.OK).body(presencas);
     }
+
+    @GetMapping("/aulas/me/presencas")
+    @PreAuthorize("hasAnyRole('ALUNO')")
+    public ResponseEntity<Page<PresencaResponse>> listarMinhasPresencas(
+            Pageable pageable,
+            HttpServletRequest httpServletRequest) {
+        var presencas = presencaService.listarMinhasPresencas(pageable, httpServletRequest);
+        return ResponseEntity.status(HttpStatus.OK).body(presencas);
+    }
 }
