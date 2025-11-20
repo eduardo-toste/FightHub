@@ -8,6 +8,10 @@ public record PresencaResponse(
         UUID id,
         boolean presente,
         UUID inscricaoId,
+        UUID alunoId,
+        String alunoNome,
+        UUID aulaId,
+        String aulaTitulo,
         LocalDate dataRegistro
 
 ) {
