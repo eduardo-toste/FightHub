@@ -72,7 +72,6 @@ public class PresencaService {
         }
 
         List<Inscricao> inscricoes = buscarInscricoesPorAulaEStatus(aula, SubscriptionStatus.INSCRITO);
-
         return PresencaMapper.toPageDTO(presencaRepository.findAllByInscricaoIn(inscricoes, pageable));
     }
 
@@ -83,8 +82,7 @@ public class PresencaService {
             throw new ValidacaoException("Apenas alunos podem acessar suas presenças.");
         }
 
-        Aluno aluno = alunoRepository.findByUsuarioId(usuarioLogado.getId())
-                .orElseThrow(AlunoNaoEncontradoException::new);
+        Aluno aluno = buscarAlunoPorUsuario(usuarioLogado);
 
         Page<Inscricao> inscricoesDoAluno = inscricaoRepository.findAllByAlunoAndStatus(
                 aluno,
@@ -119,6 +117,11 @@ public class PresencaService {
         Professor professor = buscarProfessorPorUsuario(usuario);
         List<Turma> turmasDoProfessor = buscarTurmasDoProfessor(professor);
         return turmasDoProfessor.contains(aula.getTurma());
+    }
+
+    private Aluno buscarAlunoPorUsuario(Usuario usuario) {
+        return alunoRepository.findByUsuarioId(usuario.getId())
+                .orElseThrow(AlunoNaoEncontradoException::new);
     }
 
     private Optional<Presenca> buscarPresencaPorInscricao(Inscricao inscricao) {
