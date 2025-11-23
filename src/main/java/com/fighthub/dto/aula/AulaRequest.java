@@ -4,7 +4,7 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 public record AulaRequest(
@@ -15,8 +15,8 @@ public record AulaRequest(
         @NotBlank(message = "Descrição é obrigatória.")
         String descricao,
 
-        @NotNull(message = "Data é obrigatória.")
-        LocalDate data,
+        @NotNull(message = "Data e hora são obrigatórios.")
+        LocalDateTime data,
 
         UUID turmaId,
 

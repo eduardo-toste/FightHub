@@ -5,7 +5,7 @@ import com.fighthub.model.enums.ClassStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
@@ -24,7 +24,7 @@ public class Aula {
 
     private String titulo;
     private String descricao;
-    private LocalDate data;
+    private LocalDateTime data;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "turma_id")
@@ -38,7 +38,7 @@ public class Aula {
 
     private boolean ativo = true;
 
-    public Aula(String titulo, String descricao, LocalDate data, Turma turma, int limiteAlunos) {
+    public Aula(String titulo, String descricao, LocalDateTime data, Turma turma, int limiteAlunos) {
         this.titulo = titulo;
         this.descricao = descricao;
         this.data = data;
