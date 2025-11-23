@@ -63,6 +63,7 @@ public class PresencaService {
         );
     }
 
+    @Transactional(readOnly = true)
     public Page<PresencaResponse> listarPresencasPorAula(UUID idAula, Pageable pageable, HttpServletRequest httpServletRequest) {
         Usuario usuarioLogado = obterUsuarioLogado(httpServletRequest);
         Aula aula = buscarAulaPorId(idAula);
@@ -75,6 +76,7 @@ public class PresencaService {
         return PresencaMapper.toPageDTO(presencaRepository.findAllByInscricaoIn(inscricoes, pageable));
     }
 
+    @Transactional(readOnly = true)
     public Page<PresencaResponse> listarMinhasPresencas(Pageable pageable, HttpServletRequest httpServletRequest) {
         Usuario usuarioLogado = obterUsuarioLogado(httpServletRequest);
 
