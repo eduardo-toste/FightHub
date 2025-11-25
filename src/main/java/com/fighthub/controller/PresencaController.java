@@ -35,8 +35,6 @@ public class PresencaController {
             @ApiResponse(responseCode = "400", description = "Requisição inválida"),
             @ApiResponse(responseCode = "401", description = "Não autorizado"),
             @ApiResponse(responseCode = "403", description = "Acesso recusado"),
-            @ApiResponse(responseCode = "404", description = "Aula ou inscrição não encontrada"),
-            @ApiResponse(responseCode = "500", description = "Erro inesperado no servidor")
     })
     @PatchMapping("/aulas/{idAula}/presencas/inscricao/{idInscricao}")
     @PreAuthorize("hasAnyRole('ADMIN', 'PROFESSOR')")
@@ -56,7 +54,6 @@ public class PresencaController {
             @ApiResponse(responseCode = "401", description = "Não autorizado"),
             @ApiResponse(responseCode = "403", description = "Acesso recusado"),
             @ApiResponse(responseCode = "404", description = "Aula não encontrada"),
-            @ApiResponse(responseCode = "500", description = "Erro inesperado no servidor")
     })
     @GetMapping("/aulas/{idAula}/presencas")
     @PreAuthorize("hasAnyRole('ADMIN', 'PROFESSOR')")
@@ -74,7 +71,6 @@ public class PresencaController {
             @ApiResponse(responseCode = "200", description = "Página de presenças do aluno retornada com sucesso"),
             @ApiResponse(responseCode = "401", description = "Não autorizado"),
             @ApiResponse(responseCode = "403", description = "Acesso recusado"),
-            @ApiResponse(responseCode = "500", description = "Erro inesperado no servidor")
     })
     @GetMapping("/aulas/me/presencas")
     @PreAuthorize("hasAnyRole('ALUNO')")
