@@ -1,4 +1,3 @@
-// java
 package com.fighthub.controller;
 
 import com.fighthub.dto.presenca.PresencaRequest;
