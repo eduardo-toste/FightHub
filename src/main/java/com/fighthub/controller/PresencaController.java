@@ -23,7 +23,7 @@ import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
-@Tag(name = "Presenças", description = "Endpoints para consulta e atualização de presenças")
+@Tag(name = "Presenças", description = "Endpoints para consultas e atualizaçôes de presenças")
 public class PresencaController {
 
     private final PresencaService presencaService;
