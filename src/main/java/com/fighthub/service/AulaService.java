@@ -78,7 +78,8 @@ public class AulaService {
         Aula aula = buscarAulaOuLancar(idAula);
         Turma turma = buscarTurmaOuLancar(idTurma);
 
-        if (aula.getTurma() != null && aula.getTurma().getId().equals(turma.getId())) throw new ValidacaoException("Turma já está vinculada à aula.");
+        if (aula.getTurma() != null && aula.getTurma().getId().equals(turma.getId()))
+            throw new ValidacaoException("Turma já está vinculada à aula.");
 
         aula.setTurma(turma);
         aulaRepository.save(aula);
@@ -89,7 +90,8 @@ public class AulaService {
         Aula aula = buscarAulaOuLancar(idAula);
         Turma turma = buscarTurmaOuLancar(idTurma);
 
-        if (aula.getTurma() != turma) throw new ValidacaoException("Turma ainda não vinculada à aula.");
+        if (aula.getTurma() == null || !aula.getTurma().getId().equals(turma.getId()))
+            throw new ValidacaoException("Turma ainda não vinculada à aula.");
 
         aula.setTurma(null);
         aulaRepository.save(aula);
