@@ -46,9 +46,9 @@ public class PresencaService {
 
         presenca.ifPresentOrElse(
                 presencaExistente -> {
-                    if (presencaExistente.isPresente() == request.presente()) {
+                    if (presencaExistente.isPresente() == request.presente())
                         throw new ValidacaoException("Presença já registrada com o mesmo status.");
-                    }
+
                     presencaExistente.setPresente(request.presente());
                     presencaRepository.save(presencaExistente);
                 },
@@ -68,9 +68,8 @@ public class PresencaService {
         Usuario usuarioLogado = obterUsuarioLogado(httpServletRequest);
         Aula aula = buscarAulaPorId(idAula);
 
-        if (usuarioLogado.getRole() == Role.PROFESSOR && !verificarSeProfessorDaAula(usuarioLogado, aula)) {
+        if (usuarioLogado.getRole() == Role.PROFESSOR && !verificarSeProfessorDaAula(usuarioLogado, aula))
             throw new ValidacaoException("Professor não autorizado a verificar presenças para esta aula.");
-        }
 
         List<Inscricao> inscricoes = buscarInscricoesPorAulaEStatus(aula, SubscriptionStatus.INSCRITO);
         return PresencaMapper.toPageDTO(presencaRepository.findAllByInscricaoIn(inscricoes, pageable));
@@ -80,9 +79,8 @@ public class PresencaService {
     public Page<PresencaResponse> listarMinhasPresencas(Pageable pageable, HttpServletRequest httpServletRequest) {
         Usuario usuarioLogado = obterUsuarioLogado(httpServletRequest);
 
-        if (usuarioLogado.getRole() != Role.ALUNO) {
+        if (usuarioLogado.getRole() != Role.ALUNO)
             throw new ValidacaoException("Apenas alunos podem acessar suas presenças.");
-        }
 
         Aluno aluno = buscarAlunoPorUsuario(usuarioLogado);
 
