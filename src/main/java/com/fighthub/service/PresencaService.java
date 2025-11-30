@@ -92,9 +92,8 @@ public class PresencaService {
 
         List<Inscricao> inscricoesList = inscricoesDoAluno.getContent();
 
-        if (inscricoesList.isEmpty()) {
+        if (inscricoesList.isEmpty())
             return Page.empty(pageable);
-        }
 
         Page<Presenca> presencas = presencaRepository.findAllByInscricaoIn(inscricoesList, pageable);
         return PresencaMapper.toPageDTO(presencas);
@@ -104,12 +103,12 @@ public class PresencaService {
         Aula aula = buscarAulaPorId(idAula);
         Role role = usuarioLogado.getRole();
 
-        if (role == Role.PROFESSOR && !verificarSeProfessorDaAula(usuarioLogado, aula)) {
+        if (role == Role.PROFESSOR && !verificarSeProfessorDaAula(usuarioLogado, aula))
             throw new ValidacaoException("Professor não autorizado a registrar/cancelar presença para esta aula.");
-        }
-        if (!inscricao.getAula().equals(aula)) {
+
+        if (!inscricao.getAula().equals(aula))
             throw new ValidacaoException("Inscrição não pertence a esta aula.");
-        }
+
         return buscarPresencaPorInscricao(inscricao);
     }
 
