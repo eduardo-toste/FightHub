@@ -153,4 +153,18 @@ public class AlunoController {
         alunoService.rebaixarFaixa(id);
         return ResponseEntity.status(HttpStatus.OK).build();
     }
+
+    @PatchMapping("/{id}/promover/grau")
+    @PreAuthorize("hasAnyRole('ADMIN', 'COORDENADOR', 'PROFESSOR')")
+    public ResponseEntity<Void> promoverGrau(@PathVariable UUID id) {
+        alunoService.promoverGrau(id);
+        return ResponseEntity.status(HttpStatus.OK).build();
+    }
+
+    @PatchMapping("/{id}/rebaixar/grau")
+    @PreAuthorize("hasAnyRole('ADMIN', 'COORDENADOR', 'PROFESSOR')")
+    public ResponseEntity<Void> rebaixarGrau(@PathVariable UUID id) {
+        alunoService.rebaixarGrau(id);
+        return ResponseEntity.status(HttpStatus.OK).build();
+    }
 }
