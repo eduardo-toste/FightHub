@@ -20,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.Period;
@@ -113,6 +114,7 @@ public class AlunoService {
         alunoRepository.save(aluno);
     }
 
+    @Transactional
     public void promoverFaixa(UUID idAluno) {
         var aluno = buscarAlunoPorId(idAluno);
 
@@ -140,6 +142,7 @@ public class AlunoService {
         alunoRepository.save(aluno);
     }
 
+    @Transactional
     public void rebaixarFaixa(UUID idAluno) {
         var aluno = buscarAlunoPorId(idAluno);
 
@@ -164,6 +167,38 @@ public class AlunoService {
 
         aluno.getGraduacao().demoteBelt();
         aluno.getGraduacao().setLevel(GraduationLevel.IV);
+        alunoRepository.save(aluno);
+    }
+
+    @Transactional
+    public void promoverGrau(UUID id) {
+        var aluno = buscarAlunoPorId(id);
+
+        if (aluno.getGraduacao() == null || aluno.getGraduacao().getLevel() == null) {
+            throw new ValidacaoException("Graduação do aluno não está inicializada");
+        }
+
+        if (aluno.getGraduacao().getLevel() == GraduationLevel.IV) {
+            throw new ValidacaoException("Aluno já está no grau máximo.");
+        }
+
+        aluno.getGraduacao().promoteLevel();
+        alunoRepository.save(aluno);
+    }
+
+    @Transactional
+    public void rebaixarGrau(UUID id) {
+        var aluno = buscarAlunoPorId(id);
+
+        if (aluno.getGraduacao() == null || aluno.getGraduacao().getLevel() == null) {
+            throw new ValidacaoException("Graduação do aluno não está inicializada");
+        }
+
+        if (aluno.getGraduacao().getLevel() == GraduationLevel.ZERO) {
+            throw new ValidacaoException("Aluno já está no grau mínimo.");
+        }
+
+        aluno.getGraduacao().demoteLevel();
         alunoRepository.save(aluno);
     }
     
