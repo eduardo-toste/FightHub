@@ -6,7 +6,10 @@ import com.fighthub.dto.aluno.AlunoUpdateMatriculaRequest;
 import com.fighthub.dto.aluno.CriarAlunoRequest;
 import com.fighthub.model.Aluno;
 import com.fighthub.model.Endereco;
+import com.fighthub.model.GraduacaoAluno;
 import com.fighthub.model.Usuario;
+import com.fighthub.model.enums.BeltGraduation;
+import com.fighthub.model.enums.GraduationLevel;
 import com.fighthub.model.enums.Role;
 import com.fighthub.service.EmailService;
 import com.fighthub.service.JwtService;
@@ -232,7 +235,11 @@ public class AlunoIntegrationTest extends IntegrationTestBase {
                 LocalDate.now(),
                 true,
                 List.of(),
-                List.of()
+                List.of(),
+                new GraduacaoAluno(
+                        BeltGraduation.BRANCA,
+                        GraduationLevel.ZERO
+                )
         ));
 
         Usuario u2 = usuarioRepository.save(Usuario.builder()
@@ -253,7 +260,11 @@ public class AlunoIntegrationTest extends IntegrationTestBase {
                 LocalDate.now(),
                 true,
                 List.of(),
-                List.of()
+                List.of(),
+                new GraduacaoAluno(
+                        BeltGraduation.BRANCA,
+                        GraduationLevel.ZERO
+                )
         ));
 
         // Act + Assert
@@ -292,7 +303,11 @@ public class AlunoIntegrationTest extends IntegrationTestBase {
                 LocalDate.now(),
                 true,
                 List.of(),
-                List.of()
+                List.of(),
+                new GraduacaoAluno(
+                        BeltGraduation.BRANCA,
+                        GraduationLevel.ZERO
+                )
         ));
         mockMvc.perform(get("/alunos/{id}", aluno.getId())
                         .contentType(MediaType.APPLICATION_JSON)
@@ -323,7 +338,11 @@ public class AlunoIntegrationTest extends IntegrationTestBase {
                 LocalDate.now(),
                 true,
                 List.of(),
-                List.of()
+                List.of(),
+                new GraduacaoAluno(
+                        BeltGraduation.BRANCA,
+                        GraduationLevel.ZERO
+                )
         );
 
         mockMvc.perform(get("/alunos/{id}", aluno.getId())
@@ -341,7 +360,11 @@ public class AlunoIntegrationTest extends IntegrationTestBase {
                 LocalDate.now(),
                 true,
                 List.of(),
-                List.of()
+                List.of(),
+                new GraduacaoAluno(
+                        BeltGraduation.BRANCA,
+                        GraduationLevel.ZERO
+                )
         ));
         var request = new AlunoUpdateMatriculaRequest(false);
 
@@ -364,7 +387,11 @@ public class AlunoIntegrationTest extends IntegrationTestBase {
                 LocalDate.now(),
                 true,
                 List.of(),
-                List.of()
+                List.of(),
+                new GraduacaoAluno(
+                        BeltGraduation.BRANCA,
+                        GraduationLevel.ZERO
+                )
         );
         var request = new AlunoUpdateMatriculaRequest(false);
 
@@ -384,7 +411,11 @@ public class AlunoIntegrationTest extends IntegrationTestBase {
                 LocalDate.now(),
                 true,
                 List.of(),
-                List.of()
+                List.of(),
+                new GraduacaoAluno(
+                        BeltGraduation.BRANCA,
+                        GraduationLevel.ZERO
+                )
         ));
         var request = new AlunoUpdateMatriculaRequest(true);
 
@@ -404,7 +435,11 @@ public class AlunoIntegrationTest extends IntegrationTestBase {
                 LocalDate.now(),
                 true,
                 List.of(),
-                List.of()
+                List.of(),
+                new GraduacaoAluno(
+                        BeltGraduation.BRANCA,
+                        GraduationLevel.ZERO
+                )
         ));
         var request = new AlunoUpdateDataMatriculaRequest(LocalDate.now().minusDays(1));
 
@@ -427,7 +462,11 @@ public class AlunoIntegrationTest extends IntegrationTestBase {
                 LocalDate.now(),
                 true,
                 List.of(),
-                List.of()
+                List.of(),
+                new GraduacaoAluno(
+                        BeltGraduation.BRANCA,
+                        GraduationLevel.ZERO
+                )
         );
         var request = new AlunoUpdateDataMatriculaRequest(LocalDate.now().minusDays(1));
 
@@ -447,7 +486,11 @@ public class AlunoIntegrationTest extends IntegrationTestBase {
                 LocalDate.now(),
                 true,
                 List.of(),
-                List.of()
+                List.of(),
+                new GraduacaoAluno(
+                        BeltGraduation.BRANCA,
+                        GraduationLevel.ZERO
+                )
         ));
         var request = new AlunoUpdateDataNascimentoRequest(LocalDate.now().minusYears(18));
 
@@ -470,7 +513,11 @@ public class AlunoIntegrationTest extends IntegrationTestBase {
                 LocalDate.now(),
                 true,
                 List.of(),
-                List.of()
+                List.of(),
+                new GraduacaoAluno(
+                        BeltGraduation.BRANCA,
+                        GraduationLevel.ZERO
+                )
         );
         var request = new AlunoUpdateDataNascimentoRequest(LocalDate.now().minusYears(18));
 
