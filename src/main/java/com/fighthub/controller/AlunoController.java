@@ -140,6 +140,16 @@ public class AlunoController {
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
+    @Operation(
+            summary = "Promoção de Faixa",
+            description = "Promove a faixa do aluno para o próximo nível. Permite que ADMIN, COORDENADOR ou PROFESSOR realizem a promoção."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Faixa promovida com sucesso"),
+            @ApiResponse(responseCode = "404", description = "Aluno não encontrado",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class),
+                            examples = @ExampleObject(name = "Aluno não encontrado", value = SwaggerExamples.ALUNO_NAO_ENCONTRADO)))
+    })
     @PatchMapping("/{id}/promover/faixa")
     @PreAuthorize("hasAnyRole('ADMIN', 'COORDENADOR', 'PROFESSOR')")
     public ResponseEntity<Void> promoverFaixa(@PathVariable UUID id) {
@@ -147,6 +157,16 @@ public class AlunoController {
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
+    @Operation(
+            summary = "Rebaixamento de Faixa",
+            description = "Rebaixa a faixa do aluno para o nível anterior. Permite que ADMIN, COORDENADOR ou PROFESSOR realizem o rebaixamento."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Faixa rebaixada com sucesso"),
+            @ApiResponse(responseCode = "404", description = "Aluno não encontrado",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class),
+                            examples = @ExampleObject(name = "Aluno não encontrado", value = SwaggerExamples.ALUNO_NAO_ENCONTRADO)))
+    })
     @PatchMapping("/{id}/rebaixar/faixa")
     @PreAuthorize("hasAnyRole('ADMIN', 'COORDENADOR', 'PROFESSOR')")
     public ResponseEntity<Void> rebaixarFaixa(@PathVariable UUID id) {
@@ -154,6 +174,16 @@ public class AlunoController {
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
+    @Operation(
+            summary = "Promoção de Grau",
+            description = "Promove o grau do aluno (ex.: 1º grau -> 2º grau). Permite que ADMIN, COORDENADOR ou PROFESSOR realizem a promoção."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Grau promovido com sucesso"),
+            @ApiResponse(responseCode = "404", description = "Aluno não encontrado",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class),
+                            examples = @ExampleObject(name = "Aluno não encontrado", value = SwaggerExamples.ALUNO_NAO_ENCONTRADO)))
+    })
     @PatchMapping("/{id}/promover/grau")
     @PreAuthorize("hasAnyRole('ADMIN', 'COORDENADOR', 'PROFESSOR')")
     public ResponseEntity<Void> promoverGrau(@PathVariable UUID id) {
@@ -161,6 +191,16 @@ public class AlunoController {
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
+    @Operation(
+            summary = "Rebaixamento de Grau",
+            description = "Rebaixa o grau do aluno (ex.: 2º grau -> 1º grau). Permite que ADMIN, COORDENADOR ou PROFESSOR realizem o rebaixamento."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Grau rebaixado com sucesso"),
+            @ApiResponse(responseCode = "404", description = "Aluno não encontrado",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class),
+                            examples = @ExampleObject(name = "Aluno não encontrado", value = SwaggerExamples.ALUNO_NAO_ENCONTRADO)))
+    })
     @PatchMapping("/{id}/rebaixar/grau")
     @PreAuthorize("hasAnyRole('ADMIN', 'COORDENADOR', 'PROFESSOR')")
     public ResponseEntity<Void> rebaixarGrau(@PathVariable UUID id) {
