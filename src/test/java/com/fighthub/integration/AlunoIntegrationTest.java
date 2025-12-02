@@ -528,4 +528,453 @@ public class AlunoIntegrationTest extends IntegrationTestBase {
                 .andExpect(status().isNotFound());
     }
 
+    @Test
+    void devePromoverAlunoParaFaixaSeguinteComSucesso() throws Exception {
+        var aluno = alunoRepository.save(new Aluno(
+                UUID.randomUUID(),
+                usuario,
+                LocalDate.now().minusYears(15),
+                LocalDate.now(),
+                true,
+                List.of(),
+                List.of(),
+                new GraduacaoAluno(
+                        BeltGraduation.BRANCA,
+                        GraduationLevel.IV
+                )
+        ));
+
+        mockMvc.perform(patch("/alunos/{id}/promover/faixa", aluno.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isOk());
+
+        var alunoSalvo = alunoRepository.findById(aluno.getId());
+        assertEquals(BeltGraduation.CINZA, alunoSalvo.get().getGraduacao().getBelt());
+        assertEquals(GraduationLevel.ZERO, alunoSalvo.get().getGraduacao().getLevel());
+    }
+
+    @Test
+    void devePromoverAlunoAdultoParaFaixaSeguinteComSucesso() throws Exception {
+        var aluno = alunoRepository.save(new Aluno(
+                UUID.randomUUID(),
+                usuario,
+                LocalDate.now().minusYears(18),
+                LocalDate.now(),
+                true,
+                List.of(),
+                List.of(),
+                new GraduacaoAluno(
+                        BeltGraduation.BRANCA,
+                        GraduationLevel.IV
+                )
+        ));
+
+        mockMvc.perform(patch("/alunos/{id}/promover/faixa", aluno.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isOk());
+
+        var alunoSalvo = alunoRepository.findById(aluno.getId());
+        assertEquals(BeltGraduation.AZUL, alunoSalvo.get().getGraduacao().getBelt());
+        assertEquals(GraduationLevel.ZERO, alunoSalvo.get().getGraduacao().getLevel());
+    }
+
+    @Test
+    void deveRetornar404_AoPromoverFaixa_QuandoAlunoNaoExistir() throws Exception {
+        var aluno = new Aluno(
+                UUID.randomUUID(),
+                usuario,
+                LocalDate.now().minusYears(20),
+                LocalDate.now(),
+                true,
+                List.of(),
+                List.of(),
+                new GraduacaoAluno(
+                        BeltGraduation.BRANCA,
+                        GraduationLevel.IV
+                )
+        );
+
+        mockMvc.perform(patch("/alunos/{id}/promover/faixa", aluno.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void deveRetornar409_AoPromoverFaixa_QuandoGraduacaoNaoEstiverInicializada() throws Exception {
+        var aluno = alunoRepository.save(new Aluno(
+                UUID.randomUUID(),
+                usuario,
+                LocalDate.now().minusYears(20),
+                LocalDate.now(),
+                true,
+                List.of(),
+                List.of(),
+                null
+        ));
+
+        mockMvc.perform(patch("/alunos/{id}/promover/faixa", aluno.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isConflict());
+    }
+
+    @Test
+    void deveRetornar409_AoPromoverFaixa_QuandoAlunoEstiverNaFaixaPreta() throws Exception {
+        var aluno = alunoRepository.save(new Aluno(
+                UUID.randomUUID(),
+                usuario,
+                LocalDate.now().minusYears(20),
+                LocalDate.now(),
+                true,
+                List.of(),
+                List.of(),
+                new GraduacaoAluno(
+                        BeltGraduation.PRETA,
+                        GraduationLevel.IV
+                )
+        ));
+
+        mockMvc.perform(patch("/alunos/{id}/promover/faixa", aluno.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isConflict());
+    }
+
+    @Test
+    void deveRetornar409_AoPromoverFaixa_QuandoAlunoTiverMenosDe4Graus() throws Exception {
+        var aluno = alunoRepository.save(new Aluno(
+                UUID.randomUUID(),
+                usuario,
+                LocalDate.now().minusYears(20),
+                LocalDate.now(),
+                true,
+                List.of(),
+                List.of(),
+                new GraduacaoAluno(
+                        BeltGraduation.BRANCA,
+                        GraduationLevel.III
+                )
+        ));
+
+        mockMvc.perform(patch("/alunos/{id}/promover/faixa", aluno.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isConflict());
+    }
+
+    @Test
+    void deveRebaixarAlunoParaFaixaAnteriorComSucesso() throws Exception {
+        var aluno = alunoRepository.save(new Aluno(
+                UUID.randomUUID(),
+                usuario,
+                LocalDate.now().minusYears(15),
+                LocalDate.now(),
+                true,
+                List.of(),
+                List.of(),
+                new GraduacaoAluno(
+                        BeltGraduation.CINZA,
+                        GraduationLevel.ZERO
+                )
+        ));
+
+        mockMvc.perform(patch("/alunos/{id}/rebaixar/faixa", aluno.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isOk());
+
+        var alunoSalvo = alunoRepository.findById(aluno.getId());
+        assertEquals(BeltGraduation.BRANCA, alunoSalvo.get().getGraduacao().getBelt());
+        assertEquals(GraduationLevel.IV, alunoSalvo.get().getGraduacao().getLevel());
+    }
+
+    @Test
+    void deveRebaixarAlunoAdultoParaFaixaAnteriorComSucesso() throws Exception {
+        var aluno = alunoRepository.save(new Aluno(
+                UUID.randomUUID(),
+                usuario,
+                LocalDate.now().minusYears(18),
+                LocalDate.now(),
+                true,
+                List.of(),
+                List.of(),
+                new GraduacaoAluno(
+                        BeltGraduation.AZUL,
+                        GraduationLevel.ZERO
+                )
+        ));
+
+        mockMvc.perform(patch("/alunos/{id}/rebaixar/faixa", aluno.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isOk());
+
+        var alunoSalvo = alunoRepository.findById(aluno.getId());
+        assertEquals(BeltGraduation.BRANCA, alunoSalvo.get().getGraduacao().getBelt());
+        assertEquals(GraduationLevel.IV, alunoSalvo.get().getGraduacao().getLevel());
+    }
+
+    @Test
+    void deveRetornar404_AoRebaixarFaixa_QuandoAlunoNaoExistir() throws Exception {
+        var aluno = new Aluno(
+                UUID.randomUUID(),
+                usuario,
+                LocalDate.now().minusYears(20),
+                LocalDate.now(),
+                true,
+                List.of(),
+                List.of(),
+                new GraduacaoAluno(
+                        BeltGraduation.CINZA,
+                        GraduationLevel.ZERO
+                )
+        );
+
+        mockMvc.perform(patch("/alunos/{id}/rebaixar/faixa", aluno.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void deveRetornar409_AoRebaixarFaixa_QuandoGraduacaoNaoEstiverInicializada() throws Exception {
+        var aluno = alunoRepository.save(new Aluno(
+                UUID.randomUUID(),
+                usuario,
+                LocalDate.now().minusYears(20),
+                LocalDate.now(),
+                true,
+                List.of(),
+                List.of(),
+                null
+        ));
+
+        mockMvc.perform(patch("/alunos/{id}/rebaixar/faixa", aluno.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isConflict());
+    }
+
+    @Test
+    void deveRetornar409_AoRebaixarFaixa_QuandoAlunoTiverMaisDe0Graus() throws Exception {
+        var aluno = alunoRepository.save(new Aluno(
+                UUID.randomUUID(),
+                usuario,
+                LocalDate.now().minusYears(20),
+                LocalDate.now(),
+                true,
+                List.of(),
+                List.of(),
+                new GraduacaoAluno(
+                        BeltGraduation.CINZA,
+                        GraduationLevel.II
+                )
+        ));
+
+        mockMvc.perform(patch("/alunos/{id}/rebaixar/faixa", aluno.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isConflict());
+    }
+
+    @Test
+    void deveRetornar409_AoRebaixarFaixa_QuandoAlunoEstiverNaFaixaBranca() throws Exception {
+        var aluno = alunoRepository.save(new Aluno(
+                UUID.randomUUID(),
+                usuario,
+                LocalDate.now().minusYears(20),
+                LocalDate.now(),
+                true,
+                List.of(),
+                List.of(),
+                new GraduacaoAluno(
+                        BeltGraduation.BRANCA,
+                        GraduationLevel.ZERO
+                )
+        ));
+
+        mockMvc.perform(patch("/alunos/{id}/rebaixar/faixa", aluno.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isConflict());
+    }
+
+    @Test
+    void devePromoverGrauComSucesso() throws Exception {
+        var aluno = alunoRepository.save(new Aluno(
+                UUID.randomUUID(),
+                usuario,
+                LocalDate.now().minusYears(20),
+                LocalDate.now(),
+                true,
+                List.of(),
+                List.of(),
+                new GraduacaoAluno(
+                        BeltGraduation.BRANCA,
+                        GraduationLevel.II
+                )
+        ));
+
+        mockMvc.perform(patch("/alunos/{id}/promover/grau", aluno.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isOk());
+
+        var alunoSalvo = alunoRepository.findById(aluno.getId());
+        assertEquals(GraduationLevel.III, alunoSalvo.get().getGraduacao().getLevel());
+    }
+
+    @Test
+    void deveRetornar404_AoPromoverGrau_QuandoAlunoNaoExistir() throws Exception {
+        var aluno = new Aluno(
+                UUID.randomUUID(),
+                usuario,
+                LocalDate.now().minusYears(20),
+                LocalDate.now(),
+                true,
+                List.of(),
+                List.of(),
+                new GraduacaoAluno(
+                        BeltGraduation.BRANCA,
+                        GraduationLevel.II
+                )
+        );
+
+        mockMvc.perform(patch("/alunos/{id}/promover/grau", aluno.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void deveRetornar409_AoPromoverGrau_QuandoGraduacaoNaoEstiverInicializada() throws Exception {
+        var aluno = alunoRepository.save(new Aluno(
+                UUID.randomUUID(),
+                usuario,
+                LocalDate.now().minusYears(20),
+                LocalDate.now(),
+                true,
+                List.of(),
+                List.of(),
+                null
+        ));
+
+        mockMvc.perform(patch("/alunos/{id}/promover/grau", aluno.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isConflict());
+    }
+
+    @Test
+    void deveRetornar409_AoPromoverGrau_QuandoAlunoEstiverNoGrauMaximo() throws Exception {
+        var aluno = alunoRepository.save(new Aluno(
+                UUID.randomUUID(),
+                usuario,
+                LocalDate.now().minusYears(20),
+                LocalDate.now(),
+                true,
+                List.of(),
+                List.of(),
+                new GraduacaoAluno(
+                        BeltGraduation.BRANCA,
+                        GraduationLevel.IV
+                )
+        ));
+
+        mockMvc.perform(patch("/alunos/{id}/promover/grau", aluno.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isConflict());
+    }
+
+    @Test
+    void deveRebaixarGrauComSucesso() throws Exception {
+        var aluno = alunoRepository.save(new Aluno(
+                UUID.randomUUID(),
+                usuario,
+                LocalDate.now().minusYears(20),
+                LocalDate.now(),
+                true,
+                List.of(),
+                List.of(),
+                new GraduacaoAluno(
+                        BeltGraduation.BRANCA,
+                        GraduationLevel.III
+                )
+        ));
+
+        mockMvc.perform(patch("/alunos/{id}/rebaixar/grau", aluno.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isOk());
+
+        var alunoSalvo = alunoRepository.findById(aluno.getId());
+        assertEquals(GraduationLevel.II, alunoSalvo.get().getGraduacao().getLevel());
+    }
+
+    @Test
+    void deveRetornar404_AoRebaixarGrau_QuandoAlunoNaoExistir() throws Exception {
+        var aluno = new Aluno(
+                UUID.randomUUID(),
+                usuario,
+                LocalDate.now().minusYears(20),
+                LocalDate.now(),
+                true,
+                List.of(),
+                List.of(),
+                new GraduacaoAluno(
+                        BeltGraduation.BRANCA,
+                        GraduationLevel.III
+                )
+        );
+
+        mockMvc.perform(patch("/alunos/{id}/rebaixar/grau", aluno.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void deveRetornar409_AoRebaixarGrau_QuandoGraduacaoNaoEstiverInicializada() throws Exception {
+        var aluno = alunoRepository.save(new Aluno(
+                UUID.randomUUID(),
+                usuario,
+                LocalDate.now().minusYears(20),
+                LocalDate.now(),
+                true,
+                List.of(),
+                List.of(),
+                null
+        ));
+
+        mockMvc.perform(patch("/alunos/{id}/rebaixar/grau", aluno.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isConflict());
+    }
+
+    @Test
+    void deveRetornar409_AoRebaixarGrau_QuandoAlunoEstiverNoGrauMinimo() throws Exception {
+        var aluno = alunoRepository.save(new Aluno(
+                UUID.randomUUID(),
+                usuario,
+                LocalDate.now().minusYears(20),
+                LocalDate.now(),
+                true,
+                List.of(),
+                List.of(),
+                new GraduacaoAluno(
+                        BeltGraduation.BRANCA,
+                        GraduationLevel.ZERO
+                )
+        ));
+
+        mockMvc.perform(patch("/alunos/{id}/rebaixar/grau", aluno.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isConflict());
+    }
 }
