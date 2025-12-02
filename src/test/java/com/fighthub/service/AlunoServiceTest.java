@@ -1,21 +1,18 @@
 package com.fighthub.service;
 
 import com.fighthub.dto.aluno.*;
-import com.fighthub.dto.endereco.EnderecoRequest;
 import com.fighthub.exception.AlunoNaoEncontradoException;
 import com.fighthub.exception.CpfExistenteException;
 import com.fighthub.exception.MatriculaInvalidaException;
 import com.fighthub.exception.ValidacaoException;
-import com.fighthub.model.Aluno;
-import com.fighthub.model.Endereco;
-import com.fighthub.model.Responsavel;
-import com.fighthub.model.Usuario;
+import com.fighthub.model.*;
+import com.fighthub.model.enums.BeltGraduation;
+import com.fighthub.model.enums.GraduationLevel;
 import com.fighthub.model.enums.Role;
 import com.fighthub.repository.AlunoRepository;
 import com.fighthub.repository.ResponsavelRepository;
 import com.fighthub.repository.UsuarioRepository;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -27,7 +24,10 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDate;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -86,6 +86,10 @@ class AlunoServiceTest {
                 .dataNascimento(criarAlunoRequest.dataNascimento())
                 .matriculaAtiva(true)
                 .responsaveis(new ArrayList<>())
+                .graduacao(new GraduacaoAluno(
+                        BeltGraduation.BRANCA,
+                        GraduationLevel.ZERO
+                ))
                 .build();
     }
 
@@ -303,4 +307,281 @@ class AlunoServiceTest {
         verify(alunoRepository, never()).save(any());
     }
 
+    @Test
+    void devePromoverFaixaAlunoComSucesso_QuantoAlunoTiverMaisDe16Anos() {
+        var alunoId = aluno.getId();
+        aluno.getGraduacao().setLevel(GraduationLevel.IV);
+        when(alunoRepository.findById(alunoId)).thenReturn(Optional.of(aluno));
+
+        alunoService.promoverFaixa(alunoId);
+
+        verify(alunoRepository).findById(alunoId);
+        verify(alunoRepository).save(argThat(a -> a.getGraduacao().getBelt() == BeltGraduation.AZUL));
+    }
+
+    @Test
+    void devePromoverFaixaAlunoComSucesso_QuantoAlunoTiverMenosDe16Anos() {
+        var alunoId = aluno.getId();
+        aluno.getGraduacao().setLevel(GraduationLevel.IV);
+        aluno.setDataNascimento(LocalDate.now().minusYears(15));
+        when(alunoRepository.findById(alunoId)).thenReturn(Optional.of(aluno));
+
+        alunoService.promoverFaixa(alunoId);
+
+        verify(alunoRepository).findById(alunoId);
+        verify(alunoRepository).save(argThat(a -> a.getGraduacao().getBelt() == BeltGraduation.CINZA));
+    }
+
+    @Test
+    void deveLancarExcecao_QuandoAlunoNaoExistir_AoPromoverFaixa() {
+        var alunoId = aluno.getId();
+        when(alunoRepository.findById(alunoId)).thenReturn(Optional.empty());
+
+        var ex = assertThrows(AlunoNaoEncontradoException.class,
+                () -> alunoService.promoverFaixa(alunoId));
+
+        assertNotNull(ex);
+        assertEquals("Aluno não encontrado.", ex.getMessage());
+        verify(alunoRepository).findById(alunoId);
+        verify(alunoRepository, never()).save(any());
+    }
+
+    @Test
+    void deveLancarExcecao_QuandoGraduacaoNaoEstiverInicializada_AoPromoverFaixa() {
+        var alunoId = aluno.getId();
+        aluno.setGraduacao(null);
+        when(alunoRepository.findById(alunoId)).thenReturn(Optional.of(aluno));
+
+        var ex = assertThrows(ValidacaoException.class,
+                () -> alunoService.promoverFaixa(alunoId));
+
+        assertNotNull(ex);
+        assertEquals("Graduação do aluno não está inicializada", ex.getMessage());
+        verify(alunoRepository).findById(alunoId);
+        verify(alunoRepository, never()).save(any());
+    }
+
+    @Test
+    void deveLancarExcecao_QuandoPromoverFaixaAlunoComMenosDe4Graus() {
+        var alunoId = aluno.getId();
+        when(alunoRepository.findById(alunoId)).thenReturn(Optional.of(aluno));
+
+        var ex = assertThrows(ValidacaoException.class,
+                () -> alunoService.promoverFaixa(alunoId));
+
+        assertNotNull(ex);
+        assertEquals("Não é possível promover faixa com menos de 4 graus.", ex.getMessage());
+        verify(alunoRepository).findById(alunoId);
+        verify(alunoRepository, never()).save(any());
+    }
+
+    @Test
+    void deveLancarExcecao_QuandoAlunoEstiverNaFaixaPreta_AoPromoverFaixa() {
+        var alunoId = aluno.getId();
+        aluno.getGraduacao().setBelt(BeltGraduation.PRETA);
+        when(alunoRepository.findById(alunoId)).thenReturn(Optional.of(aluno));
+
+        var ex = assertThrows(ValidacaoException.class,
+                () -> alunoService.promoverFaixa(alunoId));
+
+        assertNotNull(ex);
+        assertEquals("Aluno já está na faixa preta.", ex.getMessage());
+        verify(alunoRepository).findById(alunoId);
+        verify(alunoRepository, never()).save(any());
+    }
+
+    @Test
+    void deveRebaixarFaixaAlunoComSucesso_QuantoAlunoTiverMaisDe16Anos() {
+        var alunoId = aluno.getId();
+        aluno.getGraduacao().setBelt(BeltGraduation.AZUL);
+        aluno.getGraduacao().setLevel(GraduationLevel.ZERO);
+        when(alunoRepository.findById(alunoId)).thenReturn(Optional.of(aluno));
+
+        alunoService.rebaixarFaixa(alunoId);
+
+        verify(alunoRepository).findById(alunoId);
+        verify(alunoRepository).save(argThat(a -> a.getGraduacao().getBelt() == BeltGraduation.BRANCA));
+    }
+
+    @Test
+    void deveRebaixarFaixaAlunoComSucesso_QuantoAlunoTiverMenosDe16Anos() {
+        var alunoId = aluno.getId();
+        aluno.getGraduacao().setBelt(BeltGraduation.CINZA);
+        aluno.getGraduacao().setLevel(GraduationLevel.ZERO);
+        aluno.setDataNascimento(LocalDate.now().minusYears(15));
+        when(alunoRepository.findById(alunoId)).thenReturn(Optional.of(aluno));
+
+        alunoService.rebaixarFaixa(alunoId);
+
+        verify(alunoRepository).findById(alunoId);
+        verify(alunoRepository).save(argThat(a -> a.getGraduacao().getBelt() == BeltGraduation.BRANCA));
+    }
+
+    @Test
+    void deveLancarExcecao_QuandoAlunoNaoExistir_AoRebaixarFaixa() {
+        var alunoId = aluno.getId();
+        when(alunoRepository.findById(alunoId)).thenReturn(Optional.empty());
+
+        var ex = assertThrows(AlunoNaoEncontradoException.class,
+                () -> alunoService.rebaixarFaixa(alunoId));
+
+        assertNotNull(ex);
+        assertEquals("Aluno não encontrado.", ex.getMessage());
+        verify(alunoRepository).findById(alunoId);
+        verify(alunoRepository, never()).save(any());
+    }
+
+    @Test
+    void deveLancarExcecao_QuandoGraduacaoNaoEstiverInicializada_AoRebaixarFaixa() {
+        var alunoId = aluno.getId();
+        aluno.setGraduacao(null);
+        when(alunoRepository.findById(alunoId)).thenReturn(Optional.of(aluno));
+
+        var ex = assertThrows(ValidacaoException.class,
+                () -> alunoService.rebaixarFaixa(alunoId));
+
+        assertNotNull(ex);
+        assertEquals("Graduação do aluno não está inicializada", ex.getMessage());
+        verify(alunoRepository).findById(alunoId);
+        verify(alunoRepository, never()).save(any());
+    }
+
+    @Test
+    void deveLancarExcecao_QuandoRebaixarFaixaAlunoComMaisDe0Graus() {
+        var alunoId = aluno.getId();
+        aluno.getGraduacao().setLevel(GraduationLevel.IV);
+        when(alunoRepository.findById(alunoId)).thenReturn(Optional.of(aluno));
+
+        var ex = assertThrows(ValidacaoException.class,
+                () -> alunoService.rebaixarFaixa(alunoId));
+
+        assertNotNull(ex);
+        assertEquals("Não é possível rebaixar faixa com mais de zero graus.", ex.getMessage());
+        verify(alunoRepository).findById(alunoId);
+        verify(alunoRepository, never()).save(any());
+    }
+
+    @Test
+    void deveLancarExcecao_QuandoRebaixarFaixaAlunoNaFaixaBranca_AoRebaixarFaixa() {
+        var alunoId = aluno.getId();
+        when(alunoRepository.findById(alunoId)).thenReturn(Optional.of(aluno));
+
+        var ex = assertThrows(ValidacaoException.class,
+                () -> alunoService.rebaixarFaixa(alunoId));
+
+        assertNotNull(ex);
+        assertEquals("Aluno já está na faixa branca.", ex.getMessage());
+        verify(alunoRepository).findById(alunoId);
+        verify(alunoRepository, never()).save(any());
+    }
+
+    @Test
+    void devePromoverGrauAlunoComSucesso() {
+        var alunoId = aluno.getId();
+        when(alunoRepository.findById(alunoId)).thenReturn(Optional.of(aluno));
+
+        alunoService.promoverGrau(alunoId);
+
+        verify(alunoRepository).findById(alunoId);
+        verify(alunoRepository).save(argThat(a -> a.getGraduacao().getLevel() == GraduationLevel.I));
+    }
+
+    @Test
+    void deveLancarExcecao_QuandoAlunoNaoExistir_AoPromoverGrau() {
+        var alunoId = aluno.getId();
+        when(alunoRepository.findById(alunoId)).thenReturn(Optional.empty());
+
+        var ex = assertThrows(AlunoNaoEncontradoException.class,
+                () -> alunoService.promoverGrau(alunoId));
+
+        assertNotNull(ex);
+        assertEquals("Aluno não encontrado.", ex.getMessage());
+        verify(alunoRepository).findById(alunoId);
+        verify(alunoRepository, never()).save(any());
+    }
+
+    @Test
+    void deveLancarExcecao_QuandoGraduacaoNaoEstiverInicializada_AoPromoverGrau() {
+        var alunoId = aluno.getId();
+        aluno.setGraduacao(null);
+        when(alunoRepository.findById(alunoId)).thenReturn(Optional.of(aluno));
+
+        var ex = assertThrows(ValidacaoException.class,
+                () -> alunoService.promoverGrau(alunoId));
+
+        assertNotNull(ex);
+        assertEquals("Graduação do aluno não está inicializada", ex.getMessage());
+        verify(alunoRepository).findById(alunoId);
+        verify(alunoRepository, never()).save(any());
+    }
+
+    @Test
+    void deveLancarExcecao_QuandoAlunoNoGrauMaximo_AoPromoverGrau() {
+        var alunoId = aluno.getId();
+        aluno.getGraduacao().setLevel(GraduationLevel.IV);
+        when(alunoRepository.findById(alunoId)).thenReturn(Optional.of(aluno));
+
+        var ex = assertThrows(ValidacaoException.class,
+                () -> alunoService.promoverGrau(alunoId));
+
+        assertNotNull(ex);
+        assertEquals("Aluno já está no grau máximo.", ex.getMessage());
+        verify(alunoRepository).findById(alunoId);
+        verify(alunoRepository, never()).save(any());
+    }
+
+    @Test
+    void deveRebaixarGrauAlunoComSucesso() {
+        var alunoId = aluno.getId();
+        aluno.getGraduacao().setLevel(GraduationLevel.II);
+        when(alunoRepository.findById(alunoId)).thenReturn(Optional.of(aluno));
+
+        alunoService.rebaixarGrau(alunoId);
+
+        verify(alunoRepository).findById(alunoId);
+        verify(alunoRepository).save(argThat(a -> a.getGraduacao().getLevel() == GraduationLevel.I));
+    }
+
+    @Test
+    void deveLancarExcecao_QuandoAlunoNaoExistir_AoRebaixarGrau() {
+        var alunoId = aluno.getId();
+        when(alunoRepository.findById(alunoId)).thenReturn(Optional.empty());
+
+        var ex = assertThrows(AlunoNaoEncontradoException.class,
+                () -> alunoService.rebaixarGrau(alunoId));
+
+        assertNotNull(ex);
+        assertEquals("Aluno não encontrado.", ex.getMessage());
+        verify(alunoRepository).findById(alunoId);
+        verify(alunoRepository, never()).save(any());
+    }
+
+    @Test
+    void deveLancarExcecao_QuandoGraduacaoNaoEstiverInicializada_AoRebaixarGrau() {
+        var alunoId = aluno.getId();
+        aluno.setGraduacao(null);
+        when(alunoRepository.findById(alunoId)).thenReturn(Optional.of(aluno));
+
+        var ex = assertThrows(ValidacaoException.class,
+                () -> alunoService.rebaixarGrau(alunoId));
+
+        assertNotNull(ex);
+        assertEquals("Graduação do aluno não está inicializada", ex.getMessage());
+        verify(alunoRepository).findById(alunoId);
+        verify(alunoRepository, never()).save(any());
+    }
+
+    @Test
+    void deveLancarExcecao_QuandoAlunoNoGrauMinimo_AoRebaixarGrau() {
+        var alunoId = aluno.getId();
+        when(alunoRepository.findById(alunoId)).thenReturn(Optional.of(aluno));
+
+        var ex = assertThrows(ValidacaoException.class,
+                () -> alunoService.rebaixarGrau(alunoId));
+
+        assertNotNull(ex);
+        assertEquals("Aluno já está no grau mínimo.", ex.getMessage());
+        verify(alunoRepository).findById(alunoId);
+        verify(alunoRepository, never()).save(any());
+    }
 }
