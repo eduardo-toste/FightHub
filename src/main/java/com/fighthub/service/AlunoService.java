@@ -145,9 +145,8 @@ public class AlunoService {
     public void rebaixarFaixa(UUID idAluno) {
         var aluno = buscarAlunoPorId(idAluno);
 
-        if (aluno.getGraduacao() == null || aluno.getGraduacao().getLevel() == null || aluno.getGraduacao().getBelt() == null) {
+        if (aluno.getGraduacao() == null || aluno.getGraduacao().getLevel() == null || aluno.getGraduacao().getBelt() == null)
             throw new ValidacaoException("Graduação do aluno não está inicializada");
-        }
 
         if (aluno.getGraduacao().getLevel() != GraduationLevel.ZERO)
             throw new ValidacaoException("Não é possível rebaixar faixa com mais de zero graus.");
@@ -173,13 +172,11 @@ public class AlunoService {
     public void promoverGrau(UUID id) {
         var aluno = buscarAlunoPorId(id);
 
-        if (aluno.getGraduacao() == null || aluno.getGraduacao().getLevel() == null) {
+        if (aluno.getGraduacao() == null || aluno.getGraduacao().getLevel() == null)
             throw new ValidacaoException("Graduação do aluno não está inicializada");
-        }
 
-        if (aluno.getGraduacao().getLevel() == GraduationLevel.IV) {
+        if (aluno.getGraduacao().getLevel() == GraduationLevel.IV)
             throw new ValidacaoException("Aluno já está no grau máximo.");
-        }
 
         aluno.getGraduacao().promoteLevel();
         alunoRepository.save(aluno);
@@ -189,13 +186,11 @@ public class AlunoService {
     public void rebaixarGrau(UUID id) {
         var aluno = buscarAlunoPorId(id);
 
-        if (aluno.getGraduacao() == null || aluno.getGraduacao().getLevel() == null) {
+        if (aluno.getGraduacao() == null || aluno.getGraduacao().getLevel() == null)
             throw new ValidacaoException("Graduação do aluno não está inicializada");
-        }
 
-        if (aluno.getGraduacao().getLevel() == GraduationLevel.ZERO) {
+        if (aluno.getGraduacao().getLevel() == GraduationLevel.ZERO)
             throw new ValidacaoException("Aluno já está no grau mínimo.");
-        }
 
         aluno.getGraduacao().demoteLevel();
         alunoRepository.save(aluno);
