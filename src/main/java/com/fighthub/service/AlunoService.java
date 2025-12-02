@@ -118,15 +118,14 @@ public class AlunoService {
     public void promoverFaixa(UUID idAluno) {
         var aluno = buscarAlunoPorId(idAluno);
 
-        if (aluno.getGraduacao() == null || aluno.getGraduacao().getLevel() == null || aluno.getGraduacao().getBelt() == null) {
+        if (aluno.getGraduacao() == null || aluno.getGraduacao().getLevel() == null || aluno.getGraduacao().getBelt() == null)
             throw new ValidacaoException("Graduação do aluno não está inicializada");
-        }
-
-        if (aluno.getGraduacao().getLevel() != GraduationLevel.IV)
-            throw new ValidacaoException("Não é possível promover faixa com menos de 4 graus.");
 
         if (aluno.getGraduacao().getBelt() == BeltGraduation.PRETA)
             throw new ValidacaoException("Aluno já está na faixa preta.");
+
+        if (aluno.getGraduacao().getLevel() != GraduationLevel.IV)
+            throw new ValidacaoException("Não é possível promover faixa com menos de 4 graus.");
 
         boolean isAdult16OrOlder = Period.between(aluno.getDataNascimento(), LocalDate.now()).getYears() >= 16;
 
