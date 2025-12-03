@@ -49,7 +49,7 @@ public class AulaController {
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     @PostMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'COORDENADOR', 'PROFESSOR')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'PROFESSOR')")
     public ResponseEntity<AulaResponse> criarAula(@RequestBody @Valid AulaRequest request) {
         aulaService.criarAula(request);
         return ResponseEntity.status(HttpStatus.CREATED).build();
@@ -91,6 +91,7 @@ public class AulaController {
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN','COORDENADOR','PROFESSOR')")
     public ResponseEntity<AulaResponse> buscarAulaPorId(@PathVariable UUID id) {
         return ResponseEntity.status(HttpStatus.OK).body(aulaService.buscarAulaPorId(id));
     }
@@ -109,7 +110,7 @@ public class AulaController {
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     @PatchMapping("/{id}/status")
-    @PreAuthorize("hasAnyRole('ADMIN', 'COORDENADOR', 'PROFESSOR')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'PROFESSOR')")
     public ResponseEntity<AulaResponse> atualizarStatusAula(@PathVariable UUID id, @RequestBody @Valid AulaUpdateStatusRequest request) {
         return ResponseEntity.status(HttpStatus.OK).body(aulaService.atualizarStatus(id, request));
     }
@@ -124,6 +125,7 @@ public class AulaController {
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'PROFESSOR')")
     public ResponseEntity<AulaResponse> atualizarAula(@RequestBody @Valid AulaUpdateCompletoRequest request, @PathVariable UUID id) {
         return ResponseEntity.status(HttpStatus.OK).body(aulaService.atualizarAula(request, id));
     }
@@ -140,7 +142,7 @@ public class AulaController {
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     @PatchMapping("/{idAula}/turmas/{idTurma}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'COORDENADOR', 'PROFESSOR')")
+    @PreAuthorize("hasAnyRole('ADMIN','PROFESSOR')")
     public ResponseEntity<Void> vincularTurma(@PathVariable UUID idAula, @PathVariable UUID idTurma) {
         aulaService.vincularTurma(idAula, idTurma);
         return ResponseEntity.status(HttpStatus.OK).build();
@@ -156,7 +158,7 @@ public class AulaController {
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     @DeleteMapping("/{idAula}/turmas/{idTurma}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'COORDENADOR', 'PROFESSOR')")
+    @PreAuthorize("hasAnyRole('ADMIN','PROFESSOR')")
     public ResponseEntity<Void> desvincularTurma(@PathVariable UUID idAula, @PathVariable UUID idTurma) {
         aulaService.desvincularTurma(idAula, idTurma);
         return ResponseEntity.status(HttpStatus.OK).build();
@@ -172,7 +174,7 @@ public class AulaController {
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'COORDENADOR', 'PROFESSOR')")
+    @PreAuthorize("hasAnyRole('ADMIN','PROFESSOR')")
     public ResponseEntity<Void> excluirAula(@PathVariable UUID id) {
         aulaService.excluirAula(id);
         return ResponseEntity.status(HttpStatus.OK).build();
