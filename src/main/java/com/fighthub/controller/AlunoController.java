@@ -49,7 +49,7 @@ public class AlunoController {
                             examples = @ExampleObject(name = "Acesso negado", value = SwaggerExamples.ACESSO_NEGADO)))
     })
     @PostMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'COORDENADOR', 'PROFESSOR')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'COORDENADOR')")
     public ResponseEntity<Void> criarAluno(@RequestBody @Valid CriarAlunoRequest request) {
         alunoService.criarAluno(request);
         return ResponseEntity.status(HttpStatus.CREATED).build();
@@ -151,7 +151,7 @@ public class AlunoController {
                             examples = @ExampleObject(name = "Aluno não encontrado", value = SwaggerExamples.ALUNO_NAO_ENCONTRADO)))
     })
     @PatchMapping("/{id}/promover/faixa")
-    @PreAuthorize("hasAnyRole('ADMIN', 'COORDENADOR', 'PROFESSOR')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'PROFESSOR')")
     public ResponseEntity<Void> promoverFaixa(@PathVariable UUID id) {
         alunoService.promoverFaixa(id);
         return ResponseEntity.status(HttpStatus.OK).build();
@@ -168,7 +168,7 @@ public class AlunoController {
                             examples = @ExampleObject(name = "Aluno não encontrado", value = SwaggerExamples.ALUNO_NAO_ENCONTRADO)))
     })
     @PatchMapping("/{id}/rebaixar/faixa")
-    @PreAuthorize("hasAnyRole('ADMIN', 'COORDENADOR', 'PROFESSOR')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'PROFESSOR')")
     public ResponseEntity<Void> rebaixarFaixa(@PathVariable UUID id) {
         alunoService.rebaixarFaixa(id);
         return ResponseEntity.status(HttpStatus.OK).build();
@@ -185,7 +185,7 @@ public class AlunoController {
                             examples = @ExampleObject(name = "Aluno não encontrado", value = SwaggerExamples.ALUNO_NAO_ENCONTRADO)))
     })
     @PatchMapping("/{id}/promover/grau")
-    @PreAuthorize("hasAnyRole('ADMIN', 'COORDENADOR', 'PROFESSOR')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'PROFESSOR')")
     public ResponseEntity<Void> promoverGrau(@PathVariable UUID id) {
         alunoService.promoverGrau(id);
         return ResponseEntity.status(HttpStatus.OK).build();
@@ -202,7 +202,7 @@ public class AlunoController {
                             examples = @ExampleObject(name = "Aluno não encontrado", value = SwaggerExamples.ALUNO_NAO_ENCONTRADO)))
     })
     @PatchMapping("/{id}/rebaixar/grau")
-    @PreAuthorize("hasAnyRole('ADMIN', 'COORDENADOR', 'PROFESSOR')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'PROFESSOR')")
     public ResponseEntity<Void> rebaixarGrau(@PathVariable UUID id) {
         alunoService.rebaixarGrau(id);
         return ResponseEntity.status(HttpStatus.OK).build();
