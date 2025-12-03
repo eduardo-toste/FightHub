@@ -27,8 +27,6 @@ public class InscricaoController {
 
     private final InscricaoService inscricaoService;
 
-    @PostMapping("/aulas/{idAula}/inscricoes")
-    @PreAuthorize("hasAnyRole('ALUNO')")
     @Operation(summary = "Inscrever aluno", description = "Inscreve o usuário autenticado na aula especificada pelo idAula")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Inscrição criada com sucesso"),
@@ -36,6 +34,8 @@ public class InscricaoController {
             @ApiResponse(responseCode = "403", description = "Acesso negado", content = @Content),
             @ApiResponse(responseCode = "404", description = "Aula não encontrada", content = @Content)
     })
+    @PostMapping("/aulas/{idAula}/inscricoes")
+    @PreAuthorize("hasAnyRole('ALUNO')")
     public ResponseEntity<Void> inscreverAluno(
             @Parameter(description = "ID da aula", required = true) @PathVariable UUID idAula,
             HttpServletRequest request) {
@@ -43,14 +43,14 @@ public class InscricaoController {
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
-    @DeleteMapping("/aulas/{idAula}/inscricoes")
-    @PreAuthorize("hasAnyRole('ALUNO')")
     @Operation(summary = "Cancelar inscrição", description = "Cancela a inscrição do usuário autenticado na aula especificada")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = "Inscrição cancelada com sucesso"),
             @ApiResponse(responseCode = "403", description = "Acesso negado", content = @Content),
             @ApiResponse(responseCode = "404", description = "Inscrição ou aula não encontrada", content = @Content)
     })
+    @DeleteMapping("/aulas/{idAula}/inscricoes")
+    @PreAuthorize("hasAnyRole('ALUNO')")
     public ResponseEntity<Void> cancelarInscricaoAluno(
             @Parameter(description = "ID da aula", required = true) @PathVariable UUID idAula,
             HttpServletRequest request) {
@@ -58,8 +58,6 @@ public class InscricaoController {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/aulas/{idAula}/inscricoes")
-    @PreAuthorize("hasAnyRole('ADMIN', 'COORDENADOR', 'PROFESSOR')")
     @Operation(summary = "Buscar inscrições por aula", description = "Retorna uma página com as inscrições da aula")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Lista de inscrições retornada com sucesso",
@@ -68,6 +66,8 @@ public class InscricaoController {
             @ApiResponse(responseCode = "403", description = "Acesso negado", content = @Content),
             @ApiResponse(responseCode = "404", description = "Aula não encontrada", content = @Content)
     })
+    @GetMapping("/aulas/{idAula}/inscricoes")
+    @PreAuthorize("hasAnyRole('ADMIN', 'COORDENADOR', 'PROFESSOR')")
     public ResponseEntity<Page<InscricaoResponse>> buscarInscricoes(
             @Parameter(description = "ID da aula", required = true) @PathVariable UUID idAula,
             Pageable pageable) {
@@ -75,8 +75,6 @@ public class InscricaoController {
         return ResponseEntity.status(HttpStatus.OK).body(inscricoes);
     }
 
-    @GetMapping("/aulas/inscricoes/minhas")
-    @PreAuthorize("hasAnyRole('ALUNO')")
     @Operation(summary = "Minhas inscrições", description = "Retorna as inscrições do usuário autenticado")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Lista de inscrições do usuário retornada com sucesso",
@@ -84,6 +82,8 @@ public class InscricaoController {
                             schema = @Schema(implementation = InscricaoResponse.class))),
             @ApiResponse(responseCode = "403", description = "Acesso negado", content = @Content)
     })
+    @GetMapping("/aulas/inscricoes/minhas")
+    @PreAuthorize("hasAnyRole('ALUNO')")
     public ResponseEntity<Page<InscricaoResponse>> buscarInscricoesProprias(
             HttpServletRequest request,
             Pageable pageable) {
