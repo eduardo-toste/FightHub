@@ -82,6 +82,21 @@ public class AulaController {
     }
 
     @Operation(
+            summary = "Listagem de aulas disponíveis para o professor ministrar",
+            description = """
+                    Retorna apenas as aulas cujas turmas estão associadas ao professor autenticado.
+                    
+                    - Utiliza o token JWT para identificar o professor.
+                    """
+    )
+    @ApiResponse(responseCode = "200", description = "Aulas do professor retornadas com sucesso")
+    @GetMapping("/professores")
+    @PreAuthorize("hasAnyRole('ADMIN', 'PROFESSOR')")
+    public ResponseEntity<Page<AulaResponse>> buscarAulasDisponiveisProfessor(Pageable pageable, HttpServletRequest request) {
+        return ResponseEntity.status(HttpStatus.OK).body(aulaService.buscarAulasDisponiveisProfessor(pageable,request));
+    }
+
+    @Operation(
             summary = "Consulta de aula por ID",
             description = "Retorna os dados detalhados de uma aula específica."
     )
