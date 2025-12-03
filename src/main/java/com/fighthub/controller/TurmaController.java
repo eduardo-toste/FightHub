@@ -41,7 +41,7 @@ public class TurmaController {
                             examples = @ExampleObject(name = "Erro de validação", value = SwaggerExamples.ERRO_VALIDACAO)))
     })
     @PostMapping
-    @PreAuthorize("hasAnyRole('ADMIN','COORDENADOR','PROFESSOR')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'COORDENADOR')")
     public ResponseEntity<Void> criarTurma(@RequestBody @Valid TurmaRequest request) {
         turmaService.criarTurma(request);
         return ResponseEntity.status(HttpStatus.CREATED).build();
@@ -51,6 +51,7 @@ public class TurmaController {
     @ApiResponse(responseCode = "200", description = "Lista de turmas retornada com sucesso",
             content = @Content(schema = @Schema(implementation = TurmaResponse.class)))
     @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN','COORDENADOR','PROFESSOR')")
     public ResponseEntity<Page<TurmaResponse>> buscarTurmas(Pageable pageable) {
         var turmas = turmaService.buscarTurmas(pageable);
         return ResponseEntity.status(HttpStatus.OK).body(turmas);
@@ -65,6 +66,7 @@ public class TurmaController {
                             examples = @ExampleObject(name = "Turma não encontrada", value = SwaggerExamples.TURMA_NAO_ENCONTRADA)))
     })
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN','COORDENADOR','PROFESSOR')")
     public ResponseEntity<TurmaResponse> buscarTurmaPorId(@PathVariable UUID id) {
         var turma = turmaService.buscarTurmaPorId(id);
         return ResponseEntity.status(HttpStatus.OK).body(turma);
@@ -82,7 +84,7 @@ public class TurmaController {
                             examples = @ExampleObject(name = "Turma não encontrada", value = SwaggerExamples.TURMA_NAO_ENCONTRADA)))
     })
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN','COORDENADOR','PROFESSOR')")
+    @PreAuthorize("hasAnyRole('ADMIN','COORDENADOR')")
     public ResponseEntity<TurmaResponse> atualizarTurma(@PathVariable UUID id, @RequestBody @Valid TurmaUpdateCompletoRequest request) {
         var turmaAtualizada = turmaService.atualizarTurma(id, request);
         return ResponseEntity.status(HttpStatus.OK).body(turmaAtualizada);
@@ -100,7 +102,7 @@ public class TurmaController {
                             examples = @ExampleObject(name = "Turma não encontrada", value = SwaggerExamples.TURMA_NAO_ENCONTRADA)))
     })
     @PatchMapping("/{id}/status")
-    @PreAuthorize("hasAnyRole('ADMIN','COORDENADOR','PROFESSOR')")
+    @PreAuthorize("hasAnyRole('ADMIN','COORDENADOR')")
     public ResponseEntity<TurmaResponse> atualizarStatusTurma(@PathVariable UUID id, @RequestBody @Valid TurmaUpdateStatusRequest request) {
         var turmaAtualizada = turmaService.atualizarStatusTurma(id, request);
         return ResponseEntity.status(HttpStatus.OK).body(turmaAtualizada);
@@ -114,7 +116,7 @@ public class TurmaController {
                             examples = @ExampleObject(name = "Turma não encontrada", value = SwaggerExamples.TURMA_NAO_ENCONTRADA)))
     })
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN','COORDENADOR','PROFESSOR')")
+    @PreAuthorize("hasAnyRole('ADMIN','COORDENADOR')")
     public ResponseEntity<Void> excluirTurma(@PathVariable UUID id) {
         turmaService.excluirTurma(id);
         return ResponseEntity.status(HttpStatus.OK).build();
