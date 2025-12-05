@@ -8,10 +8,7 @@ import com.fighthub.exception.*;
 import com.fighthub.model.*;
 import com.fighthub.model.enums.ClassStatus;
 import com.fighthub.model.enums.Role;
-import com.fighthub.repository.AlunoRepository;
-import com.fighthub.repository.AulaRepository;
-import com.fighthub.repository.TurmaRepository;
-import com.fighthub.repository.UsuarioRepository;
+import com.fighthub.repository.*;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -52,6 +49,9 @@ class AulaServiceTest {
     private AlunoRepository alunoRepository;
 
     @Mock
+    private ProfessorRepository professorRepository;
+
+    @Mock
     private JwtService jwtService;
 
     @Mock
@@ -64,6 +64,7 @@ class AulaServiceTest {
     private Usuario usuario;
     private Turma turma;
     private Aluno aluno;
+    private Professor professor;
     private Aula aula;
 
     @BeforeEach
@@ -96,6 +97,11 @@ class AulaServiceTest {
                 .dataNascimento(LocalDate.now().minusYears(20))
                 .matriculaAtiva(true)
                 .responsaveis(new ArrayList<>())
+                .build();
+
+        professor = Professor.builder()
+                .id(UUID.randomUUID())
+                .usuario(usuario)
                 .build();
 
         turma = Turma.builder()
@@ -174,6 +180,95 @@ class AulaServiceTest {
         assertNotNull(result);
         assertEquals(0, result.getTotalElements());
         verify(aulaRepository).findAll(pageable);
+    }
+
+    @Test
+    void deveRetornarAulasDisponiveis_QuandoProfessorMinistraTurma() {
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Aula> page = new PageImpl<>(List.of(aula));
+        String jwt = "jwt-valido";
+        String email = "email-valido";
+
+        when(httpServletRequest.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn("Bearer " + jwt);
+        when(jwtService.extrairEmail(jwt)).thenReturn(email);
+        when(usuarioRepository.findByEmail(email)).thenReturn(Optional.of(usuario));
+        when(professorRepository.findByUsuario(usuario)).thenReturn(Optional.of(professor));
+        when(turmaRepository.findAllByProfessor(professor)).thenReturn(List.of(turma));
+        when(aulaRepository.findByStatusAndTurmaIn(ClassStatus.DISPONIVEL, List.of(turma), pageable))
+                .thenReturn(page);
+
+        var result = aulaService.buscarAulasDisponiveisProfessor(pageable, httpServletRequest);
+
+        assertNotNull(result);
+        assertEquals(1, result.getTotalElements());
+        AulaResponse aulaResponse = result.getContent().get(0);
+        assertEquals(aula.getTitulo(), aulaResponse.titulo());
+        assertEquals(aula.getDescricao(), aulaResponse.descricao());
+        assertEquals(aula.getData(), aulaResponse.data());
+
+        verify(jwtService).extrairEmail(jwt);
+        verify(usuarioRepository).findByEmail(email);
+        verify(professorRepository).findByUsuario(usuario);
+        verify(turmaRepository).findAllByProfessor(professor);
+        verify(aulaRepository).findByStatusAndTurmaIn(ClassStatus.DISPONIVEL, List.of(turma), pageable);
+    }
+
+    @Test
+    void deveLancarUsuarioNaoEncontradoException_QuandoBuscarAulasDisponiveisProfessorComEmailInexistente() {
+        Pageable pageable = PageRequest.of(0, 10);
+        String jwt = "jwt-invalido";
+        String email = "email-nao-existe";
+
+        when(httpServletRequest.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn("Bearer " + jwt);
+        when(jwtService.extrairEmail(jwt)).thenReturn(email);
+        when(usuarioRepository.findByEmail(email)).thenReturn(Optional.empty());
+
+        assertThrows(UsuarioNaoEncontradoException.class,
+                () -> aulaService.buscarAulasDisponiveisProfessor(pageable, httpServletRequest));
+
+        verify(usuarioRepository).findByEmail(email);
+        verifyNoInteractions(professorRepository, turmaRepository, aulaRepository);
+    }
+
+    @Test
+    void deveLancarProfessorNaoEncontradoException_QuandoUsuarioNaoForProfessor() {
+        Pageable pageable = PageRequest.of(0, 10);
+        String jwt = "jwt-valido";
+        String email = "email-valido";
+
+        when(httpServletRequest.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn("Bearer " + jwt);
+        when(jwtService.extrairEmail(jwt)).thenReturn(email);
+        when(usuarioRepository.findByEmail(email)).thenReturn(Optional.of(usuario));
+        when(professorRepository.findByUsuario(usuario)).thenReturn(Optional.empty());
+
+        assertThrows(ProfessorNaoEncontradoException.class,
+                () -> aulaService.buscarAulasDisponiveisProfessor(pageable, httpServletRequest));
+
+        verify(professorRepository).findByUsuario(usuario);
+        verifyNoInteractions(turmaRepository, aulaRepository);
+    }
+
+    @Test
+    void deveRetornarPaginaVazia_QuandoProfessorNaoPossuiTurmasMinistradas() {
+        Pageable pageable = PageRequest.of(0, 10);
+        String jwt = "jwt-valido";
+        String email = "email-valido";
+
+        when(httpServletRequest.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn("Bearer " + jwt);
+        when(jwtService.extrairEmail(jwt)).thenReturn(email);
+        when(usuarioRepository.findByEmail(email)).thenReturn(Optional.of(usuario));
+        when(professorRepository.findByUsuario(usuario)).thenReturn(Optional.of(professor));
+        when(turmaRepository.findAllByProfessor(professor)).thenReturn(List.of());
+        when(aulaRepository.findByStatusAndTurmaIn(ClassStatus.DISPONIVEL, List.of(), pageable))
+                .thenReturn(Page.empty());
+
+        var result = aulaService.buscarAulasDisponiveisProfessor(pageable, httpServletRequest);
+
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
+        assertEquals(0, result.getTotalElements());
+
+        verify(aulaRepository).findByStatusAndTurmaIn(ClassStatus.DISPONIVEL, List.of(), pageable);
     }
 
     @Test

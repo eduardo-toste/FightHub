@@ -50,7 +50,7 @@ public class ResponsavelController {
                             examples = @ExampleObject(name = "Acesso negado", value = SwaggerExamples.ACESSO_NEGADO)))
     })
     @PostMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'COORDENADOR', 'PROFESSOR')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'COORDENADOR')")
     public ResponseEntity<Void> criarResponsavel(@RequestBody @Valid CriarResponsavelRequest request) {
         responsavelService.criacaoResponsavel(request);
         return ResponseEntity.status(HttpStatus.CREATED).build();
@@ -63,7 +63,7 @@ public class ResponsavelController {
     @ApiResponse(responseCode = "200", description = "Lista de responsaveis retornada com sucesso",
             content = @Content(schema = @Schema(implementation = ResponsavelResponse.class)))
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'COORDENADOR', 'PROFESSOR')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'COORDENADOR')")
     public ResponseEntity<Page<ResponsavelResponse>> obterResponsaveis(Pageable pageable) {
         var responsaveis = responsavelService.obterTodosResponsaveis(pageable);
         return ResponseEntity.status(HttpStatus.OK).body(responsaveis);
@@ -81,7 +81,7 @@ public class ResponsavelController {
                             examples = @ExampleObject(name = "Responsavel não encontrado", value = SwaggerExamples.RESPONSAVEL_NAO_ENCONTRADO)))
     })
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'COORDENADOR', 'PROFESSOR')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'COORDENADOR')")
     public ResponseEntity<ResponsavelDetalhadoResponse> obterResponsavel(@PathVariable UUID id) {
         var responsavel = responsavelService.obterResponsavelPorId(id);
         return ResponseEntity.status(HttpStatus.OK).body(responsavel);

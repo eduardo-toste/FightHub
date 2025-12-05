@@ -43,4 +43,8 @@ public class Aluno {
     @ManyToMany(mappedBy = "alunos")
     private List<Turma> turmas = new ArrayList<>();
 
+    @Embedded
+    @Setter
+    private GraduacaoAluno graduacao;
+
 }

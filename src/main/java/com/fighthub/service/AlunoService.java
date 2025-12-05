@@ -7,8 +7,11 @@ import com.fighthub.exception.MatriculaInvalidaException;
 import com.fighthub.exception.ValidacaoException;
 import com.fighthub.mapper.AlunoMapper;
 import com.fighthub.model.Aluno;
+import com.fighthub.model.GraduacaoAluno;
 import com.fighthub.model.Responsavel;
 import com.fighthub.model.Usuario;
+import com.fighthub.model.enums.BeltGraduation;
+import com.fighthub.model.enums.GraduationLevel;
 import com.fighthub.model.enums.Role;
 import com.fighthub.repository.AlunoRepository;
 import com.fighthub.repository.ResponsavelRepository;
@@ -17,13 +20,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.Period;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import java.util.function.BiConsumer;
 
 @Service
 @RequiredArgsConstructor
@@ -60,6 +63,10 @@ public class AlunoService {
                 .dataMatricula(LocalDate.now())
                 .dataNascimento(request.dataNascimento())
                 .responsaveis(new ArrayList<>())
+                .graduacao(new GraduacaoAluno(
+                        BeltGraduation.BRANCA,
+                        GraduationLevel.ZERO
+                ))
                 .build());
 
         if (menorDeIdade) {
@@ -77,15 +84,13 @@ public class AlunoService {
     }
 
     public AlunoDetalhadoResponse obterAluno(UUID id) {
-        var aluno = alunoRepository.findById(id)
-                .orElseThrow(AlunoNaoEncontradoException::new);
+        var aluno = buscarAlunoPorId(id);
 
         return AlunoMapper.toDetailedDTO(aluno);
     }
 
     public void atualizarStatusMatricula(UUID id, AlunoUpdateMatriculaRequest request) {
-        var aluno = alunoRepository.findById(id)
-                .orElseThrow(AlunoNaoEncontradoException::new);
+        var aluno = buscarAlunoPorId(id);
 
         if (aluno.isMatriculaAtiva() == request.matriculaAtiva()) {
             throw new MatriculaInvalidaException();
@@ -96,19 +101,104 @@ public class AlunoService {
     }
 
     public void atualizarDataNascimento(UUID id, AlunoUpdateDataNascimentoRequest request) {
-        var aluno = alunoRepository.findById(id)
-                .orElseThrow(AlunoNaoEncontradoException::new);
+        var aluno = buscarAlunoPorId(id);
 
         aluno.setDataNascimento(request.dataNascimento());
         alunoRepository.save(aluno);
     }
 
     public void atualizarDataMatricula(UUID id, AlunoUpdateDataMatriculaRequest request) {
-        var aluno = alunoRepository.findById(id)
-                .orElseThrow(AlunoNaoEncontradoException::new);
+        var aluno = buscarAlunoPorId(id);
 
         aluno.setDataMatricula(request.dataMatricula());
         alunoRepository.save(aluno);
+    }
+
+    @Transactional
+    public void promoverFaixa(UUID idAluno) {
+        var aluno = buscarAlunoPorId(idAluno);
+
+        if (aluno.getGraduacao() == null || aluno.getGraduacao().getLevel() == null || aluno.getGraduacao().getBelt() == null)
+            throw new ValidacaoException("Graduação do aluno não está inicializada");
+
+        if (aluno.getGraduacao().getBelt() == BeltGraduation.PRETA)
+            throw new ValidacaoException("Aluno já está na faixa preta.");
+
+        if (aluno.getGraduacao().getLevel() != GraduationLevel.IV)
+            throw new ValidacaoException("Não é possível promover faixa com menos de 4 graus.");
+
+        boolean isAdult16OrOlder = Period.between(aluno.getDataNascimento(), LocalDate.now()).getYears() >= 16;
+
+        if (aluno.getGraduacao().getBelt() == BeltGraduation.BRANCA && isAdult16OrOlder) {
+            aluno.getGraduacao().setBelt(BeltGraduation.AZUL);
+            aluno.getGraduacao().setLevel(GraduationLevel.ZERO);
+            alunoRepository.save(aluno);
+            return;
+        }
+
+        aluno.getGraduacao().promoteBelt();
+        aluno.getGraduacao().setLevel(GraduationLevel.ZERO);
+        alunoRepository.save(aluno);
+    }
+
+    @Transactional
+    public void rebaixarFaixa(UUID idAluno) {
+        var aluno = buscarAlunoPorId(idAluno);
+
+        if (aluno.getGraduacao() == null || aluno.getGraduacao().getLevel() == null || aluno.getGraduacao().getBelt() == null)
+            throw new ValidacaoException("Graduação do aluno não está inicializada");
+
+        if (aluno.getGraduacao().getLevel() != GraduationLevel.ZERO)
+            throw new ValidacaoException("Não é possível rebaixar faixa com mais de zero graus.");
+
+        if (aluno.getGraduacao().getBelt() == BeltGraduation.BRANCA)
+            throw new ValidacaoException("Aluno já está na faixa branca.");
+
+        boolean isAdult16OrOlder = Period.between(aluno.getDataNascimento(), LocalDate.now()).getYears() >= 16;
+
+        if (aluno.getGraduacao().getBelt() == BeltGraduation.AZUL && isAdult16OrOlder) {
+            aluno.getGraduacao().setBelt(BeltGraduation.BRANCA);
+            aluno.getGraduacao().setLevel(GraduationLevel.IV);
+            alunoRepository.save(aluno);
+            return;
+        }
+
+        aluno.getGraduacao().demoteBelt();
+        aluno.getGraduacao().setLevel(GraduationLevel.IV);
+        alunoRepository.save(aluno);
+    }
+
+    @Transactional
+    public void promoverGrau(UUID id) {
+        var aluno = buscarAlunoPorId(id);
+
+        if (aluno.getGraduacao() == null || aluno.getGraduacao().getLevel() == null)
+            throw new ValidacaoException("Graduação do aluno não está inicializada");
+
+        if (aluno.getGraduacao().getLevel() == GraduationLevel.IV)
+            throw new ValidacaoException("Aluno já está no grau máximo.");
+
+        aluno.getGraduacao().promoteLevel();
+        alunoRepository.save(aluno);
+    }
+
+    @Transactional
+    public void rebaixarGrau(UUID id) {
+        var aluno = buscarAlunoPorId(id);
+
+        if (aluno.getGraduacao() == null || aluno.getGraduacao().getLevel() == null)
+            throw new ValidacaoException("Graduação do aluno não está inicializada");
+
+        if (aluno.getGraduacao().getLevel() == GraduationLevel.ZERO)
+            throw new ValidacaoException("Aluno já está no grau mínimo.");
+
+        aluno.getGraduacao().demoteLevel();
+        alunoRepository.save(aluno);
+    }
+    
+    private Aluno buscarAlunoPorId(UUID id) {
+        return alunoRepository.findById(id)
+                .orElseThrow(AlunoNaoEncontradoException::new);
     }
 
     private boolean isMenorDeIdade(LocalDate dataNascimento, List<UUID> idsResponsaveis) {

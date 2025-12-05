@@ -6,15 +6,9 @@ import com.fighthub.dto.aula.AulaUpdateCompletoRequest;
 import com.fighthub.dto.aula.AulaUpdateStatusRequest;
 import com.fighthub.exception.*;
 import com.fighthub.mapper.AulaMapper;
-import com.fighthub.model.Aluno;
-import com.fighthub.model.Aula;
-import com.fighthub.model.Turma;
-import com.fighthub.model.Usuario;
+import com.fighthub.model.*;
 import com.fighthub.model.enums.ClassStatus;
-import com.fighthub.repository.AlunoRepository;
-import com.fighthub.repository.AulaRepository;
-import com.fighthub.repository.TurmaRepository;
-import com.fighthub.repository.UsuarioRepository;
+import com.fighthub.repository.*;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -34,6 +28,7 @@ public class AulaService {
     private final TurmaRepository turmaRepository;
     private final UsuarioRepository usuarioRepository;
     private final AlunoRepository alunoRepository;
+    private final ProfessorRepository professorRepository;
     private final JwtService jwtService;
 
     @Transactional
@@ -50,7 +45,14 @@ public class AulaService {
     public Page<AulaResponse> buscarAulasDisponiveisAluno(Pageable pageable, HttpServletRequest request) {
         List<Turma> turmasMatriculadas = buscarTurmasMatriculadasPorAluno(request);
 
-        return aulaRepository.findByStatusAndTurmaIn(ClassStatus.DISPONIVEL ,turmasMatriculadas, pageable)
+        return aulaRepository.findByStatusAndTurmaIn(ClassStatus.DISPONIVEL, turmasMatriculadas, pageable)
+                .map(AulaMapper::toDTO);
+    }
+
+    public Page<AulaResponse> buscarAulasDisponiveisProfessor(Pageable pageable, HttpServletRequest request) {
+        List<Turma> turmasMinistradas = buscarTurmasMinistradasPorProfessor(request);
+
+        return aulaRepository.findByStatusAndTurmaIn(ClassStatus.DISPONIVEL, turmasMinistradas, pageable)
                 .map(AulaMapper::toDTO);
     }
 
@@ -58,7 +60,6 @@ public class AulaService {
         return AulaMapper.toDTO(buscarAulaOuLancar(idAula));
     }
 
-    @Transactional
     public AulaResponse atualizarAula(AulaUpdateCompletoRequest request, UUID id) {
         Aula aula = buscarAulaOuLancar(id);
         Turma turma = buscarTurmaOuLancar(request.turmaId());
@@ -78,7 +79,8 @@ public class AulaService {
         Aula aula = buscarAulaOuLancar(idAula);
         Turma turma = buscarTurmaOuLancar(idTurma);
 
-        if (aula.getTurma() != null && aula.getTurma().getId().equals(turma.getId())) throw new ValidacaoException("Turma já está vinculada à aula.");
+        if (aula.getTurma() != null && aula.getTurma().getId().equals(turma.getId()))
+            throw new ValidacaoException("Turma já está vinculada à aula.");
 
         aula.setTurma(turma);
         aulaRepository.save(aula);
@@ -89,7 +91,8 @@ public class AulaService {
         Aula aula = buscarAulaOuLancar(idAula);
         Turma turma = buscarTurmaOuLancar(idTurma);
 
-        if (aula.getTurma() != turma) throw new ValidacaoException("Turma ainda não vinculada à aula.");
+        if (aula.getTurma() == null || !aula.getTurma().getId().equals(turma.getId()))
+            throw new ValidacaoException("Turma ainda não vinculada à aula.");
 
         aula.setTurma(null);
         aulaRepository.save(aula);
@@ -110,15 +113,38 @@ public class AulaService {
                 .orElseThrow(AulaNaoEncontradaException::new);
     }
 
-    private List<Turma> buscarTurmasMatriculadasPorAluno(HttpServletRequest request) {
-        String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
-        String email = jwtService.extrairEmail(authHeader.substring(7));
-
-        Usuario usuario = usuarioRepository.findByEmail(email)
+    private Usuario buscarUsuarioPorEmailOuLancar(String email) {
+        return usuarioRepository.findByEmail(email)
                 .orElseThrow(UsuarioNaoEncontradoException::new);
+    }
 
-        Aluno aluno = alunoRepository.findByUsuarioId(usuario.getId())
+    private Aluno buscarAlunoPorUsuarioOuLancar(Usuario usuario) {
+        return alunoRepository.findByUsuarioId(usuario.getId())
                 .orElseThrow(AlunoNaoEncontradoException::new);
+    }
+
+    private Professor buscarProfessorPorUsuarioOuLancar(Usuario usuario) {
+        return professorRepository.findByUsuario(usuario)
+                .orElseThrow(ProfessorNaoEncontradoException::new);
+    }
+
+    private String extrairEmailDoRequest(HttpServletRequest request) {
+        String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
+        return jwtService.extrairEmail(authHeader.substring(7));
+    }
+
+    private List<Turma> buscarTurmasMinistradasPorProfessor(HttpServletRequest request) {
+        String email = extrairEmailDoRequest(request);
+        Usuario usuario = buscarUsuarioPorEmailOuLancar(email);
+        Professor professor = buscarProfessorPorUsuarioOuLancar(usuario);
+
+        return turmaRepository.findAllByProfessor(professor);
+    }
+
+    private List<Turma> buscarTurmasMatriculadasPorAluno(HttpServletRequest request) {
+        String email = extrairEmailDoRequest(request);
+        Usuario usuario = buscarUsuarioPorEmailOuLancar(email);
+        Aluno aluno = buscarAlunoPorUsuarioOuLancar(usuario);
 
         return turmaRepository.findAllByAlunos(aluno);
     }
