@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -26,6 +27,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/professores")
 @RequiredArgsConstructor
+@Tag(name = "Professores", description = "Endpoints para criação e gerenciamento de Professores no FightHub")
 public class ProfessorController {
 
     private final ProfessorService professorService;

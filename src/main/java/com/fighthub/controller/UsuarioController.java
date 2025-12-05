@@ -35,7 +35,7 @@ public class UsuarioController {
     @ApiResponse(responseCode = "200", description = "Lista de usuários retornada com sucesso",
             content = @Content(schema = @Schema(implementation = UsuarioResponse.class)))
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','COORDENADOR')")
     public ResponseEntity<Page<UsuarioResponse>> obterUsuarios(Pageable pageable) {
         var usuarios = usuarioService.obterTodosUsuarios(pageable);
         return ResponseEntity.status(HttpStatus.OK).body(usuarios);
@@ -50,7 +50,7 @@ public class UsuarioController {
                             examples = @ExampleObject(name = "Usuário não encontrado", value = SwaggerExamples.USUARIO_NAO_ENCONTRADO)))
     })
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','COORDENADOR')")
     public ResponseEntity<UsuarioDetalhadoResponse> obterUsuarioEspecifico(@PathVariable UUID id) {
         var usuario = usuarioService.obterUsuario(id);
         return ResponseEntity.status(HttpStatus.OK).body(usuario);
@@ -139,6 +139,7 @@ public class UsuarioController {
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     @GetMapping("/me")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<UsuarioDetalhadoResponse> obterDadosProprios(HttpServletRequest request) {
         var usuario = usuarioService.obterDadosDoProprioUsuario(request);
         return ResponseEntity.status(HttpStatus.OK).body(usuario);
@@ -154,6 +155,7 @@ public class UsuarioController {
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     @PutMapping("/me")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<UsuarioDetalhadoResponse> alterarDadosPropriosCompletamente(HttpServletRequest request, @RequestBody @Valid UsuarioUpdateCompletoRequest updateRequest) {
         var usuario = usuarioService.updateProprioCompleto(request, updateRequest);
         return ResponseEntity.status(HttpStatus.OK).body(usuario);
@@ -169,6 +171,7 @@ public class UsuarioController {
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     @PatchMapping("/me")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<UsuarioDetalhadoResponse> alterarDadosPropriosParcialmente(HttpServletRequest request, @RequestBody @Valid UsuarioUpdateParcialRequest updateRequest) {
         var usuario = usuarioService.updateProprioParcial(request, updateRequest);
         return ResponseEntity.status(HttpStatus.OK).body(usuario);
@@ -183,6 +186,7 @@ public class UsuarioController {
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     @PatchMapping("/me/password")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Void> alterarSenha(HttpServletRequest request, @RequestBody @Valid UpdateSenhaRequest updateRequest) {
         usuarioService.updateSenha(request, updateRequest);
         return ResponseEntity.status(HttpStatus.OK).build();
