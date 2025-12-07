@@ -2,7 +2,8 @@ package com.fighthub.dto.dashboard;
 
 public record DashboardResponse(
 
-    GeralDashboardResponse dadosGerais
+    GeralDashboardResponse dadosGerais,
+    TurmasDashboardResponse dadosTurmas
 
 ) {
 }
