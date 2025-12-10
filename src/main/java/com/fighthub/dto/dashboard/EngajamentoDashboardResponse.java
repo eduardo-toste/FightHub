@@ -1,6 +1,6 @@
 package com.fighthub.dto.dashboard;
 
-import com.fighthub.model.Aluno;
+import com.fighthub.dto.aluno.AlunoResponse;
 
 import java.util.List;
 
@@ -12,7 +12,7 @@ public record EngajamentoDashboardResponse(
         int aulasCanceladasUltimos30Dias,
         double presencaMediaGeral,
         double presencaMediaPorTurma,
-        List<Aluno> top5AlunosMaisEngajados
+        List<AlunoResponse> top5AlunosMaisEngajados
 
 ) {
 }
