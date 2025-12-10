@@ -6,7 +6,7 @@ public record GeralDashboardResponse(
         int totalAlunosInativos,
         int novosAlunosUltimos30Dias,
         int alunosQueSairamUltimos30Dias,
-        int idadeMediaAlunos
+        double idadeMediaAlunos
 
 ) {
 }
