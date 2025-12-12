@@ -2,7 +2,8 @@ package com.fighthub.dto.dashboard;
 
 public record TurmasDashboardResponse(
 
-        int totalTurmasAtivas,
+        long totalTurmasAtivas,
+        long totalTurmasInativas,
         double ocupacaoMediaTurmas
 
 ) {
