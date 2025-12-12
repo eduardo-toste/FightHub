@@ -2,7 +2,9 @@ package com.fighthub.service;
 
 import com.fighthub.dto.dashboard.DashboardResponse;
 import com.fighthub.dto.dashboard.GeralDashboardResponse;
+import com.fighthub.dto.dashboard.TurmasDashboardResponse;
 import com.fighthub.repository.AlunoRepository;
+import com.fighthub.repository.TurmaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -13,6 +15,7 @@ import java.time.LocalDate;
 public class DashboardService {
 
     private final AlunoRepository alunoRepository;
+    private final TurmaRepository turmaRepository;
 
     public DashboardResponse getDashboardData() {
         long alunosAtivos = calcularTotalAlunosAtivos();
@@ -20,8 +23,13 @@ public class DashboardService {
         long alunosNovos30Dias = calcularNovosAlunosUltimos30Dias();
         int idadeMediaAlunos = calcularIdadeMediaAlunos();
 
+        long turmasAtivas = calcularTotalTurmasAtivas();
+        long turmasInativas = calcularTotalTurmasInativas();
+
         return new DashboardResponse(
-                new GeralDashboardResponse(alunosAtivos, alunosInativos, alunosNovos30Dias, idadeMediaAlunos));
+                new GeralDashboardResponse(alunosAtivos, alunosInativos, alunosNovos30Dias, idadeMediaAlunos),
+                new TurmasDashboardResponse(turmasAtivas, turmasInativas, 00.0),
+                null);
     }
 
     private long calcularTotalAlunosAtivos() {
@@ -49,5 +57,13 @@ public class DashboardService {
             return Integer.MAX_VALUE;
         }
         return (int) media;
+    }
+
+    private long calcularTotalTurmasAtivas() {
+        return turmaRepository.countByAtivo(true);
+    }
+
+    private long calcularTotalTurmasInativas() {
+        return turmaRepository.countByAtivo(false);
     }
 }
