@@ -1,7 +1,7 @@
 package com.fighthub.service;
 
 import com.fighthub.dto.dashboard.DashboardResponse;
-import com.fighthub.dto.dashboard.GeralDashboardResponse;
+import com.fighthub.dto.dashboard.AlunosDashboardResponse;
 import com.fighthub.dto.dashboard.TurmasDashboardResponse;
 import com.fighthub.repository.AlunoRepository;
 import com.fighthub.repository.TurmaRepository;
@@ -27,7 +27,7 @@ public class DashboardService {
         long turmasInativas = calcularTotalTurmasInativas();
 
         return new DashboardResponse(
-                new GeralDashboardResponse(alunosAtivos, alunosInativos, alunosNovos30Dias, idadeMediaAlunos),
+                new AlunosDashboardResponse(alunosAtivos, alunosInativos, alunosNovos30Dias, idadeMediaAlunos),
                 new TurmasDashboardResponse(turmasAtivas, turmasInativas, 00.0),
                 null);
     }
