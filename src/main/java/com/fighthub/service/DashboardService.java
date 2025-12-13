@@ -4,6 +4,7 @@ import com.fighthub.dto.dashboard.DashboardResponse;
 import com.fighthub.dto.dashboard.AlunosDashboardResponse;
 import com.fighthub.dto.dashboard.TurmasDashboardResponse;
 import com.fighthub.repository.AlunoRepository;
+import com.fighthub.repository.AulaRepository;
 import com.fighthub.repository.TurmaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -16,6 +17,7 @@ public class DashboardService {
 
     private final AlunoRepository alunoRepository;
     private final TurmaRepository turmaRepository;
+    private final AulaRepository aulaRepository;
 
     public DashboardResponse getDashboardData() {
         long alunosAtivos = calcularTotalAlunosAtivos();
@@ -25,10 +27,11 @@ public class DashboardService {
 
         long turmasAtivas = calcularTotalTurmasAtivas();
         long turmasInativas = calcularTotalTurmasInativas();
+        double ocupacaoMediaAulas = calcularOcupacaoMediaAulas();
 
         return new DashboardResponse(
                 new AlunosDashboardResponse(alunosAtivos, alunosInativos, alunosNovos30Dias, idadeMediaAlunos),
-                new TurmasDashboardResponse(turmasAtivas, turmasInativas, 00.0),
+                new TurmasDashboardResponse(turmasAtivas, turmasInativas, ocupacaoMediaAulas),
                 null);
     }
 
@@ -65,5 +68,9 @@ public class DashboardService {
 
     private long calcularTotalTurmasInativas() {
         return turmaRepository.countByAtivo(false);
+    }
+
+    private Double calcularOcupacaoMediaAulas() {
+        return aulaRepository.calcularOcupacaoMediaAulas();
     }
 }
