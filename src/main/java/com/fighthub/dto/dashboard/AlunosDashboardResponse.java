@@ -1,6 +1,6 @@
 package com.fighthub.dto.dashboard;
 
-public record GeralDashboardResponse(
+public record AlunosDashboardResponse(
 
         long totalAlunosAtivos,
         long totalAlunosInativos,
