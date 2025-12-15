@@ -1,8 +1,6 @@
 package com.fighthub.service;
 
-import com.fighthub.dto.dashboard.DashboardResponse;
-import com.fighthub.dto.dashboard.AlunosDashboardResponse;
-import com.fighthub.dto.dashboard.TurmasDashboardResponse;
+import com.fighthub.dto.dashboard.*;
 import com.fighthub.repository.AlunoRepository;
 import com.fighthub.repository.AulaRepository;
 import com.fighthub.repository.TurmaRepository;
@@ -10,6 +8,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.YearMonth;
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -32,10 +34,18 @@ public class DashboardService {
         double percentualAulasLotadas = calcularPercentualAulasLotadas();
         double mediaAlunosPorAula = calcularMediaAlunosPorAula();
 
+        YearMonth month = YearMonth.now();
+        long aulasPrevistas = countAulasPrevistas(month);
+        long aulasRealizadas = countAulasRealizadas(month);
+        long aulasCanceladas = countAulasCanceladas(month);
+        double presenceAvgOverall = presenceAverageOverall(month);
+        double presenceAvgPerClass = presenceAveragePerClass(month);
+        List<AlunosFaltasResponse> top5Faltas = top5AlunosComMaisFaltas(month);
+
         return new DashboardResponse(
                 new AlunosDashboardResponse(alunosAtivos, alunosInativos, alunosNovos30Dias, idadeMediaAlunos),
                 new TurmasDashboardResponse(turmasAtivas, turmasInativas, ocupacaoMediaAulas, percentualAulasLotadas, mediaAlunosPorAula),
-                null);
+                new EngajamentoDashboardResponse(aulasPrevistas, aulasRealizadas, aulasCanceladas, presenceAvgOverall, presenceAvgPerClass, top5Faltas));
     }
 
     private long calcularTotalAlunosAtivos() {
@@ -85,5 +95,50 @@ public class DashboardService {
     private double calcularMediaAlunosPorAula() {
         Double val = aulaRepository.calcularMediaAlunosPorAula();
         return val == null ? 0.0 : val;
+    }
+
+    public long countAulasPrevistas(YearMonth month) {
+        LocalDate start = month.atDay(1);
+        LocalDate end = month.atEndOfMonth();
+        return aulaRepository.countScheduledBetween(start, end);
+    }
+
+    public long countAulasRealizadas(YearMonth month) {
+        LocalDate start = month.atDay(1);
+        LocalDate end = month.atEndOfMonth();
+        return aulaRepository.countConductedBetween(start, end);
+    }
+
+    public long countAulasCanceladas(YearMonth month) {
+        LocalDate start = month.atDay(1);
+        LocalDate end = month.atEndOfMonth();
+        return aulaRepository.countCanceledBetween(start, end);
+    }
+
+    public double presenceAverageOverall(YearMonth month) {
+        LocalDate start = month.atDay(1);
+        LocalDate end = month.atEndOfMonth();
+        Double val = aulaRepository.overallAverageAttendancePercentBetween(start, end);
+        return val == null ? 0.0 : val;
+    }
+
+    public double presenceAveragePerClass(YearMonth month) {
+        LocalDate start = month.atDay(1);
+        LocalDate end = month.atEndOfMonth();
+        Double val = aulaRepository.averageAttendancePercentPerClassBetween(start, end);
+        return val == null ? 0.0 : val;
+    }
+
+    public List<AlunosFaltasResponse> top5AlunosComMaisFaltas(YearMonth month) {
+        LocalDate start = month.atDay(1);
+        LocalDate end = month.atEndOfMonth();
+        List<Object[]> rows = aulaRepository.findTop5AlunosWithMostAbsencesBetween(start, end);
+        return rows.stream()
+                .map(r -> new AlunosFaltasResponse(
+                        r[0] == null ? null : UUID.fromString(r[0].toString()),
+                        r[1] == null ? null : r[1].toString(),
+                        r[2] == null ? 0L : ((Number) r[2]).longValue()
+                ))
+                .collect(Collectors.toList());
     }
 }
