@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.YearMonth;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -83,8 +84,9 @@ public class DashboardService {
         return turmaRepository.countByAtivo(false);
     }
 
-    private Double calcularOcupacaoMediaAulas() {
-        return aulaRepository.calcularOcupacaoMediaAulas();
+    private double calcularOcupacaoMediaAulas() {
+        Double val = aulaRepository.calcularOcupacaoMediaAulas();
+        return val == null ? 0.0 : val;
     }
 
     private double calcularPercentualAulasLotadas() {
@@ -133,6 +135,11 @@ public class DashboardService {
         LocalDate start = month.atDay(1);
         LocalDate end = month.atEndOfMonth();
         List<Object[]> rows = aulaRepository.findTop5AlunosWithMostAbsencesBetween(start, end);
+
+        if (rows == null) {
+            return Collections.emptyList();
+        }
+
         return rows.stream()
                 .map(r -> new AlunosFaltasResponse(
                         r[0] == null ? null : UUID.fromString(r[0].toString()),
