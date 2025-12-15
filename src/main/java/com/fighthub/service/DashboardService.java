@@ -29,9 +29,12 @@ public class DashboardService {
         long turmasInativas = calcularTotalTurmasInativas();
         double ocupacaoMediaAulas = calcularOcupacaoMediaAulas();
 
+        double percentualAulasLotadas = calcularPercentualAulasLotadas();
+        double mediaAlunosPorAula = calcularMediaAlunosPorAula();
+
         return new DashboardResponse(
                 new AlunosDashboardResponse(alunosAtivos, alunosInativos, alunosNovos30Dias, idadeMediaAlunos),
-                new TurmasDashboardResponse(turmasAtivas, turmasInativas, ocupacaoMediaAulas),
+                new TurmasDashboardResponse(turmasAtivas, turmasInativas, ocupacaoMediaAulas, percentualAulasLotadas, mediaAlunosPorAula),
                 null);
     }
 
@@ -72,5 +75,15 @@ public class DashboardService {
 
     private Double calcularOcupacaoMediaAulas() {
         return aulaRepository.calcularOcupacaoMediaAulas();
+    }
+
+    private double calcularPercentualAulasLotadas() {
+        Double val = aulaRepository.calcularPercentualAulasLotadas();
+        return val == null ? 0.0 : val;
+    }
+
+    private double calcularMediaAlunosPorAula() {
+        Double val = aulaRepository.calcularMediaAlunosPorAula();
+        return val == null ? 0.0 : val;
     }
 }
