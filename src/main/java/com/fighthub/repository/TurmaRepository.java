@@ -14,4 +14,6 @@ public interface TurmaRepository extends JpaRepository<Turma, UUID> {
 
     List<Turma> findAllByProfessor(Professor professor);
 
+    long countByAtivo(boolean ativo);
+
 }

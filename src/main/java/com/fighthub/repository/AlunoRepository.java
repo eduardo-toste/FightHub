@@ -5,7 +5,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDate;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -20,5 +23,13 @@ public interface AlunoRepository extends JpaRepository<Aluno, UUID> {
     Optional<Aluno> findById(UUID id);
 
     Optional<Aluno> findByUsuarioId(UUID id);
+
+    long countByMatriculaAtiva(boolean statusMatricula);
+
+    long countByMatriculaAtivaAndDataMatriculaAfter(boolean statusMatricula, LocalDate data);
+
+    @Query(value = "SELECT SUM(date_part('year', age(current_date, a.data_nascimento))) " +
+            "FROM alunos a WHERE a.matricula_ativa = :status", nativeQuery = true)
+    long sumAgesByMatriculaAtiva(@Param("status") boolean status);
 
 }
