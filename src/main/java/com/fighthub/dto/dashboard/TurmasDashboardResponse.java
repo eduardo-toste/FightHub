@@ -4,7 +4,9 @@ public record TurmasDashboardResponse(
 
         long totalTurmasAtivas,
         long totalTurmasInativas,
-        double ocupacaoMediaTurmas
+        double ocupacaoMediaTurmas,
+        double percentualAulasLotadas,
+        double mediaAlunosPorAula
 
 ) {
 }
