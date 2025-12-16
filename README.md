@@ -25,41 +25,64 @@
 
 ## Características
 
+Abaixo estão as características concretas implementadas no projeto (baseado no comportamento real das controllers, services e repositórios presentes no código):
+
 ### Autenticação e Autorização
-- **JWT (JSON Web Tokens)** para autenticação segura e stateless
-- **Refresh Tokens** para renovação automática de sessões
-- **Sistema de Roles** com controle granular de acesso:
-  - `ADMIN` - Acesso administrativo completo ao sistema
-  - `COORDENADOR` - Gerenciamento de modalidades e professores
-  - `PROFESSOR` - Gerenciamento de turmas e aulas
-  - `ALUNO` - Acesso às próprias informações e aulas
-  - `RESPONSAVEL` - Acompanhamento de alunos menores
+- Auth baseado em **JWT (JSON Web Tokens)** com suporte a **refresh tokens** para renovação de sessão.
+- Endpoints implementados: `/auth/login`, `/auth/refresh`, `/auth/logout`.
+- Fluxo de recuperação de senha com envio de código por e-mail, validação do código e confirmação de nova senha (`/auth/recuperar-senha`, `/auth/recuperar-senha/validar-codigo`, `/auth/recuperar-senha/nova-senha`).
+- Ativação de conta por token via endpoint `/ativar` (permitindo definir senha e dados no momento da ativação).
+- Criação automática de um usuário administrador na primeira execução (modo dev).
+- Controle de acesso por Roles (via Spring Security): `ADMIN`, `COORDENADOR`, `PROFESSOR`, `ALUNO`, `RESPONSAVEL`.
 
 ### Gerenciamento de Usuários
-- Cadastro e autenticação segura de usuários
-- Perfis completos com foto e informações pessoais
-- Suporte a login social (OAuth2)
-- Controle de status ativo/inativo com auditoria
-- Sistema de ativação de contas por email
+- CRUD e listagens paginadas de usuários (`/usuarios`), com endpoints para:
+  - consulta e atualização dos próprios dados (`/usuarios/me`, `PUT/PATCH /usuarios/me`),
+  - administração de roles (`PATCH /usuarios/{id}/role`) e status (`PATCH /usuarios/{id}/status`) — *Apenas ADMIN*.
+- Validações e mensagens de erro padronizadas via DTOs de erro.
 
-### Gestão de Modalidades
-- Cadastro completo de modalidades de artes marciais
-- Sistema de especialidades por modalidade
-- Controle de graduações e faixas
-- Personalização visual com cores e identificadores
+### Alunos
+- Endpoints para criação, listagem e consulta de alunos (`/alunos`) com paginação.
+- Operações específicas: atualizar data de nascimento, data de matrícula, ativar/desativar matrícula (`PATCH /alunos/{id}/data-nascimento`, `/data-matricula`, `/matricula`).
+- Promoção e rebaixamento de faixa e grau via endpoints dedicados (`/alunos/{id}/promover/faixa`, `/rebaixar/faixa`, `/promover/grau`, `/rebaixar/grau`).
+- Associação de responsáveis a alunos (vínculo e desvínculo).
 
-### Organização Acadêmica
-- **Turmas**: Criação e gerenciamento de turmas por modalidade
-- **Aulas**: Agendamento e controle completo de aulas
-- **Presenças**: Sistema robusto de controle de frequência
-- **Inscrições**: Sistema de inscrições em aulas específicas
-- **Matrículas**: Controle de matrículas e status ativo/inativo
+### Turmas e Professores
+- CRUD de turmas com controle de status (ativo/inativo) e soft delete (`/turmas`).
+- Vinculação/desvinculação de professores e alunos a turmas (`PATCH`/`DELETE` em `/turmas/{idTurma}/professores/{idProfessor}` e `/turmas/{idTurma}/alunos/{idAluno}`).
+- Listagens paginadas e consulta por ID; permissões restritas conforme roles.
 
-### Funcionalidades Administrativas
-- Relatórios detalhados de presença e frequência
-- Controle de professores por especialidade
-- Gerenciamento de responsáveis por alunos
-- Histórico completo de matrículas e evolução
+### Aulas e Inscrições
+- Criação, atualização (com endpoints para atualizar status ou todos os campos), vinculação de turma e exclusão de aulas (`/aulas`).
+- Cada aula tem atributo `limite_alunos` e pode ser associada a uma turma.
+- Inscrições: inscrição do aluno autenticado em uma aula e cancelamento (`POST/DELETE /aulas/{idAula}/inscricoes`), listagem por aula e listagem das próprias inscrições do aluno (`/aulas/inscricoes/minhas`).
+- Endpoints para listar apenas as aulas disponíveis para o aluno ou para o professor autenticado.
+
+### Presenças e métricas de frequência
+- Registro de presença por inscrição com flag `presente` (endpoint de atualização por inscrição) e listagens por aula ou do próprio aluno.
+- Presenças persistidas com data, usadas para cálculos de métricas no `DashboardService` (presença média geral, presença média por turma, top faltas, etc.).
+
+### Dashboard e Métricas Administrativas
+- Endpoint `/admin/dashboard` que agrega múltiplas métricas operacionais:
+  - Dados dos alunos: total ativos/inativos, novos nos últimos 30 dias, idade média.
+  - Dados das turmas: total de turmas ativas/inativas, ocupação média das aulas (0.0–1.0), percentual de aulas lotadas (>90%), média de alunos por aula.
+  - Engajamento no mês: número de aulas previstas, realizadas e canceladas; presença média geral e por turma; top 5 alunos com mais faltas.
+- Métricas calculadas no serviço com queries otimizadas nos repositórios e tratamento de `null` (retorna 0.0 quando aplicável) para evitar divisões por zero.
+
+### Observabilidade, documentação e logs
+- Swagger/OpenAPI disponível em `/swagger-ui.html` e `/v3/api-docs` (anotações em controllers com exemplos e erros).
+- Logs gravados na pasta `logs/`; configuração de nível de log SQL habilitada para desenvolvimento.
+
+### Testes e qualidade de código
+- Testes unitários com JUnit5 + Mockito (muitos serviços incluem testes de unidade); testes de integração estão presentes para cenários principais (Aulas, Inscrições, Presenças, Autenticação).
+- Relatório de cobertura gerado via JaCoCo (`target/site/jacoco/index.html`).
+- Uso de H2 em memória para facilitar testes isolados e TestContainers quando necessário.
+
+### Infra e Deploy
+- Execução local via `mvn spring-boot:run` e empacotamento via `mvn clean package`.
+- Banco containerizado com `docker-compose.yml` para desenvolvimento; Flyway para migrações.
+
+> Observação: esta seção descreve o comportamento implementado no código atual do projeto (controllers, services e repositórios). Para detalhes das regras de negócio e mensagens de erro específicas, consulte os DTOs e serviços correspondentes (`src/main/java/com/fighthub/service`, `controller`, `dto`).
 
 ## Tecnologias
 
@@ -219,6 +242,89 @@ logging.level.org.hibernate.SQL=DEBUG
 
 #### Ativação (`/ativar`)
 - `POST /ativar` - Ativar conta do usuário
+
+#### Aulas (`/aulas`)
+- `POST /aulas` - Criar nova aula - *ADMIN, PROFESSOR*
+- `GET /aulas` - Listar todas as aulas (paginado) - *ADMIN, COORDENADOR, PROFESSOR*
+- `GET /aulas/alunos` - Listar aulas disponíveis para o aluno autenticado - *ALUNO*
+- `GET /aulas/professores` - Listar aulas ministradas pelo professor autenticado - *PROFESSOR*
+- `GET /aulas/{id}` - Obter detalhes da aula por ID - *ADMIN, COORDENADOR, PROFESSOR*
+- `PATCH /aulas/{id}/status` - Atualizar status (ativar/inativar) - *ADMIN, PROFESSOR*
+- `PUT /aulas/{id}` - Atualização completa da aula - *ADMIN, PROFESSOR*
+- `PATCH /aulas/{idAula}/turmas/{idTurma}` - Vincular aula a turma - *ADMIN, PROFESSOR*
+- `DELETE /aulas/{idAula}/turmas/{idTurma}` - Desvincular aula de turma - *ADMIN, PROFESSOR*
+- `DELETE /aulas/{id}` - Excluir aula - *ADMIN, PROFESSOR*
+
+#### Inscrições
+- `POST /aulas/{idAula}/inscricoes` - Inscrever aluno autenticado em uma aula - *ALUNO*
+- `DELETE /aulas/{idAula}/inscricoes` - Cancelar inscrição do aluno autenticado - *ALUNO*
+- `GET /aulas/{idAula}/inscricoes` - Listar inscrições de uma aula (paginado) - *ADMIN, COORDENADOR, PROFESSOR*
+- `GET /aulas/inscricoes/minhas` - Minhas inscrições (paginado) - *ALUNO*
+
+#### Presenças
+- `PATCH /aulas/{idAula}/presencas/inscricao/{idInscricao}` - Atualizar presença (presente/ausente) por inscrição - *ADMIN, PROFESSOR*
+- `GET /aulas/{idAula}/presencas` - Listar presenças de uma aula (paginado) - *ADMIN, PROFESSOR*
+- `GET /aulas/me/presencas` - Listar minhas presenças (paginado) - *ALUNO*
+
+#### Turmas (`/turmas`)
+- `POST /turmas` - Criar nova turma - *ADMIN, COORDENADOR*
+- `GET /turmas` - Listar turmas (paginado) - *ADMIN, COORDENADOR, PROFESSOR*
+- `GET /turmas/{id}` - Buscar turma por ID - *ADMIN, COORDENADOR, PROFESSOR*
+- `PUT /turmas/{id}` - Atualização completa de turma - *ADMIN, COORDENADOR*
+- `PATCH /turmas/{id}/status` - Atualizar status da turma - *ADMIN, COORDENADOR*
+- `DELETE /turmas/{id}` - Excluir turma (soft delete) - *ADMIN, COORDENADOR*
+- `PATCH /turmas/{idTurma}/professores/{idProfessor}` - Vincular professor à turma - *ADMIN, COORDENADOR*
+- `DELETE /turmas/{idTurma}/professores/{idProfessor}` - Desvincular professor - *ADMIN, COORDENADOR*
+- `PATCH /turmas/{idTurma}/alunos/{idAluno}` - Vincular aluno à turma - *ADMIN, COORDENADOR*
+- `DELETE /turmas/{idTurma}/alunos/{idAluno}` - Desvincular aluno - *ADMIN, COORDENADOR*
+
+#### Professores (`/professores`)
+- `POST /professores` - Criar professor - *ADMIN, COORDENADOR*
+- `GET /professores` - Listar professores (paginado) - *ADMIN, COORDENADOR*
+- `GET /professores/{id}` - Buscar professor por ID - *ADMIN, COORDENADOR*
+
+#### Responsáveis (`/responsaveis`)
+- `POST /responsaveis` - Criar responsável - *ADMIN, COORDENADOR*
+- `GET /responsaveis` - Listar responsáveis (paginado) - *ADMIN, COORDENADOR*
+- `GET /responsaveis/{id}` - Buscar responsável por ID - *ADMIN, COORDENADOR*
+- `PATCH /responsaveis/{idResponsavel}/alunos/{idAluno}` - Vincular aluno ao responsável - *ADMIN, COORDENADOR*
+- `DELETE /responsaveis/{idResponsavel}/alunos/{idAluno}` - Remover vínculo - *ADMIN, COORDENADOR*
+
+#### Dashboard (`/admin/dashboard`)
+- `GET /admin/dashboard` - Retorna dados agregados para a visão administrativa do sistema. Campos principais retornados no JSON:
+  - `dadosAlunos`: totais e média de idade
+  - `dadosTurmas`: total de turmas, ocupação média, % de aulas lotadas (>90%), média de alunos por aula
+  - `dadosEngajamento`: aulas previstas/realizadas/canceladas no mês, presença média geral e por turma, top5 alunos com mais faltas
+  - Requer role: `ADMIN` ou `COORDENADOR`
+
+### DTOs do Dashboard (resumo)
+- `DashboardResponse`
+  - `dadosAlunos`: `AlunosDashboardResponse`
+  - `dadosTurmas`: `TurmasDashboardResponse`
+  - `dadosEngajamento`: `EngajamentoDashboardResponse`
+
+- `AlunosDashboardResponse` (exemplo)
+  - `totalAlunosAtivos` (long)
+  - `totalAlunosInativos` (long)
+  - `novosAlunosUltimos30Dias` (long)
+  - `idadeMediaAlunos` (int)
+
+- `TurmasDashboardResponse` (exemplo)
+  - `totalTurmasAtivas` (long)
+  - `totalTurmasInativas` (long)
+  - `ocupacaoMediaTurmas` (double) — média de ocupação (0.0 - 1.0)
+  - `percentualAulasLotadas` (double) — porcentagem de aulas com ocupação > 90 (0.0 - 100.0)
+  - `mediaAlunosPorAula` (double)
+
+- `EngajamentoDashboardResponse` (exemplo)
+  - `aulasPrevistasNoMes` (long)
+  - `aulasRealizadasNoMes` (long)
+  - `aulasCanceladasNoMes` (long)
+  - `presencaMediaGeralNoMes` (double) — presença média considerando todas as turmas (0.0 - 100.0)
+  - `presencaMediaPorTurmaNoMes` (double) — média de presença por turma (0.0 - 100.0)
+  - `top5AlunosComMaisFaltasNoMes` (List<AlunoFaltas>) — lista com os 5 alunos e número de faltas
+
+> Observação: valores nulos retornados pelos repositórios são tratados no serviço e substituídos por 0.0 quando aplicável.
 
 #### Exemplo de Login
 
