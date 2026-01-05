@@ -27,7 +27,8 @@ public class GlobalExceptionHandler {
             TurmaNaoEncontradaException.class,
             AulaNaoEncontradaException.class,
             InscricaoNaoEncontradaException.class,
-            PresencaNaoEncontradaException.class
+            PresencaNaoEncontradaException.class,
+            CepNaoEncontradoException.class
     })
     public ResponseEntity<ErrorResponse> handleNotFoundExceptions(
             RuntimeException ex,
@@ -71,6 +72,22 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MatriculaInvalidaException.class)
     public ResponseEntity<ErrorResponse> handleMatriculaInvalidaException(
             MatriculaInvalidaException ex,
+            HttpServletRequest request
+    ) {
+        return ErrorBuilder.build(HttpStatus.CONFLICT, ex.getMessage(), request.getRequestURI());
+    }
+
+    @ExceptionHandler(CepInvalidoException.class)
+    public ResponseEntity<ErrorResponse> handleCepInvalidoException(
+            CepInvalidoException ex,
+            HttpServletRequest request
+    ) {
+        return ErrorBuilder.build(HttpStatus.CONFLICT, ex.getMessage(), request.getRequestURI());
+    }
+
+    @ExceptionHandler(IntegrationExternalException.class)
+    public ResponseEntity<ErrorResponse> habdleIntegrationExternalException(
+            IntegrationExternalException ex,
             HttpServletRequest request
     ) {
         return ErrorBuilder.build(HttpStatus.CONFLICT, ex.getMessage(), request.getRequestURI());
