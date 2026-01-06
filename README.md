@@ -5,9 +5,11 @@
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-blue.svg)](https://www.postgresql.org/)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-**FightHub** é uma plataforma empresarial para gerenciamento de academias de artes marciais, desenvolvida com arquitetura robusta e segurança avançada. A solução oferece uma API REST completa para administração de usuários, modalidades, turmas, aulas e controle de presenças, atendendo às necessidades de academias de todos os portes.
+**FightHub** é uma plataforma empresarial para gerenciamento de academias de Jiu-Jitsu, desenvolvida com arquitetura robusta e segurança avançada. A solução oferece uma API REST completa para administração de usuários, turmas, aulas e controle de presenças, atendendo às necessidades de academias de todos os portes.
 
-<img width="1422" height="374" alt="Screenshot 2025-09-12 at 20 50 36" src="https://github.com/user-attachments/assets/36ce6cea-f519-4c85-8d03-e56c663d158a" />
+<p align="center">
+  <img width="770" height="157" alt="Screenshot 2026-01-06 at 11 58 11" src="https://github.com/user-attachments/assets/7388d112-9a03-409f-91b8-15d0adf3164d" />
+</p>
 
 ## Índice
 
