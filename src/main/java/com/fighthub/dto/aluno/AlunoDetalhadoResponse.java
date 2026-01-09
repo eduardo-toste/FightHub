@@ -1,6 +1,7 @@
 package com.fighthub.dto.aluno;
 
 import com.fighthub.dto.endereco.EnderecoResponse;
+import com.fighthub.model.GraduacaoAluno;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -15,6 +16,7 @@ public record AlunoDetalhadoResponse(
         LocalDate dataNascimento,
         LocalDate dataMatricula,
         boolean matriculaAtiva,
+        GraduacaoAluno graduacaoAluno,
         EnderecoResponse endereco,
         List<AlunoDetalhadoResponse.ResponsavelResumo> responsaveis
 ) {
