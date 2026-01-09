@@ -17,7 +17,8 @@ public class AlunoMapper {
                 aluno.getUsuario().getFoto(),
                 aluno.getDataNascimento(),
                 aluno.getDataMatricula(),
-                aluno.isMatriculaAtiva()
+                aluno.isMatriculaAtiva(),
+                aluno.getGraduacao()
         );
     }
 
@@ -31,6 +32,7 @@ public class AlunoMapper {
                 aluno.getDataNascimento(),
                 aluno.getDataMatricula(),
                 aluno.isMatriculaAtiva(),
+                aluno.getGraduacao(),
                 EnderecoResponse.fromEntity(aluno.getUsuario().getEndereco()),
                 aluno.getResponsaveis().stream()
                         .map(r -> new AlunoDetalhadoResponse.ResponsavelResumo(
