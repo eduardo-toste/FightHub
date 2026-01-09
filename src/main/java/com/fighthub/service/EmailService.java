@@ -6,7 +6,6 @@ import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.mail.MailException;
-import org.springframework.mail.MailSendException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
@@ -23,7 +22,7 @@ public class EmailService {
 
     @Async
     public void enviarEmailAtivacao(Usuario usuario, String token) {
-        String link = "http://localhost:8080/ativar?token=" + token;
+        String link = "http://localhost:3000/ativar?token=" + token;
 
         Context context = new Context();
         context.setVariable("nome", usuario.getNome());
