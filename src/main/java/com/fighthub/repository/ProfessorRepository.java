@@ -22,4 +22,10 @@ public interface ProfessorRepository extends JpaRepository<Professor, UUID> {
 
     Optional<Professor> findByUsuario(Usuario usuario);
 
+    boolean existsByUsuarioId(UUID id);
+
+    Optional<Professor> findByUsuarioId(UUID id);
+
+    void deleteByUsuarioId(UUID id);
+
 }

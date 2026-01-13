@@ -22,4 +22,10 @@ public interface ResponsavelRepository extends JpaRepository<Responsavel, UUID> 
 
     Optional<Responsavel> findByUsuario(Usuario usuario);
 
+    Optional<Responsavel> findByUsuarioId(UUID id);
+
+    void deleteByUsuarioId(UUID id);
+
+    boolean existsByUsuarioId(UUID id);
+
 }
