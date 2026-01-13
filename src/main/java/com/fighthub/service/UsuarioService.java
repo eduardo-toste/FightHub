@@ -1,24 +1,28 @@
 package com.fighthub.service;
 
 import com.fighthub.dto.usuario.*;
-import com.fighthub.exception.TokenInvalidoException;
 import com.fighthub.exception.UsuarioNaoEncontradoException;
 import com.fighthub.exception.ValidacaoException;
 import com.fighthub.mapper.UsuarioMapper;
-import com.fighthub.model.Token;
 import com.fighthub.model.Usuario;
-import com.fighthub.repository.TokenRepository;
+import com.fighthub.model.enums.Role;
 import com.fighthub.repository.UsuarioRepository;
+import com.fighthub.utils.role.RoleEnterHandler;
+import com.fighthub.utils.role.RoleExitHandler;
+import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -27,6 +31,20 @@ public class UsuarioService {
     private final UsuarioRepository usuarioRepository;
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
+
+    private final List<RoleEnterHandler> enterHandlers;
+    private final List<RoleExitHandler> exitHandlers;
+
+    private Map<Role, RoleEnterHandler> enterMap;
+    private Map<Role, RoleExitHandler> exitMap;
+
+    @PostConstruct
+    private void initRoleMaps() {
+        this.enterMap = enterHandlers.stream()
+                .collect(Collectors.toUnmodifiableMap(RoleEnterHandler::getTargetRole, h -> h));
+        this.exitMap = exitHandlers.stream()
+                .collect(Collectors.toUnmodifiableMap(RoleExitHandler::getSourceRole, h -> h));
+    }
 
     public Page<UsuarioResponse> obterTodosUsuarios(Pageable pageable) {
         return UsuarioMapper.toPage(usuarioRepository.findAll(pageable));
@@ -37,13 +55,24 @@ public class UsuarioService {
                 .orElseThrow(UsuarioNaoEncontradoException::new));
     }
 
+    @Transactional
     public UsuarioResponse updateRole(UUID id, UpdateRoleRequest request) {
         var usuario = usuarioRepository.findById(id)
                 .orElseThrow(UsuarioNaoEncontradoException::new);
 
+        if (request.role() == Role.ADMIN) {
+            throw new ValidacaoException("Não é possível alterar o cargo para ADMIN");
+        }
+
         if (usuario.getRole().equals(request.role())) {
             throw new ValidacaoException("Usuário já cadastrado como " + request.role());
         }
+
+        var exit = exitMap.get(usuario.getRole());
+        if (exit != null) exit.onExit(usuario);
+
+        var enter = enterMap.get(request.role());
+        if (enter != null) enter.onEnter(usuario);
 
         usuario.setRole(request.role());
         usuarioRepository.save(usuario);
