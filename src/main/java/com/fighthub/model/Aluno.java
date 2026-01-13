@@ -13,6 +13,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
+@Setter
 @Builder
 @EqualsAndHashCode(of = "id")
 public class Aluno {
@@ -25,15 +26,12 @@ public class Aluno {
     @JoinColumn(name = "usuario_id", nullable = false)
     private Usuario usuario;
 
-    @Setter
     @Column(name = "data_nascimento", nullable = false)
     private LocalDate dataNascimento;
 
-    @Setter
     @Column(name = "data_matricula")
     private LocalDate dataMatricula;
 
-    @Setter
     @Column(name = "matricula_ativa")
     private boolean matriculaAtiva;
 
@@ -44,7 +42,6 @@ public class Aluno {
     private List<Turma> turmas = new ArrayList<>();
 
     @Embedded
-    @Setter
     private GraduacaoAluno graduacao;
 
 }
