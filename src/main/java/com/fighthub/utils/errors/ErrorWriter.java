@@ -1,4 +1,4 @@
-package com.fighthub.utils;
+package com.fighthub.utils.errors;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fighthub.exception.dto.ErrorResponse;

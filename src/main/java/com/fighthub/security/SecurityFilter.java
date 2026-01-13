@@ -5,7 +5,7 @@ import com.fighthub.exception.TokenInvalidoException;
 import com.fighthub.repository.TokenRepository;
 import com.fighthub.repository.UsuarioRepository;
 import com.fighthub.service.JwtService;
-import com.fighthub.utils.ErrorWriter;
+import com.fighthub.utils.errors.ErrorWriter;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

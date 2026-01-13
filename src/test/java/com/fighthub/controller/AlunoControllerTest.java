@@ -1,25 +1,16 @@
 package com.fighthub.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fighthub.config.TestSecurityConfig;
 import com.fighthub.dto.aluno.*;
 import com.fighthub.dto.endereco.EnderecoResponse;
 import com.fighthub.exception.AlunoNaoEncontradoException;
 import com.fighthub.exception.MatriculaInvalidaException;
-import com.fighthub.repository.TokenRepository;
-import com.fighthub.repository.UsuarioRepository;
 import com.fighthub.service.AlunoService;
-import com.fighthub.service.JwtService;
 import com.fighthub.utils.ControllerTestBase;
-import com.fighthub.utils.ErrorWriter;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDate;
 import java.util.List;

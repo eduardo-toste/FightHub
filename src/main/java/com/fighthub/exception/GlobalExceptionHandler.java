@@ -2,7 +2,7 @@ package com.fighthub.exception;
 
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.fighthub.exception.dto.ErrorResponse;
-import com.fighthub.utils.ErrorBuilder;
+import com.fighthub.utils.errors.ErrorBuilder;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
