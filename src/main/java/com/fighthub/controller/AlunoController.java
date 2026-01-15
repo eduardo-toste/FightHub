@@ -80,9 +80,27 @@ public class AlunoController {
                             examples = @ExampleObject(name = "Aluno não encontrado", value = SwaggerExamples.ALUNO_NAO_ENCONTRADO)))
     })
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'COORDENADOR', 'PROFESSOR')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'COORDENADOR', 'PROFESSOR', 'ALUNO')")
     public ResponseEntity<AlunoDetalhadoResponse> obterAluno(@PathVariable UUID id) {
         var aluno = alunoService.obterAluno(id);
+        return ResponseEntity.status(HttpStatus.OK).body(aluno);
+    }
+
+    @Operation(
+            summary = "Consulta de aluno por ID do usuário",
+            description = "Retorna os dados detalhados de um aluno específico pelo seu ID do usuário."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Aluno encontrado",
+                    content = @Content(schema = @Schema(implementation = AlunoDetalhadoResponse.class))),
+            @ApiResponse(responseCode = "404", description = "Aluno não encontrado",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class),
+                            examples = @ExampleObject(name = "Aluno não encontrado", value = SwaggerExamples.ALUNO_NAO_ENCONTRADO)))
+    })
+    @GetMapping("/por-usuario/{idUsuario}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'COORDENADOR', 'PROFESSOR', 'ALUNO')")
+    public ResponseEntity<AlunoDetalhadoResponse> obterAlunoPorUsuario(@PathVariable UUID idUsuario) {
+        var aluno = alunoService.obterAlunoPorUsuario(idUsuario);
         return ResponseEntity.status(HttpStatus.OK).body(aluno);
     }
 
@@ -117,7 +135,7 @@ public class AlunoController {
                             examples = @ExampleObject(name = "Aluno não encontrado", value = SwaggerExamples.ALUNO_NAO_ENCONTRADO))),
     })
     @PatchMapping("/{id}/data-nascimento")
-    @PreAuthorize("hasAnyRole('ADMIN', 'COORDENADOR')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'COORDENADOR', ALUNO')")
     public ResponseEntity<Void> updateDataNascimento(@PathVariable UUID id, @RequestBody AlunoUpdateDataNascimentoRequest request) {
         alunoService.atualizarDataNascimento(id, request);
         return ResponseEntity.status(HttpStatus.OK).build();
