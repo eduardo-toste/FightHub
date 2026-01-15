@@ -28,11 +28,9 @@ public class AlunoEnterHandler implements RoleEnterHandler {
     public void onEnter(Usuario usuario) {
         if (alunoRepository.existsByUsuarioId(usuario.getId())) return;
         var aluno = new Aluno();
+
         aluno.setUsuario(usuario);
-
-        // necessario ajustar
-        aluno.setDataNascimento(LocalDate.now().minusYears(20));
-
+        aluno.setDataNascimento(LocalDate.of(9999, 12, 31));
         aluno.setDataMatricula(LocalDate.now());
         aluno.setMatriculaAtiva(true);
         aluno.setGraduacao(new GraduacaoAluno(BeltGraduation.BRANCA, GraduationLevel.ZERO));
