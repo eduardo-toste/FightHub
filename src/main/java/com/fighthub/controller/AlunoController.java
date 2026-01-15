@@ -5,6 +5,7 @@ import com.fighthub.dto.aluno.*;
 import com.fighthub.exception.dto.ErrorResponse;
 import com.fighthub.service.AlunoService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -20,6 +21,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -135,7 +137,7 @@ public class AlunoController {
                             examples = @ExampleObject(name = "Aluno não encontrado", value = SwaggerExamples.ALUNO_NAO_ENCONTRADO))),
     })
     @PatchMapping("/{id}/data-nascimento")
-    @PreAuthorize("hasAnyRole('ADMIN', 'COORDENADOR', ALUNO')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'COORDENADOR', 'ALUNO')")
     public ResponseEntity<Void> updateDataNascimento(@PathVariable UUID id, @RequestBody AlunoUpdateDataNascimentoRequest request) {
         alunoService.atualizarDataNascimento(id, request);
         return ResponseEntity.status(HttpStatus.OK).build();
@@ -224,5 +226,21 @@ public class AlunoController {
     public ResponseEntity<Void> rebaixarGrau(@PathVariable UUID id) {
         alunoService.rebaixarGrau(id);
         return ResponseEntity.status(HttpStatus.OK).build();
+    }
+
+    @Operation(
+            summary = "Listar Menores sem Responsável",
+            description = "Retorna lista de alunos menores de idade que ainda não possuem um responsável vinculado. Apenas ADMIN e COORDENADOR podem acessar este endpoint."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Lista de menores sem responsável obtida com sucesso",
+                    content = @Content(array = @ArraySchema(schema = @Schema(implementation = AlunoMenorPendenteResponse.class)))),
+            @ApiResponse(responseCode = "403", description = "Acesso negado",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    })
+    @GetMapping("/menores-sem-responsavel")
+    @PreAuthorize("hasAnyRole('ADMIN', 'COORDENADOR')")
+    public ResponseEntity<List<AlunoMenorPendenteResponse>> obterMenoresSemResponsavel() {
+        return ResponseEntity.ok(alunoService.obterMenoresSemResponsavel());
     }
 }
