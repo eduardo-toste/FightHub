@@ -2,6 +2,7 @@ package com.fighthub.mapper;
 
 import com.fighthub.dto.aluno.AlunoDetalhadoResponse;
 import com.fighthub.dto.aluno.AlunoResponse;
+import com.fighthub.dto.aluno.AlunoMenorPendenteResponse;
 import com.fighthub.dto.endereco.EnderecoResponse;
 import com.fighthub.model.Aluno;
 import org.springframework.data.domain.Page;
@@ -41,6 +42,15 @@ public class AlunoMapper {
                                 r.getUsuario().getEmail()
                         ))
                         .toList()
+        );
+    }
+
+    public static AlunoMenorPendenteResponse toMenorPendenteDTO(Aluno aluno) {
+        return new AlunoMenorPendenteResponse(
+                aluno.getId(),
+                aluno.getUsuario().getNome(),
+                aluno.getUsuario().getEmail(),
+                aluno.getDataNascimento().toString()
         );
     }
 
