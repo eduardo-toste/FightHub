@@ -96,6 +96,18 @@ public class AlunoService {
         return AlunoMapper.toDetailedDTO(aluno);
     }
 
+    public List<AlunoMenorPendenteResponse> obterMenoresSemResponsavel() {
+        // Calcula a data limite (18 anos atrás)
+        LocalDate dataLimite = LocalDate.now().minusYears(18);
+        
+        // Busca alunos menores de idade sem responsável vinculado
+        List<Aluno> menores = alunoRepository.findMenoresSemResponsavel(dataLimite);
+        
+        return menores.stream()
+                .map(AlunoMapper::toMenorPendenteDTO)
+                .toList();
+    }
+
     public void atualizarStatusMatricula(UUID id, AlunoUpdateMatriculaRequest request) {
         var aluno = buscarAlunoPorId(id);
 
