@@ -26,6 +26,7 @@ public interface AlunoRepository extends JpaRepository<Aluno, UUID> {
 
     void deleteByUsuarioId(UUID id);
 
+    @EntityGraph(attributePaths = {"usuario", "responsaveis", "responsaveis.usuario"})
     Optional<Aluno> findByUsuarioId(UUID id);
 
     long countByMatriculaAtiva(boolean statusMatricula);
