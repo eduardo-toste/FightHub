@@ -89,6 +89,13 @@ public class AlunoService {
         return AlunoMapper.toDetailedDTO(aluno);
     }
 
+    public AlunoDetalhadoResponse obterAlunoPorUsuario(UUID idUsuario) {
+        var aluno = alunoRepository.findByUsuarioId(idUsuario)
+                .orElseThrow(AlunoNaoEncontradoException::new);
+
+        return AlunoMapper.toDetailedDTO(aluno);
+    }
+
     public void atualizarStatusMatricula(UUID id, AlunoUpdateMatriculaRequest request) {
         var aluno = buscarAlunoPorId(id);
 
