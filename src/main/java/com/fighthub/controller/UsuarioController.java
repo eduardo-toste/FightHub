@@ -17,9 +17,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.UUID;
 
@@ -189,6 +191,36 @@ public class UsuarioController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Void> alterarSenha(HttpServletRequest request, @RequestBody @Valid UpdateSenhaRequest updateRequest) {
         usuarioService.updateSenha(request, updateRequest);
+        return ResponseEntity.status(HttpStatus.OK).build();
+    }
+
+    @Operation(summary = "Atualização da foto do próprio usuário", description = "Faz upload e atualiza a foto de perfil do usuário autenticado.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Foto atualizada com sucesso",
+                    content = @Content(schema = @Schema(implementation = ProfilePhotoResponse.class))),
+            @ApiResponse(responseCode = "400", description = "Requisição inválida",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class),
+                            examples = @ExampleObject(name = "Erro de validação", value = SwaggerExamples.ERRO_VALIDACAO))),
+            @ApiResponse(responseCode = "401", description = "Não autenticado",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    })
+    @PatchMapping(value = "/me/foto", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ProfilePhotoResponse> atualizarFotoPropria(HttpServletRequest request, @RequestPart("file") MultipartFile file) {
+        String url = usuarioService.uploadFotoDoUsuarioLogado(request, file);
+        return ResponseEntity.status(HttpStatus.OK).body(new ProfilePhotoResponse(url));
+    }
+
+    @Operation(summary = "Remoção da foto do próprio usuário", description = "Remove a foto de perfil do usuário autenticado.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Foto removida com sucesso"),
+            @ApiResponse(responseCode = "401", description = "Não autenticado",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    })
+    @DeleteMapping("/me/foto")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Void> removerFotoPropria(HttpServletRequest request) {
+        usuarioService.removerFotoDoUsuarioLogado(request);
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 }
