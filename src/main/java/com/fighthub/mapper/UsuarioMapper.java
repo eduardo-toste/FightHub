@@ -4,8 +4,12 @@ import com.fighthub.dto.endereco.EnderecoResponse;
 import com.fighthub.dto.usuario.UsuarioDetalhadoResponse;
 import com.fighthub.dto.usuario.UsuarioResponse;
 import com.fighthub.model.Usuario;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 
+import static com.fighthub.service.UsuarioService.montarUrl;
+
+@RequiredArgsConstructor
 public class UsuarioMapper {
 
     public static UsuarioResponse toDTO(Usuario usuario) {
@@ -27,7 +31,7 @@ public class UsuarioMapper {
                 usuario.getCpf(),
                 usuario.getEmail(),
                 usuario.getTelefone(),
-                usuario.getFoto(),
+                montarUrl(usuario.getFoto()),
                 usuario.getRole(),
                 usuario.isLoginSocial(),
                 usuario.isAtivo(),
