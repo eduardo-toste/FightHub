@@ -45,3 +45,6 @@ mail.port=587
 mail.username=example@gmail.com
 mail.password=example_password
 mail.tls-enabled=true
+
+# ==================== UPLOADS ====================
+uploads.profile-dir=uploads/profiles
