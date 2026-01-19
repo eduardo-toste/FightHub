@@ -18,6 +18,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Map;
@@ -31,6 +32,7 @@ public class UsuarioService {
     private final UsuarioRepository usuarioRepository;
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
+    private final StorageService storageService;
 
     private final List<RoleEnterHandler> enterHandlers;
     private final List<RoleExitHandler> exitHandlers;
@@ -147,6 +149,27 @@ public class UsuarioService {
         usuarioRepository.save(usuario);
     }
 
+    public String uploadFotoDoUsuarioLogado(HttpServletRequest request, MultipartFile file) {
+        validarImagem(file);
+
+        Usuario usuario = obterUsuarioPorEmail(request);
+        storageService.deleteIfExists(usuario.getFoto());
+
+        String key = storageService.save(file, usuario.getId());
+        usuario.setFoto(key);
+        usuarioRepository.save(usuario);
+
+        return montarUrl(key);
+    }
+
+    public void removerFotoDoUsuarioLogado(HttpServletRequest request) {
+        Usuario usuario = obterUsuarioPorEmail(request);
+        storageService.deleteIfExists(usuario.getFoto());
+
+        usuario.setFoto(null);
+        usuarioRepository.save(usuario);
+    }
+
     private Usuario obterUsuarioPorEmail(HttpServletRequest request) {
         final String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
         final String jwt = authHeader.substring(7);
@@ -154,5 +177,23 @@ public class UsuarioService {
 
         return usuarioRepository.findByEmail(emailUsuario)
                 .orElseThrow(UsuarioNaoEncontradoException::new);
+    }
+
+    public static String montarUrl(String key) {
+        return (key == null || key.isBlank()) ? null : "/files/profiles/" + key;
+    }
+
+    private void validarImagem(MultipartFile file) {
+        if (file == null || file.isEmpty())
+            throw new IllegalArgumentException("Arquivo obrigatório.");
+
+        long max = 2 * 1024 * 1024;
+        if (file.getSize() > max)
+            throw new IllegalArgumentException("Arquivo muito grande (máx 2MB).");
+
+        String ct = file.getContentType();
+        List<String> allowed = List.of("image/jpeg", "image/png", "image/webp");
+        if (ct == null || !allowed.contains(ct))
+            throw new IllegalArgumentException("Tipo inválido. Use JPG, PNG ou WEBP.");
     }
 }
