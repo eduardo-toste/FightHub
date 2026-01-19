@@ -12,7 +12,9 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
@@ -149,6 +151,14 @@ public class GlobalExceptionHandler {
                 .toList();
 
         return ErrorBuilder.build(HttpStatus.BAD_REQUEST, "Erro de validação", request.getRequestURI(), validationError);
+    }
+
+    @ExceptionHandler({IOException.class, IllegalAccessError.class, MaxUploadSizeExceededException.class})
+    public ResponseEntity<ErrorResponse> handleIOException(
+            RuntimeException ex,
+            HttpServletRequest request
+    ) {
+        return ErrorBuilder.build(HttpStatus.BAD_REQUEST, ex.getMessage(), request.getRequestURI());
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
