@@ -49,3 +49,5 @@ jacoco.exec
 
 # Config local
 src/main/resources/application.properties
+
+uploads/
