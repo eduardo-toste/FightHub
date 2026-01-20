@@ -61,7 +61,7 @@ public class JwtService {
                 .claim("role", usuario.getRole().name())
                 .claim("tipo", TokenType.ATIVACAO.name())
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + expiration))
+                .setExpiration(new Date(System.currentTimeMillis() + 86400000))
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
     }
