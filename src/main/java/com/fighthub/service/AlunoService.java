@@ -8,7 +8,6 @@ import com.fighthub.exception.ValidacaoException;
 import com.fighthub.mapper.AlunoMapper;
 import com.fighthub.model.Aluno;
 import com.fighthub.model.GraduacaoAluno;
-import com.fighthub.model.Responsavel;
 import com.fighthub.model.Usuario;
 import com.fighthub.model.enums.BeltGraduation;
 import com.fighthub.model.enums.GraduationLevel;
@@ -35,6 +34,7 @@ public class AlunoService {
     private final AlunoRepository alunoRepository;
     private final UsuarioRepository usuarioRepository;
     private final ResponsavelRepository responsavelRepository;
+    private final ResponsavelService responsavelService;
     private final TokenService tokenService;
     private final EmailService emailService;
 
@@ -70,9 +70,11 @@ public class AlunoService {
                 .build());
 
         if (menorDeIdade) {
-            List<Responsavel> responsaveis = responsavelRepository.findAllById(request.idsResponsaveis());
-            aluno.getResponsaveis().addAll(responsaveis);
-            alunoRepository.save(aluno);
+            if (request.idsResponsaveis() != null && !request.idsResponsaveis().isEmpty()) {
+                for (UUID idResponsavel : request.idsResponsaveis()) {
+                    responsavelService.vincularAlunoAoResponsavel(idResponsavel, aluno.getId());
+                }
+            }
         }
 
         String token = tokenService.salvarTokenAtivacao(usuario);
