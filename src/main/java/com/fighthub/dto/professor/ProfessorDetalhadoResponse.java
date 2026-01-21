@@ -10,6 +10,7 @@ public record ProfessorDetalhadoResponse(
         String nome,
         String email,
         String telefone,
+        String cpf,
         String foto,
         EnderecoResponse endereco
 
