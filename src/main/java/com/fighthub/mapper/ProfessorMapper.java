@@ -14,6 +14,7 @@ public class ProfessorMapper {
                     professor.getUsuario().getNome(),
                     professor.getUsuario().getEmail(),
                     professor.getUsuario().getTelefone(),
+                    professor.getUsuario().getCpf(),
                     professor.getUsuario().getFoto()
             );
         }
@@ -24,6 +25,7 @@ public class ProfessorMapper {
                     professor.getUsuario().getNome(),
                     professor.getUsuario().getEmail(),
                     professor.getUsuario().getTelefone(),
+                    professor.getUsuario().getCpf(),
                     professor.getUsuario().getFoto(),
                     EnderecoResponse.fromEntity(professor.getUsuario().getEndereco())
             );
