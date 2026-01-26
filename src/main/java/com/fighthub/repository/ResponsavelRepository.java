@@ -17,7 +17,7 @@ public interface ResponsavelRepository extends JpaRepository<Responsavel, UUID> 
     Page<Responsavel> findAll(Pageable pageable);
 
     @Override
-    @EntityGraph(attributePaths = {"usuario"})
+    @EntityGraph(attributePaths = {"usuario", "alunos", "alunos.usuario"})
     Optional<Responsavel> findById(UUID id);
 
     Optional<Responsavel> findByUsuario(Usuario usuario);
