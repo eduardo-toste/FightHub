@@ -8,6 +8,7 @@ public record ResponsavelResponse(
         String nome,
         String email,
         String telefone,
+        String cpf,
         String foto
 
 ) {
