@@ -5,7 +5,6 @@ import com.fighthub.dto.responsavel.ResponsavelDetalhadoResponse;
 import com.fighthub.dto.responsavel.ResponsavelResponse;
 import com.fighthub.model.Responsavel;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 
 public class ResponsavelMapper {
 
@@ -15,6 +14,7 @@ public class ResponsavelMapper {
                     responsavel.getUsuario().getNome(),
                     responsavel.getUsuario().getEmail(),
                     responsavel.getUsuario().getTelefone(),
+                    responsavel.getUsuario().getCpf(),
                     responsavel.getUsuario().getFoto()
             );
         }
@@ -25,6 +25,7 @@ public class ResponsavelMapper {
                     responsavel.getUsuario().getNome(),
                     responsavel.getUsuario().getEmail(),
                     responsavel.getUsuario().getTelefone(),
+                    responsavel.getUsuario().getCpf(),
                     responsavel.getUsuario().getFoto(),
                     EnderecoResponse.fromEntity(responsavel.getUsuario().getEndereco())
             );
