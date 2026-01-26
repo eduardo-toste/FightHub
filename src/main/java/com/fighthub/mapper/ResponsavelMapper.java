@@ -6,6 +6,8 @@ import com.fighthub.dto.responsavel.ResponsavelResponse;
 import com.fighthub.model.Responsavel;
 import org.springframework.data.domain.Page;
 
+import java.util.Collections;
+
 public class ResponsavelMapper {
 
         public static ResponsavelResponse toDTO(Responsavel responsavel) {
@@ -27,7 +29,12 @@ public class ResponsavelMapper {
                     responsavel.getUsuario().getTelefone(),
                     responsavel.getUsuario().getCpf(),
                     responsavel.getUsuario().getFoto(),
-                    EnderecoResponse.fromEntity(responsavel.getUsuario().getEndereco())
+                    EnderecoResponse.fromEntity(responsavel.getUsuario().getEndereco()),
+                    responsavel.getAlunos() == null
+                            ? Collections.emptyList()
+                            : responsavel.getAlunos().stream()
+                                .map(AlunoMapper::toDTO)
+                                .toList()
             );
         }
 
