@@ -35,7 +35,9 @@ public class AulaService {
     public void criarAula(AulaRequest request) {
         Turma turma = null;
         if (request.turmaId() != null) turma = buscarTurmaOuLancar(request.turmaId());
-        aulaRepository.save(AulaMapper.toEntity(request, turma));
+        Aula aula = AulaMapper.toEntity(request, turma);
+        aula.setStatus(ClassStatus.DISPONIVEL);
+        aulaRepository.save(aula);
     }
 
     public Page<AulaResponse> buscarAulas(Pageable pageable) {
@@ -71,6 +73,13 @@ public class AulaService {
     public AulaResponse atualizarStatus(UUID id, AulaUpdateStatusRequest request) {
         Aula aula = buscarAulaOuLancar(id);
         aula.setStatus(request.status());
+
+        if (request.status() == ClassStatus.CANCELADA) {
+            aula.setAtivo(false);
+        } else {
+            aula.setAtivo(true);
+        }
+
         return AulaMapper.toDTO(aulaRepository.save(aula));
     }
 
