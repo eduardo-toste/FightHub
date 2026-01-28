@@ -14,7 +14,19 @@ public class TurmaMapper {
                 turma.getNome(),
                 turma.getHorario(),
                 turma.getProfessor() != null ? turma.getProfessor().getId() : null,
-                turma.isAtivo()
+                turma.isAtivo(),
+                0
+        );
+    }
+
+    public static TurmaResponse toDTO(Turma turma, long quantidadeAlunos) {
+        return new TurmaResponse(
+                turma.getId(),
+                turma.getNome(),
+                turma.getHorario(),
+                turma.getProfessor() != null ? turma.getProfessor().getId() : null,
+                turma.isAtivo(),
+                (int) quantidadeAlunos
         );
     }
 
