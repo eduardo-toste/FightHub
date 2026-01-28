@@ -48,6 +48,7 @@ public class TurmaService {
         });
     }
 
+    @Transactional(readOnly = true)
     public TurmaResponse buscarTurmaPorId(UUID id) {
         Turma turma = buscarTurmaOuLancar(id);
         return TurmaMapper.toDTO(turma);
