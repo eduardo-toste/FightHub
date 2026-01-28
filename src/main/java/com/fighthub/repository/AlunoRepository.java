@@ -16,7 +16,7 @@ import java.util.UUID;
 public interface AlunoRepository extends JpaRepository<Aluno, UUID> {
 
     @Override
-    @EntityGraph(attributePaths = {"usuario"})
+    @EntityGraph(attributePaths = {"usuario", "turmas", "turmas.alunos"})
     Page<Aluno> findAll(Pageable pageable);
 
     @Override
