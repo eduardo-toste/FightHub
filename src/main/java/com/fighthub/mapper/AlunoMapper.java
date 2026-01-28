@@ -19,7 +19,10 @@ public class AlunoMapper {
                 aluno.getDataNascimento(),
                 aluno.getDataMatricula(),
                 aluno.isMatriculaAtiva(),
-                aluno.getGraduacao()
+                aluno.getGraduacao(),
+                aluno.getTurmas().stream()
+                        .map(turma -> turma.getId())
+                        .toList()
         );
     }
 
