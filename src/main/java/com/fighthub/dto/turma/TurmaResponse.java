@@ -8,7 +8,8 @@ public record TurmaResponse(
         String nome,
         String horario,
         UUID professorId,
-        boolean ativo
+        boolean ativo,
+        int quantidadeAlunos
 
 ) {
 }
