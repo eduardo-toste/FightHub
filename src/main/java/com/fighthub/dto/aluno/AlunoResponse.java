@@ -3,6 +3,7 @@ package com.fighthub.dto.aluno;
 import com.fighthub.model.GraduacaoAluno;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.UUID;
 
 public record AlunoResponse(
@@ -14,6 +15,7 @@ public record AlunoResponse(
         LocalDate dataNascimento,
         LocalDate dataMatricula,
         boolean matriculaAtiva,
-        GraduacaoAluno graduacaoAluno
+        GraduacaoAluno graduacaoAluno,
+        List<UUID> turmaIds
 ) {
 }
