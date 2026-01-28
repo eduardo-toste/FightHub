@@ -14,6 +14,7 @@ public class TurmaMapper {
                 turma.getNome(),
                 turma.getHorario(),
                 turma.getProfessor() != null ? turma.getProfessor().getId() : null,
+                turma.getProfessor() != null ? turma.getProfessor().getUsuario().getNome() : null,
                 turma.isAtivo(),
                 0
         );
@@ -25,6 +26,7 @@ public class TurmaMapper {
                 turma.getNome(),
                 turma.getHorario(),
                 turma.getProfessor() != null ? turma.getProfessor().getId() : null,
+                turma.getProfessor() != null ? turma.getProfessor().getUsuario().getNome() : null,
                 turma.isAtivo(),
                 (int) quantidadeAlunos
         );
