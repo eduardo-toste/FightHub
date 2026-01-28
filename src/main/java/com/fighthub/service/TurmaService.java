@@ -39,8 +39,13 @@ public class TurmaService {
         turmaRepository.save(TurmaMapper.toEntity(request, professor));
     }
 
+    @Transactional(readOnly = true)
     public Page<TurmaResponse> buscarTurmas(Pageable pageable) {
-        return TurmaMapper.toPageDTO(turmaRepository.findAll(pageable));
+        Page<Turma> turmas = turmaRepository.findAll(pageable);
+        return turmas.map(turma -> {
+            long qtdAlunos = turmaRepository.countAlunosByTurmaId(turma.getId());
+            return TurmaMapper.toDTO(turma, qtdAlunos);
+        });
     }
 
     public TurmaResponse buscarTurmaPorId(UUID id) {
