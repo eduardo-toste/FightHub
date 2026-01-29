@@ -41,6 +41,7 @@ class AlunoServiceTest {
     @Mock private AlunoRepository alunoRepository;
     @Mock private UsuarioRepository usuarioRepository;
     @Mock private ResponsavelRepository responsavelRepository;
+    @Mock private ResponsavelService responsavelService;
     @Mock private TokenService tokenService;
     @Mock private EmailService emailService;
 
@@ -91,6 +92,8 @@ class AlunoServiceTest {
                         GraduationLevel.ZERO
                 ))
                 .build();
+
+        aluno.setTurmas(new ArrayList<>());
     }
 
     @Test
@@ -98,14 +101,15 @@ class AlunoServiceTest {
         when(usuarioRepository.existsByEmail(criarAlunoRequest.email())).thenReturn(false);
         when(usuarioRepository.save(any(Usuario.class))).thenReturn(usuario);
         when(alunoRepository.save(any(Aluno.class))).thenReturn(aluno);
-        when(responsavelRepository.findAllById(any())).thenReturn(List.of(new Responsavel()));
         when(tokenService.salvarTokenAtivacao(usuario)).thenReturn("token-ativacao");
 
         alunoService.criarAluno(criarAlunoRequest);
 
         verify(usuarioRepository).save(any(Usuario.class));
-        verify(alunoRepository, times(2)).save(any(Aluno.class));
+        verify(alunoRepository).save(any(Aluno.class));
+        verify(responsavelService).vincularAlunoAoResponsavel(any(UUID.class), eq(aluno.getId()));
         verify(emailService).enviarEmailAtivacao(usuario, "token-ativacao");
+        verify(tokenService).salvarTokenAtivacao(usuario);
     }
 
     @Test

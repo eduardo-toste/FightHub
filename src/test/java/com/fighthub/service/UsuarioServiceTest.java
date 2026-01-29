@@ -4,7 +4,6 @@ import com.fighthub.dto.endereco.EnderecoRequest;
 import com.fighthub.dto.usuario.*;
 import com.fighthub.exception.UsuarioNaoEncontradoException;
 import com.fighthub.exception.ValidacaoException;
-import com.fighthub.model.Aluno;
 import com.fighthub.model.Endereco;
 import com.fighthub.model.Usuario;
 import com.fighthub.model.enums.Role;
@@ -23,6 +22,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.lang.reflect.Field;
+import java.util.Map;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -44,6 +45,15 @@ class UsuarioServiceTest {
 
     @Mock
     private PasswordEncoder passwordEncoder;
+
+    @Mock
+    private StorageService storageService;
+
+    @Mock
+    private com.fighthub.utils.role.RoleEnterHandler enterHandlerMock;
+
+    @Mock
+    private com.fighthub.utils.role.RoleExitHandler exitHandlerMock;
 
     @InjectMocks
     private UsuarioService usuarioService;
@@ -73,6 +83,19 @@ class UsuarioServiceTest {
                 .loginSocial(false)
                 .endereco(endereco)
                 .build();
+
+        // ensure private maps in UsuarioService are initialized to avoid NPE in updateRole
+        try {
+            Field enterMapField = UsuarioService.class.getDeclaredField("enterMap");
+            enterMapField.setAccessible(true);
+            enterMapField.set(usuarioService, Map.of());
+
+            Field exitMapField = UsuarioService.class.getDeclaredField("exitMap");
+            exitMapField.setAccessible(true);
+            exitMapField.set(usuarioService, Map.of());
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Test
