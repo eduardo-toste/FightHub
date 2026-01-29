@@ -61,7 +61,7 @@ public class AulaController {
     )
     @ApiResponse(responseCode = "200", description = "Lista de aulas retornada com sucesso")
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'COORDENADOR', 'PROFESSOR')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'COORDENADOR', 'PROFESSOR', 'RESPONSAVEL')")
     public ResponseEntity<Page<AulaResponse>> buscarAulas(Pageable pageable) {
         return ResponseEntity.status(HttpStatus.OK).body(aulaService.buscarAulas(pageable));
     }
@@ -76,7 +76,7 @@ public class AulaController {
     )
     @ApiResponse(responseCode = "200", description = "Aulas do aluno retornadas com sucesso")
     @GetMapping("/alunos")
-    @PreAuthorize("hasAnyRole('ADMIN', 'ALUNO')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'ALUNO', 'RESPONSAVEL')")
     public ResponseEntity<Page<AulaResponse>> buscarAulasDisponiveisAluno(Pageable pageable, HttpServletRequest request) {
         return ResponseEntity.status(HttpStatus.OK).body(aulaService.buscarAulasDisponiveisAluno(pageable,request));
     }
