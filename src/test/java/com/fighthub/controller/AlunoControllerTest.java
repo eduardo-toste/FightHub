@@ -56,10 +56,12 @@ class AlunoControllerTest extends ControllerTestBase {
                         "João",
                         "joao@email.com",
                         "(11)99999-9999",
-                        null,
+                        null, // foto
                         LocalDate.of(2003, 10, 15),
                         LocalDate.now(),
-                        true
+                        true,
+                        null, // graduacao
+                        List.of() // turmaIds
                 )
         ));
 
@@ -81,12 +83,13 @@ class AlunoControllerTest extends ControllerTestBase {
                 "João",
                 "joao@email.com",
                 "(11)99999-9999",
-                null,
+                null, // foto
                 LocalDate.of(2003, 10, 15),
                 LocalDate.now(),
                 true,
+                null, // graduacaoAluno
                 new EnderecoResponse("12345-678", "Rua das Flores", "123", "Apto 45", "Centro", "São Paulo", "SP"),
-                List.of()
+                List.of() // responsaveis
         );
 
         when(alunoService.obterAluno(id)).thenReturn(response);

@@ -48,7 +48,8 @@ class ResponsavelControllerTest extends ControllerTestBase {
     @WithMockUser(roles = {"ADMIN"})
     void deveListarResponsaveis() throws Exception {
         var page = new PageImpl<>(List.of(
-                new ResponsavelResponse(UUID.randomUUID(), "Ana", "ana@email.com", "(11)99999-0000", null)
+                // ResponsavelResponse now expects: id, nome, email, telefone, cpf, foto
+                new ResponsavelResponse(UUID.randomUUID(), "Ana", "ana@email.com", "(11)99999-0000", null, null)
         ));
 
         when(responsavelService.obterTodosResponsaveis(any())).thenReturn(page);
@@ -65,8 +66,10 @@ class ResponsavelControllerTest extends ControllerTestBase {
     void deveBuscarResponsavelPorId() throws Exception {
         UUID id = UUID.randomUUID();
         var response = new ResponsavelDetalhadoResponse(
-                id, "Ana", "ana@email.com", "(11)99999-0000", null,
-                new EnderecoResponse("12345-677", "Rua da Flor", "113", "Apto 44", "Centro", "São Paulo", "SP")
+                // ResponsavelDetalhadoResponse now: id, nome, email, telefone, cpf, foto, endereco, List<AlunoResponse>
+                id, "Ana", "ana@email.com", "(11)99999-0000", null, null,
+                new EnderecoResponse("12345-677", "Rua da Flor", "113", "Apto 44", "Centro", "São Paulo", "SP"),
+                List.of()
         );
 
         when(responsavelService.obterResponsavelPorId(id)).thenReturn(response);
