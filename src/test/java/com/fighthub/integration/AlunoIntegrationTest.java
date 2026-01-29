@@ -78,8 +78,8 @@ public class AlunoIntegrationTest extends IntegrationTestBase {
                 "João",
                 "joao@email.com",
                 "107.031.010-72",
-                LocalDate.now().minusYears(17),
-                List.of(UUID.randomUUID())
+                LocalDate.now().minusYears(25),
+                null
         );
 
         mockMvc.perform(post("/alunos")
