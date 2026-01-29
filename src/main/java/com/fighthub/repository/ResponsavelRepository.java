@@ -22,6 +22,7 @@ public interface ResponsavelRepository extends JpaRepository<Responsavel, UUID> 
 
     Optional<Responsavel> findByUsuario(Usuario usuario);
 
+    @EntityGraph(attributePaths = {"usuario", "alunos", "alunos.usuario"})
     Optional<Responsavel> findByUsuarioId(UUID id);
 
     void deleteByUsuarioId(UUID id);
