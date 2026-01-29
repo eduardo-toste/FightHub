@@ -1,5 +1,6 @@
 package com.fighthub.controller;
 
+import com.fighthub.dto.inscricao.InscricaoResponse;
 import com.fighthub.docs.SwaggerExamples;
 import com.fighthub.dto.responsavel.CriarResponsavelRequest;
 import com.fighthub.dto.responsavel.ResponsavelDetalhadoResponse;
@@ -22,6 +23,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -135,6 +137,36 @@ public class ResponsavelController {
     public ResponseEntity<Void> removerVinculoAlunoEResponsavel(@PathVariable UUID idResponsavel, @PathVariable UUID idAluno) {
         responsavelService.removerVinculoAlunoEResponsavel(idResponsavel, idAluno);
         return ResponseEntity.status(HttpStatus.OK).build();
+    }
+
+    @Operation(
+            summary = "Obter dados do responsável autenticado",
+            description = "Retorna os dados detalhados do responsável autenticado, incluindo seus alunos vinculados."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Dados do responsável retornados com sucesso",
+                    content = @Content(schema = @Schema(implementation = ResponsavelDetalhadoResponse.class))),
+            @ApiResponse(responseCode = "401", description = "Não autenticado",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    })
+    @GetMapping("/me")
+    @PreAuthorize("hasRole('RESPONSAVEL')")
+    public ResponseEntity<ResponsavelDetalhadoResponse> obterMeusDados() {
+        var responsavel = responsavelService.obterDadosPropriosResponsavel();
+        return ResponseEntity.status(HttpStatus.OK).body(responsavel);
+    }
+
+    @Operation(
+            summary = "Inscrições dos dependentes",
+            description = "Retorna todas as aulas em que os dependentes do responsável autenticado estão inscritos."
+    )
+    @ApiResponse(responseCode = "200", description = "Lista de inscrições retornada com sucesso",
+            content = @Content(schema = @Schema(implementation = InscricaoResponse.class)))
+    @GetMapping("/me/inscricoes")
+    @PreAuthorize("hasRole('RESPONSAVEL')")
+    public ResponseEntity<List<InscricaoResponse>> obterInscricoesDependentes() {
+        var inscricoes = responsavelService.obterInscricoesDependentes();
+        return ResponseEntity.status(HttpStatus.OK).body(inscricoes);
     }
 
 }
