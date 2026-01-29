@@ -35,12 +35,13 @@ public class InscricaoController {
             @ApiResponse(responseCode = "404", description = "Aula não encontrada", content = @Content)
     })
     @PostMapping("/aulas/{idAula}/inscricoes")
-    @PreAuthorize("hasAnyRole('ALUNO')")
-    public ResponseEntity<Void> inscreverAluno(
+    @PreAuthorize("hasAnyRole('ALUNO', 'RESPONSAVEL')")
+    public ResponseEntity<InscricaoResponse> inscreverAluno(
             @Parameter(description = "ID da aula", required = true) @PathVariable UUID idAula,
+            @Parameter(description = "ID do aluno (opcional, para responsável inscrever dependente)") @RequestParam(required = false) UUID alunoId,
             HttpServletRequest request) {
-        inscricaoService.inscreverAluno(idAula, request);
-        return ResponseEntity.status(HttpStatus.CREATED).build();
+        var inscricao = inscricaoService.inscreverAluno(idAula, alunoId, request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(inscricao);
     }
 
     @Operation(summary = "Cancelar inscrição", description = "Cancela a inscrição do usuário autenticado na aula especificada")
@@ -50,11 +51,12 @@ public class InscricaoController {
             @ApiResponse(responseCode = "404", description = "Inscrição ou aula não encontrada", content = @Content)
     })
     @DeleteMapping("/aulas/{idAula}/inscricoes")
-    @PreAuthorize("hasAnyRole('ALUNO')")
+    @PreAuthorize("hasAnyRole('ALUNO', 'RESPONSAVEL')")
     public ResponseEntity<Void> cancelarInscricaoAluno(
             @Parameter(description = "ID da aula", required = true) @PathVariable UUID idAula,
+            @Parameter(description = "ID do aluno (opcional, para responsável desinscrever dependente)") @RequestParam(required = false) UUID alunoId,
             HttpServletRequest request) {
-        inscricaoService.cancelarInscricao(idAula, request);
+        inscricaoService.cancelarInscricao(idAula, alunoId, request);
         return ResponseEntity.noContent().build();
     }
 
