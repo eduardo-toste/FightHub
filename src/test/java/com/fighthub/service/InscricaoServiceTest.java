@@ -25,7 +25,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.stubbing.Answer;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -76,8 +75,6 @@ class InscricaoServiceTest {
         aluno = Aluno.builder().id(UUID.randomUUID()).build();
         usuario = Usuario.builder().id(UUID.randomUUID()).email("user@example.com").build();
 
-        // make repository.save return the saved instance for Inscricao
-        lenient().when(inscricaoRepository.save(any(Inscricao.class))).thenAnswer((Answer<Inscricao>) invocation -> invocation.getArgument(0));
     }
 
     private HttpServletRequest authRequest() {
@@ -92,15 +89,13 @@ class InscricaoServiceTest {
         Inscricao inscricao = new Inscricao(aluno, aula, SubscriptionStatus.INSCRITO, LocalDateTime.now());
 
         when(aulaRepository.findById(aulaId)).thenReturn(Optional.of(aula));
-        when(jwtService.extrairEmail(anyString())).thenReturn(usuario.getEmail());
-        when(usuarioRepository.findByEmail(usuario.getEmail())).thenReturn(Optional.of(usuario));
-        when(alunoRepository.findByUsuarioId(usuario.getId())).thenReturn(Optional.of(aluno));
+        when(alunoRepository.findById(aluno.getId())).thenReturn(Optional.of(aluno));
         when(inscricaoRepository.findByAulaAndAluno(aula, aluno)).thenReturn(Optional.of(inscricao));
 
         HttpServletRequest request = authRequest();
 
         ValidacaoException ex = assertThrows(ValidacaoException.class,
-                () -> inscricaoService.inscreverAluno(aulaId, request));
+                () -> inscricaoService.inscreverAluno(aulaId, aluno.getId(), request));
         assertEquals("Aluno já inscrito na aula.", ex.getMessage());
         verify(inscricaoRepository, never()).save(any());
     }
@@ -111,14 +106,12 @@ class InscricaoServiceTest {
         Inscricao inscricao = new Inscricao(aluno, aula, SubscriptionStatus.CANCELADO, LocalDateTime.of(2020, 1, 1, 0, 0));
 
         when(aulaRepository.findById(aulaId)).thenReturn(Optional.of(aula));
-        when(jwtService.extrairEmail(anyString())).thenReturn(usuario.getEmail());
-        when(usuarioRepository.findByEmail(usuario.getEmail())).thenReturn(Optional.of(usuario));
-        when(alunoRepository.findByUsuarioId(usuario.getId())).thenReturn(Optional.of(aluno));
+        when(alunoRepository.findById(aluno.getId())).thenReturn(Optional.of(aluno));
         when(inscricaoRepository.findByAulaAndAluno(aula, aluno)).thenReturn(Optional.of(inscricao));
 
         HttpServletRequest request = authRequest();
 
-        inscricaoService.inscreverAluno(aulaId, request);
+        inscricaoService.inscreverAluno(aulaId, aluno.getId(), request);
 
         ArgumentCaptor<Inscricao> captor = ArgumentCaptor.forClass(Inscricao.class);
         verify(inscricaoRepository).save(captor.capture());
@@ -133,14 +126,13 @@ class InscricaoServiceTest {
         UUID aulaId = aula.getId();
 
         when(aulaRepository.findById(aulaId)).thenReturn(Optional.of(aula));
-        when(jwtService.extrairEmail(anyString())).thenReturn(usuario.getEmail());
-        when(usuarioRepository.findByEmail(usuario.getEmail())).thenReturn(Optional.of(usuario));
-        when(alunoRepository.findByUsuarioId(usuario.getId())).thenReturn(Optional.of(aluno));
+        when(alunoRepository.findById(aluno.getId())).thenReturn(Optional.of(aluno));
         when(inscricaoRepository.findByAulaAndAluno(aula, aluno)).thenReturn(Optional.empty());
+        when(inscricaoRepository.save(any(Inscricao.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         HttpServletRequest request = authRequest();
 
-        inscricaoService.inscreverAluno(aulaId, request);
+        inscricaoService.inscreverAluno(aulaId, aluno.getId(), request);
 
         ArgumentCaptor<Inscricao> captor = ArgumentCaptor.forClass(Inscricao.class);
         verify(inscricaoRepository).save(captor.capture());
@@ -165,7 +157,7 @@ class InscricaoServiceTest {
         HttpServletRequest request = authRequest();
 
         ValidacaoException ex = assertThrows(ValidacaoException.class,
-                () -> inscricaoService.cancelarInscricao(aulaId, request));
+                () -> inscricaoService.cancelarInscricao(aulaId, null, request));
         assertEquals("Aluno não está inscrito na aula.", ex.getMessage());
         verify(inscricaoRepository, never()).save(any());
     }
@@ -184,7 +176,7 @@ class InscricaoServiceTest {
         HttpServletRequest request = authRequest();
 
         ValidacaoException ex = assertThrows(ValidacaoException.class,
-                () -> inscricaoService.cancelarInscricao(aulaId, request));
+                () -> inscricaoService.cancelarInscricao(aulaId, null, request));
         assertEquals("Inscrição já está cancelada.", ex.getMessage());
         verify(inscricaoRepository, never()).save(any());
     }
@@ -202,7 +194,7 @@ class InscricaoServiceTest {
 
         HttpServletRequest request = authRequest();
 
-        inscricaoService.cancelarInscricao(aulaId, request);
+        inscricaoService.cancelarInscricao(aulaId, null, request);
 
         ArgumentCaptor<Inscricao> captor = ArgumentCaptor.forClass(Inscricao.class);
         verify(inscricaoRepository).save(captor.capture());
@@ -284,37 +276,21 @@ class InscricaoServiceTest {
     void deveLancarAulaNaoEncontrada_AoInscrever() {
         UUID aulaId = UUID.randomUUID();
         when(aulaRepository.findById(aulaId)).thenReturn(Optional.empty());
-        HttpServletRequest request = authRequest();
 
         assertThrows(AulaNaoEncontradaException.class,
-                () -> inscricaoService.inscreverAluno(aulaId, request));
-    }
-
-    @Test
-    void deveLancarUsuarioNaoEncontrado_AoInscrever() {
-        UUID aulaId = aula.getId();
-        when(aulaRepository.findById(aulaId)).thenReturn(Optional.of(aula));
-        when(jwtService.extrairEmail(anyString())).thenReturn("no@user");
-        when(usuarioRepository.findByEmail("no@user")).thenReturn(Optional.empty());
-
-        HttpServletRequest request = authRequest();
-
-        assertThrows(UsuarioNaoEncontradoException.class,
-                () -> inscricaoService.inscreverAluno(aulaId, request));
+                () -> inscricaoService.inscreverAluno(aulaId, aluno.getId(), authRequest()));
     }
 
     @Test
     void deveLancarAlunoNaoEncontrado_AoInscrever() {
         UUID aulaId = aula.getId();
-        when(aulaRepository.findById(aulaId)).thenReturn(Optional.of(aula));
-        when(jwtService.extrairEmail(anyString())).thenReturn(usuario.getEmail());
-        when(usuarioRepository.findByEmail(usuario.getEmail())).thenReturn(Optional.of(usuario));
-        when(alunoRepository.findByUsuarioId(usuario.getId())).thenReturn(Optional.empty());
+        UUID alunoInexistenteId = UUID.randomUUID();
 
-        HttpServletRequest request = authRequest();
+        when(aulaRepository.findById(aulaId)).thenReturn(Optional.of(aula));
+        when(alunoRepository.findById(alunoInexistenteId)).thenReturn(Optional.empty());
 
         assertThrows(AlunoNaoEncontradoException.class,
-                () -> inscricaoService.inscreverAluno(aulaId, request));
+                () -> inscricaoService.inscreverAluno(aulaId, alunoInexistenteId, authRequest()));
     }
 
     @Test
@@ -327,34 +303,26 @@ class InscricaoServiceTest {
                 .build();
 
         when(aulaRepository.findById(aulaId)).thenReturn(Optional.of(aulaSoon));
-        when(jwtService.extrairEmail(anyString())).thenReturn(usuario.getEmail());
-        when(usuarioRepository.findByEmail(usuario.getEmail())).thenReturn(Optional.of(usuario));
-        when(alunoRepository.findByUsuarioId(usuario.getId())).thenReturn(Optional.of(aluno));
-
-        HttpServletRequest request = authRequest();
+        when(alunoRepository.findById(aluno.getId())).thenReturn(Optional.of(aluno));
 
         ValidacaoException ex = assertThrows(ValidacaoException.class,
-                () -> inscricaoService.inscreverAluno(aulaId, request));
+                () -> inscricaoService.inscreverAluno(aulaId, aluno.getId(), authRequest()));
         assertEquals("Inscrições para esta aula estão encerradas.", ex.getMessage());
     }
 
     @Test
     void deveLancarExcecao_QuandoAulaNaoDisponivel_AoInscrever() {
-        UUID aulaId = UUID.randomUUID();
+        UUID aulaId = aula.getId();
         Aula aulaMock = mock(Aula.class);
 
         when(aulaRepository.findById(aulaId)).thenReturn(Optional.of(aulaMock));
-        when(aulaMock.getData()).thenReturn(LocalDateTime.now().plusHours(2)); // passes time check
-        when(aulaMock.getStatus()).thenReturn(null); // not DISPONIVEL -> should fail
-        when(jwtService.extrairEmail(anyString())).thenReturn(usuario.getEmail());
-        when(usuarioRepository.findByEmail(usuario.getEmail())).thenReturn(Optional.of(usuario));
-        when(alunoRepository.findByUsuarioId(usuario.getId())).thenReturn(Optional.of(aluno));
+        when(aulaMock.getData()).thenReturn(LocalDateTime.now().plusHours(2));
+        when(aulaMock.getStatus()).thenReturn(null);
+        when(alunoRepository.findById(aluno.getId())).thenReturn(Optional.of(aluno));
         when(inscricaoRepository.findByAulaAndAluno(aulaMock, aluno)).thenReturn(Optional.empty());
 
-        HttpServletRequest request = authRequest();
-
         ValidacaoException ex = assertThrows(ValidacaoException.class,
-                () -> inscricaoService.inscreverAluno(aulaId, request));
+                () -> inscricaoService.inscreverAluno(aulaId, aluno.getId(), authRequest()));
         assertEquals("Aula não está disponível para inscrições.", ex.getMessage());
     }
 
@@ -362,10 +330,9 @@ class InscricaoServiceTest {
     void deveLancarAulaNaoEncontrada_AoCancelar() {
         UUID aulaId = UUID.randomUUID();
         when(aulaRepository.findById(aulaId)).thenReturn(Optional.empty());
-        HttpServletRequest request = authRequest();
 
         assertThrows(AulaNaoEncontradaException.class,
-                () -> inscricaoService.cancelarInscricao(aulaId, request));
+                () -> inscricaoService.cancelarInscricao(aulaId, null, authRequest()));
     }
 
     @Test
@@ -378,7 +345,7 @@ class InscricaoServiceTest {
         HttpServletRequest request = authRequest();
 
         assertThrows(UsuarioNaoEncontradoException.class,
-                () -> inscricaoService.cancelarInscricao(aulaId, request));
+                () -> inscricaoService.cancelarInscricao(aulaId, null, request));
     }
 
     @Test
@@ -392,7 +359,7 @@ class InscricaoServiceTest {
         HttpServletRequest request = authRequest();
 
         assertThrows(AlunoNaoEncontradoException.class,
-                () -> inscricaoService.cancelarInscricao(aulaId, request));
+                () -> inscricaoService.cancelarInscricao(aulaId, null, request));
     }
 
     @Test
@@ -406,15 +373,13 @@ class InscricaoServiceTest {
                 .build();
 
         when(aulaRepository.findById(aulaId)).thenReturn(Optional.of(aulaSoon));
-        when(jwtService.extrairEmail(anyString())).thenReturn(usuario.getEmail());
-        when(usuarioRepository.findByEmail(usuario.getEmail())).thenReturn(Optional.of(usuario));
-        when(alunoRepository.findByUsuarioId(usuario.getId())).thenReturn(Optional.of(aluno));
+        when(alunoRepository.findById(aluno.getId())).thenReturn(Optional.of(aluno));
         when(inscricaoRepository.findByAulaAndAluno(aulaSoon, aluno)).thenReturn(Optional.of(inscricao));
 
         HttpServletRequest request = authRequest();
 
         ValidacaoException ex = assertThrows(ValidacaoException.class,
-                () -> inscricaoService.inscreverAluno(aulaId, request));
+                () -> inscricaoService.inscreverAluno(aulaId, aluno.getId(), request));
         assertEquals("Inscrições para esta aula estão encerradas.", ex.getMessage());
     }
 
