@@ -38,9 +38,16 @@ public class InscricaoService {
     private final JwtService jwtService;
 
     @Transactional
-    public void inscreverAluno(UUID idAula, HttpServletRequest request) {
+    public InscricaoResponse inscreverAluno(UUID idAula, UUID alunoId, HttpServletRequest request) {
         Aula aula = buscarAulaPorId(idAula);
-        Aluno aluno = obterAlunoLogado(request);
+        Aluno aluno;
+
+        if (alunoId != null) {
+            aluno = alunoRepository.findById(alunoId)
+                    .orElseThrow(AlunoNaoEncontradoException::new);
+        } else {
+            aluno = obterAlunoLogado(request);
+        }
 
         var optional = inscricaoRepository.findByAulaAndAluno(aula, aluno);
         if (optional.isPresent()) {
@@ -55,17 +62,25 @@ public class InscricaoService {
             inscricao.setStatus(SubscriptionStatus.INSCRITO);
             inscricao.setInscritoEm(LocalDateTime.now());
             inscricaoRepository.save(inscricao);
-            return;
+            return InscricaoMapper.toDTO(inscricao);
         }
 
         verificaDisponibilidadeInscricao(aula);
-        inscricaoRepository.save(new Inscricao(aluno, aula, SubscriptionStatus.INSCRITO, LocalDateTime.now()));
+        Inscricao novaInscricao = inscricaoRepository.save(new Inscricao(aluno, aula, SubscriptionStatus.INSCRITO, LocalDateTime.now()));
+        return InscricaoMapper.toDTO(novaInscricao);
     }
 
     @Transactional
-    public void cancelarInscricao(UUID idAula, HttpServletRequest request) {
+    public void cancelarInscricao(UUID idAula, UUID alunoId, HttpServletRequest request) {
         Aula aula = buscarAulaPorId(idAula);
-        Aluno aluno = obterAlunoLogado(request);
+        Aluno aluno;
+
+        if (alunoId != null) {
+            aluno = alunoRepository.findById(alunoId)
+                    .orElseThrow(AlunoNaoEncontradoException::new);
+        } else {
+            aluno = obterAlunoLogado(request);
+        }
 
         Inscricao inscricao = inscricaoRepository.findByAulaAndAluno(aula, aluno)
                 .orElseThrow(() -> new ValidacaoException("Aluno não está inscrito na aula."));
