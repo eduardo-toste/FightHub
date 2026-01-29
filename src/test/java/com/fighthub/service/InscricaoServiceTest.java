@@ -100,7 +100,7 @@ class InscricaoServiceTest {
         HttpServletRequest request = authRequest();
 
         ValidacaoException ex = assertThrows(ValidacaoException.class,
-                () -> inscricaoService.inscreverAluno(aulaId, null, request));
+                () -> inscricaoService.inscreverAluno(aulaId, request));
         assertEquals("Aluno já inscrito na aula.", ex.getMessage());
         verify(inscricaoRepository, never()).save(any());
     }
@@ -118,7 +118,7 @@ class InscricaoServiceTest {
 
         HttpServletRequest request = authRequest();
 
-        inscricaoService.inscreverAluno(aulaId, null, request);
+        inscricaoService.inscreverAluno(aulaId, request);
 
         ArgumentCaptor<Inscricao> captor = ArgumentCaptor.forClass(Inscricao.class);
         verify(inscricaoRepository).save(captor.capture());
@@ -140,7 +140,7 @@ class InscricaoServiceTest {
 
         HttpServletRequest request = authRequest();
 
-        inscricaoService.inscreverAluno(aulaId, null, request);
+        inscricaoService.inscreverAluno(aulaId, request);
 
         ArgumentCaptor<Inscricao> captor = ArgumentCaptor.forClass(Inscricao.class);
         verify(inscricaoRepository).save(captor.capture());
@@ -165,7 +165,7 @@ class InscricaoServiceTest {
         HttpServletRequest request = authRequest();
 
         ValidacaoException ex = assertThrows(ValidacaoException.class,
-                () -> inscricaoService.cancelarInscricao(aulaId, null, request));
+                () -> inscricaoService.cancelarInscricao(aulaId, request));
         assertEquals("Aluno não está inscrito na aula.", ex.getMessage());
         verify(inscricaoRepository, never()).save(any());
     }
@@ -184,7 +184,7 @@ class InscricaoServiceTest {
         HttpServletRequest request = authRequest();
 
         ValidacaoException ex = assertThrows(ValidacaoException.class,
-                () -> inscricaoService.cancelarInscricao(aulaId, null, request));
+                () -> inscricaoService.cancelarInscricao(aulaId, request));
         assertEquals("Inscrição já está cancelada.", ex.getMessage());
         verify(inscricaoRepository, never()).save(any());
     }
@@ -202,7 +202,7 @@ class InscricaoServiceTest {
 
         HttpServletRequest request = authRequest();
 
-        inscricaoService.cancelarInscricao(aulaId, null, request);
+        inscricaoService.cancelarInscricao(aulaId, request);
 
         ArgumentCaptor<Inscricao> captor = ArgumentCaptor.forClass(Inscricao.class);
         verify(inscricaoRepository).save(captor.capture());
@@ -287,7 +287,7 @@ class InscricaoServiceTest {
         HttpServletRequest request = authRequest();
 
         assertThrows(AulaNaoEncontradaException.class,
-                () -> inscricaoService.inscreverAluno(aulaId, null, request));
+                () -> inscricaoService.inscreverAluno(aulaId, request));
     }
 
     @Test
@@ -300,7 +300,7 @@ class InscricaoServiceTest {
         HttpServletRequest request = authRequest();
 
         assertThrows(UsuarioNaoEncontradoException.class,
-                () -> inscricaoService.inscreverAluno(aulaId, null, request));
+                () -> inscricaoService.inscreverAluno(aulaId, request));
     }
 
     @Test
@@ -314,7 +314,7 @@ class InscricaoServiceTest {
         HttpServletRequest request = authRequest();
 
         assertThrows(AlunoNaoEncontradoException.class,
-                () -> inscricaoService.inscreverAluno(aulaId, null, request));
+                () -> inscricaoService.inscreverAluno(aulaId, request));
     }
 
     @Test
@@ -334,7 +334,7 @@ class InscricaoServiceTest {
         HttpServletRequest request = authRequest();
 
         ValidacaoException ex = assertThrows(ValidacaoException.class,
-                () -> inscricaoService.inscreverAluno(aulaId, null, request));
+                () -> inscricaoService.inscreverAluno(aulaId, request));
         assertEquals("Inscrições para esta aula estão encerradas.", ex.getMessage());
     }
 
@@ -354,7 +354,7 @@ class InscricaoServiceTest {
         HttpServletRequest request = authRequest();
 
         ValidacaoException ex = assertThrows(ValidacaoException.class,
-                () -> inscricaoService.inscreverAluno(aulaId, null, request));
+                () -> inscricaoService.inscreverAluno(aulaId, request));
         assertEquals("Aula não está disponível para inscrições.", ex.getMessage());
     }
 
@@ -365,7 +365,7 @@ class InscricaoServiceTest {
         HttpServletRequest request = authRequest();
 
         assertThrows(AulaNaoEncontradaException.class,
-                () -> inscricaoService.cancelarInscricao(aulaId, null, request));
+                () -> inscricaoService.cancelarInscricao(aulaId, request));
     }
 
     @Test
@@ -378,7 +378,7 @@ class InscricaoServiceTest {
         HttpServletRequest request = authRequest();
 
         assertThrows(UsuarioNaoEncontradoException.class,
-                () -> inscricaoService.cancelarInscricao(aulaId, null, request));
+                () -> inscricaoService.cancelarInscricao(aulaId, request));
     }
 
     @Test
@@ -392,7 +392,7 @@ class InscricaoServiceTest {
         HttpServletRequest request = authRequest();
 
         assertThrows(AlunoNaoEncontradoException.class,
-                () -> inscricaoService.cancelarInscricao(aulaId, null, request));
+                () -> inscricaoService.cancelarInscricao(aulaId, request));
     }
 
     @Test
@@ -414,7 +414,8 @@ class InscricaoServiceTest {
         HttpServletRequest request = authRequest();
 
         ValidacaoException ex = assertThrows(ValidacaoException.class,
-                () -> inscricaoService.inscreverAluno(aulaId, null, request));
+                () -> inscricaoService.inscreverAluno(aulaId, request));
         assertEquals("Inscrições para esta aula estão encerradas.", ex.getMessage());
     }
+
 }
