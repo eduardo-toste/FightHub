@@ -102,11 +102,13 @@ public interface AulaRepository extends JpaRepository<Aula, UUID> {
             nativeQuery = true)
     Double averageAttendancePercentPerClassBetween(@Param("start") LocalDate start, @Param("end") LocalDate end);
 
-    @Query(value = "SELECT i.aluno_id AS aluno_id, COUNT(*) AS faltas " +
+    @Query(value = "SELECT i.aluno_id AS aluno_id, u.nome AS nome_aluno, COUNT(*) AS faltas " +
             "FROM presencas p " +
             "JOIN inscricoes i ON p.inscricao_id = i.id " +
+            "JOIN alunos a ON i.aluno_id = a.id " +
+            "JOIN usuarios u ON a.usuario_id = u.id " +
             "WHERE p.presente = false AND p.data_registro BETWEEN :start AND :end " +
-            "GROUP BY i.aluno_id " +
+            "GROUP BY i.aluno_id, u.nome " +
             "ORDER BY faltas DESC " +
             "LIMIT 5",
             nativeQuery = true)
