@@ -1,20 +1,22 @@
 package com.fighthub.service;
 
 import com.fighthub.dto.aluno.*;
+import com.fighthub.dto.inscricao.InscricaoResponse;
+import com.fighthub.dto.presenca.PresencaResponse;
 import com.fighthub.exception.AlunoNaoEncontradoException;
 import com.fighthub.exception.CpfExistenteException;
 import com.fighthub.exception.MatriculaInvalidaException;
 import com.fighthub.exception.ValidacaoException;
 import com.fighthub.mapper.AlunoMapper;
+import com.fighthub.mapper.InscricaoMapper;
+import com.fighthub.mapper.PresencaMapper;
 import com.fighthub.model.Aluno;
 import com.fighthub.model.GraduacaoAluno;
 import com.fighthub.model.Usuario;
 import com.fighthub.model.enums.BeltGraduation;
 import com.fighthub.model.enums.GraduationLevel;
 import com.fighthub.model.enums.Role;
-import com.fighthub.repository.AlunoRepository;
-import com.fighthub.repository.ResponsavelRepository;
-import com.fighthub.repository.UsuarioRepository;
+import com.fighthub.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -33,8 +35,9 @@ public class AlunoService {
 
     private final AlunoRepository alunoRepository;
     private final UsuarioRepository usuarioRepository;
-    private final ResponsavelRepository responsavelRepository;
     private final ResponsavelService responsavelService;
+    private final PresencaRepository presencaRepository;
+    private final InscricaoRepository inscricaoRepository;
     private final TokenService tokenService;
     private final EmailService emailService;
 
@@ -230,5 +233,19 @@ public class AlunoService {
         }
 
         return menorDeIdade;
+    }
+
+    @Transactional(readOnly = true)
+    public Page<InscricaoResponse> obterInscricoes(UUID id, Pageable pageable) {
+        var aluno = buscarAlunoPorId(id); // Valida se aluno existe
+        var inscricoes = inscricaoRepository.findAllByAluno(aluno, pageable);
+        return InscricaoMapper.toPageDTO(inscricoes);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<PresencaResponse> obterPresencas(UUID id, Pageable pageable) {
+        var inscricoes = inscricaoRepository.findAllByAluno(buscarAlunoPorId(id));
+        var presencas = presencaRepository.findAllByInscricaoIn(inscricoes, pageable);
+        return PresencaMapper.toPageDTO(presencas);
     }
 }
