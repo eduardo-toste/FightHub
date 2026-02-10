@@ -2,6 +2,8 @@ package com.fighthub.controller;
 
 import com.fighthub.docs.SwaggerExamples;
 import com.fighthub.dto.aluno.*;
+import com.fighthub.dto.inscricao.InscricaoResponse;
+import com.fighthub.dto.presenca.PresencaResponse;
 import com.fighthub.exception.dto.ErrorResponse;
 import com.fighthub.service.AlunoService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -242,5 +244,35 @@ public class AlunoController {
     @PreAuthorize("hasAnyRole('ADMIN', 'COORDENADOR')")
     public ResponseEntity<List<AlunoMenorPendenteResponse>> obterMenoresSemResponsavel() {
         return ResponseEntity.ok(alunoService.obterMenoresSemResponsavel());
+    }
+
+    @Operation(
+            summary = "Listar inscrições de um aluno",
+            description = "Retorna uma página paginada com todas as inscrições de um aluno específico."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Inscrições retornadas com sucesso"),
+            @ApiResponse(responseCode = "404", description = "Aluno não encontrado",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    })
+    @GetMapping("/{id}/inscricoes")
+    @PreAuthorize("hasAnyRole('ADMIN', 'COORDENADOR', 'PROFESSOR')")
+    public ResponseEntity<Page<InscricaoResponse>> obterInscricoes(@PathVariable UUID id, Pageable pageable) {
+        return ResponseEntity.ok(alunoService.obterInscricoes(id, pageable));
+    }
+
+    @Operation(
+            summary = "Listar presenças de um aluno",
+            description = "Retorna uma página paginada com todas as presenças de um aluno específico."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Presenças retornadas com sucesso"),
+            @ApiResponse(responseCode = "404", description = "Aluno não encontrado",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    })
+    @GetMapping("/{id}/presencas")
+    @PreAuthorize("hasAnyRole('ADMIN', 'COORDENADOR', 'PROFESSOR')")
+    public ResponseEntity<Page<PresencaResponse>> obterPresencas(@PathVariable UUID id, Pageable pageable) {
+        return ResponseEntity.ok(alunoService.obterPresencas(id, pageable));
     }
 }
