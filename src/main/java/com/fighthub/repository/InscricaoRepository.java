@@ -6,6 +6,7 @@ import com.fighthub.model.Inscricao;
 import com.fighthub.model.enums.SubscriptionStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
@@ -17,6 +18,11 @@ public interface InscricaoRepository extends JpaRepository<Inscricao, UUID> {
     Optional<Inscricao> findByAulaAndAluno(Aula aula, Aluno aluno);
 
     Page<Inscricao> findAllByAula(Aula aula, Pageable pageable);
+
+    List<Inscricao> findAllByAluno(Aluno aluno);
+
+    @EntityGraph(attributePaths = {"aluno", "aluno.usuario", "aula"})
+    Page<Inscricao> findAllByAluno(Aluno aluno, Pageable pageable);
 
     Page<Inscricao> findAllByAlunoAndStatus(Aluno aluno, SubscriptionStatus status, Pageable pageable);
 
