@@ -256,7 +256,7 @@ public class AlunoController {
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     @GetMapping("/{id}/inscricoes")
-    @PreAuthorize("hasAnyRole('ADMIN', 'COORDENADOR', 'PROFESSOR')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'COORDENADOR', 'PROFESSOR', 'ALUNO')")
     public ResponseEntity<Page<InscricaoResponse>> obterInscricoes(@PathVariable UUID id, Pageable pageable) {
         return ResponseEntity.ok(alunoService.obterInscricoes(id, pageable));
     }
@@ -271,7 +271,7 @@ public class AlunoController {
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     @GetMapping("/{id}/presencas")
-    @PreAuthorize("hasAnyRole('ADMIN', 'COORDENADOR', 'PROFESSOR')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'COORDENADOR', 'PROFESSOR', 'ALUNO')")
     public ResponseEntity<Page<PresencaResponse>> obterPresencas(@PathVariable UUID id, Pageable pageable) {
         return ResponseEntity.ok(alunoService.obterPresencas(id, pageable));
     }
