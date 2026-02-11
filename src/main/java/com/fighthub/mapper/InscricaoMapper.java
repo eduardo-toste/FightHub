@@ -9,10 +9,18 @@ import java.util.List;
 public class InscricaoMapper {
 
     public static InscricaoResponse toDTO(Inscricao inscricao) {
+        var aula = inscricao.getAula();
+        var turma = aula != null ? aula.getTurma() : null;
+        
         return new InscricaoResponse(
                 inscricao.getId(),
                 inscricao.getAluno().getId(),
-                inscricao.getAula().getId(),
+                aula != null ? aula.getId() : null,
+                aula != null ? aula.getTitulo() : null,
+                aula != null ? aula.getDescricao() : null,
+                aula != null ? aula.getData() : null,
+                turma != null ? turma.getNome() : null,
+                aula != null ? aula.getLimiteAlunos() : 0,
                 inscricao.getStatus(),
                 inscricao.getInscritoEm()
         );
