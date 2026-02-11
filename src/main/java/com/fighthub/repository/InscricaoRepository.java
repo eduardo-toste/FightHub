@@ -24,6 +24,7 @@ public interface InscricaoRepository extends JpaRepository<Inscricao, UUID> {
     @EntityGraph(attributePaths = {"aluno", "aluno.usuario", "aula"})
     Page<Inscricao> findAllByAluno(Aluno aluno, Pageable pageable);
 
+    @EntityGraph(attributePaths = {"aluno", "aluno.usuario", "aula", "aula.turma"})
     Page<Inscricao> findAllByAlunoAndStatus(Aluno aluno, SubscriptionStatus status, Pageable pageable);
 
     List<Inscricao> findAllByAulaAndStatus(Aula aula, SubscriptionStatus status);
