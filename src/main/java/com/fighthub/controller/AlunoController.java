@@ -84,7 +84,7 @@ public class AlunoController {
                             examples = @ExampleObject(name = "Aluno não encontrado", value = SwaggerExamples.ALUNO_NAO_ENCONTRADO)))
     })
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'COORDENADOR', 'PROFESSOR', 'ALUNO')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'COORDENADOR', 'RESPONSAVEL', 'PROFESSOR', 'ALUNO')")
     public ResponseEntity<AlunoDetalhadoResponse> obterAluno(@PathVariable UUID id) {
         var aluno = alunoService.obterAluno(id);
         return ResponseEntity.status(HttpStatus.OK).body(aluno);
@@ -256,7 +256,7 @@ public class AlunoController {
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     @GetMapping("/{id}/inscricoes")
-    @PreAuthorize("hasAnyRole('ADMIN', 'COORDENADOR', 'PROFESSOR', 'ALUNO')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'COORDENADOR', 'PROFESSOR', 'ALUNO', 'RESPONSAVEL')")
     public ResponseEntity<Page<InscricaoResponse>> obterInscricoes(@PathVariable UUID id, Pageable pageable) {
         return ResponseEntity.ok(alunoService.obterInscricoes(id, pageable));
     }
@@ -271,7 +271,7 @@ public class AlunoController {
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     @GetMapping("/{id}/presencas")
-    @PreAuthorize("hasAnyRole('ADMIN', 'COORDENADOR', 'PROFESSOR', 'ALUNO')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'COORDENADOR', 'PROFESSOR', 'ALUNO', 'RESPONSAVEL')")
     public ResponseEntity<Page<PresencaResponse>> obterPresencas(@PathVariable UUID id, Pageable pageable) {
         return ResponseEntity.ok(alunoService.obterPresencas(id, pageable));
     }
