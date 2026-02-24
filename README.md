@@ -1,471 +1,621 @@
-# FightHub
-
-[![Java](https://img.shields.io/badge/Java-21-orange.svg)](https://openjdk.java.net/)
-[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.2.5-brightgreen.svg)](https://spring.io/projects/spring-boot)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-blue.svg)](https://www.postgresql.org/)
-[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-
-**FightHub** é uma plataforma empresarial para gerenciamento de academias de Jiu-Jitsu, desenvolvida com arquitetura robusta e segurança avançada. A solução oferece uma API REST completa para administração de usuários, turmas, aulas e controle de presenças, atendendo às necessidades de academias de todos os portes.
-
-<p align="center">
-  <img width="770" height="157" alt="Screenshot 2026-01-06 at 11 58 11" src="https://github.com/user-attachments/assets/7388d112-9a03-409f-91b8-15d0adf3164d" />
-</p>
-
-## Índice
-
-- [Características](#características)
-- [Tecnologias](#tecnologias)
-- [Pré-requisitos](#pré-requisitos)
-- [Instalação](#instalação)
-- [Configuração](#configuração)
-- [Uso](#uso)
-- [Documentação da API](#documentação-da-api)
-- [Arquitetura](#arquitetura)
-- [Testes](#testes)
-- [Deploy](#deploy)
-- [Contribuição](#contribuição)
-
-## Características
-
-Abaixo estão as características concretas implementadas no projeto (baseado no comportamento real das controllers, services e repositórios presentes no código):
-
-### Autenticação e Autorização
-- Auth baseado em **JWT (JSON Web Tokens)** com suporte a **refresh tokens** para renovação de sessão.
-- Endpoints implementados: `/auth/login`, `/auth/refresh`, `/auth/logout`.
-- Fluxo de recuperação de senha com envio de código por e-mail, validação do código e confirmação de nova senha (`/auth/recuperar-senha`, `/auth/recuperar-senha/validar-codigo`, `/auth/recuperar-senha/nova-senha`).
-- Ativação de conta por token via endpoint `/ativar` (permitindo definir senha e dados no momento da ativação).
-- Criação automática de um usuário administrador na primeira execução (modo dev).
-- Controle de acesso por Roles (via Spring Security): `ADMIN`, `COORDENADOR`, `PROFESSOR`, `ALUNO`, `RESPONSAVEL`.
-
-### Gerenciamento de Usuários
-- CRUD e listagens paginadas de usuários (`/usuarios`), com endpoints para:
-  - consulta e atualização dos próprios dados (`/usuarios/me`, `PUT/PATCH /usuarios/me`),
-  - administração de roles (`PATCH /usuarios/{id}/role`) e status (`PATCH /usuarios/{id}/status`) — *Apenas ADMIN*.
-- Validações e mensagens de erro padronizadas via DTOs de erro.
-
-### Alunos
-- Endpoints para criação, listagem e consulta de alunos (`/alunos`) com paginação.
-- Operações específicas: atualizar data de nascimento, data de matrícula, ativar/desativar matrícula (`PATCH /alunos/{id}/data-nascimento`, `/data-matricula`, `/matricula`).
-- Promoção e rebaixamento de faixa e grau via endpoints dedicados (`/alunos/{id}/promover/faixa`, `/rebaixar/faixa`, `/promover/grau`, `/rebaixar/grau`).
-- Associação de responsáveis a alunos (vínculo e desvínculo).
-
-### Turmas e Professores
-- CRUD de turmas com controle de status (ativo/inativo) e soft delete (`/turmas`).
-- Vinculação/desvinculação de professores e alunos a turmas (`PATCH`/`DELETE` em `/turmas/{idTurma}/professores/{idProfessor}` e `/turmas/{idTurma}/alunos/{idAluno}`).
-- Listagens paginadas e consulta por ID; permissões restritas conforme roles.
-
-### Aulas e Inscrições
-- Criação, atualização (com endpoints para atualizar status ou todos os campos), vinculação de turma e exclusão de aulas (`/aulas`).
-- Cada aula tem atributo `limite_alunos` e pode ser associada a uma turma.
-- Inscrições: inscrição do aluno autenticado em uma aula e cancelamento (`POST/DELETE /aulas/{idAula}/inscricoes`), listagem por aula e listagem das próprias inscrições do aluno (`/aulas/inscricoes/minhas`).
-- Endpoints para listar apenas as aulas disponíveis para o aluno ou para o professor autenticado.
-
-### Presenças e métricas de frequência
-- Registro de presença por inscrição com flag `presente` (endpoint de atualização por inscrição) e listagens por aula ou do próprio aluno.
-- Presenças persistidas com data, usadas para cálculos de métricas no `DashboardService` (presença média geral, presença média por turma, top faltas, etc.).
-
-### Dashboard e Métricas Administrativas
-- Endpoint `/admin/dashboard` que agrega múltiplas métricas operacionais:
-  - Dados dos alunos: total ativos/inativos, novos nos últimos 30 dias, idade média.
-  - Dados das turmas: total de turmas ativas/inativas, ocupação média das aulas (0.0–1.0), percentual de aulas lotadas (>90%), média de alunos por aula.
-  - Engajamento no mês: número de aulas previstas, realizadas e canceladas; presença média geral e por turma; top 5 alunos com mais faltas.
-- Métricas calculadas no serviço com queries otimizadas nos repositórios e tratamento de `null` (retorna 0.0 quando aplicável) para evitar divisões por zero.
-
-### Observabilidade, documentação e logs
-- Swagger/OpenAPI disponível em `/swagger-ui.html` e `/v3/api-docs` (anotações em controllers com exemplos e erros).
-- Logs gravados na pasta `logs/`; configuração de nível de log SQL habilitada para desenvolvimento.
-
-### Testes e qualidade de código
-- Testes unitários com JUnit5 + Mockito (muitos serviços incluem testes de unidade); testes de integração estão presentes para cenários principais (Aulas, Inscrições, Presenças, Autenticação).
-- Relatório de cobertura gerado via JaCoCo (`target/site/jacoco/index.html`).
-- Uso de H2 em memória para facilitar testes isolados e TestContainers quando necessário.
-
-### Infra e Deploy
-- Execução local via `mvn spring-boot:run` e empacotamento via `mvn clean package`.
-- Banco containerizado com `docker-compose.yml` para desenvolvimento; Flyway para migrações.
-
-> Observação: esta seção descreve o comportamento implementado no código atual do projeto (controllers, services e repositórios). Para detalhes das regras de negócio e mensagens de erro específicas, consulte os DTOs e serviços correspondentes (`src/main/java/com/fighthub/service`, `controller`, `dto`).
-
-## Tecnologias
-
-### Backend
-- **Java 21** - Linguagem de programação com recursos modernos
-- **Spring Boot 3.2.5** - Framework principal para desenvolvimento
-- **Spring Security** - Autenticação e autorização robusta com JWT
-- **Spring Data JPA** - Persistência de dados com Hibernate
-- **PostgreSQL 16** - Banco de dados principal
-- **H2 Database** - Banco de dados para testes
-- **Flyway** - Migração de banco de dados
-- **JWT (jjwt)** - Autenticação stateless com tokens
-- **Lombok** - Redução de boilerplate
-- **MapStruct** - Mapeamento de objetos DTO ↔ Entity
-- **Spring Validation** - Validação de dados e constraints
-- **Spring Mail** - Envio de emails para ativação e notificações
-- **JaCoCo** - Cobertura de testes
-- **HikariCP** - Pool de conexões do banco de dados
-
-### Banco de Dados
-- **PostgreSQL 16** - Banco de dados relacional principal
-- **Flyway** - Migração e versionamento do banco de dados
-- **H2** - Banco em memória para testes automatizados
-
-### Documentação e Testes
-- **Swagger/OpenAPI 3** - Documentação interativa da API
-- **JaCoCo** - Relatórios de cobertura de testes
-- **JUnit 5** - Framework de testes
-- **Mockito** - Mocking para testes unitários
-- **TestContainers** - Testes de integração com containers
-
-
-### Ferramentas de Desenvolvimento
-- **Maven** - Gerenciamento de dependências e build
-- **Docker Compose** - Containerização do banco de dados
-- **Git** - Controle de versão
-
-## Pré-requisitos
-
-Antes de começar, certifique-se de ter instalado:
-
-- **Java 21** ou superior
-- **Maven 3.6+**
-- **PostgreSQL 16** ou superior
-- **Docker** e **Docker Compose** (opcional, para usar o banco containerizado)
-
-## Instalação
-
-### 1. Clone o repositório
-
-```bash
-git clone https://github.com/eduardo-toste/fighthub.git
-cd fighthub
-```
-
-### 2. Configuração do Banco de Dados
-
-#### Opção A: Usando Docker Compose (Recomendado)
-
-```bash
-# Copie o arquivo de exemplo e configure as variáveis
-cp .env.example .env
-
-# Edite o arquivo .env com suas configurações
-nano .env
-```
-
-Exemplo de configuração no `.env`:
-```env
-POSTGRES_DB=fighthub
-POSTGRES_USER=admin
-POSTGRES_PASSWORD=111222333
-```
-
-```bash
-# Inicie o banco de dados
-docker-compose up -d
-```
-
-#### Opção B: PostgreSQL Local
-
-1. Crie um banco de dados PostgreSQL
-2. Configure as credenciais no arquivo `application.properties`
-
-### 3. Configuração da Aplicação
-
-```bash
-# Copie o arquivo de configuração
-cp src/main/resources/application.properties.example src/main/resources/application.properties
-
-# Edite as configurações conforme necessário
-nano src/main/resources/application.properties
-```
-
-### 4. Executar a Aplicação
-
-```bash
-# Compile e execute
-mvn spring-boot:run
-```
-
-A aplicação estará disponível em: `http://localhost:8080`
-
-## Configuração
-
-### Configurações da Aplicação
-
-Principais configurações no `application.properties`:
-
-```properties
-# Banco de Dados
-spring.datasource.url=jdbc:postgresql://localhost:5432/fighthub
-spring.datasource.username=admin
-spring.datasource.password=111222333
-
-# JWT
-security.jwt.secret=f4c818a6d3e94c92bd158e3d76c20455
-security.jwt.expiration=900000
-security.jwt.refresh-expiration=604800000
-
-# Logs
-logging.file.path=logs
-logging.level.org.hibernate.SQL=DEBUG
-```
-
-## Uso
-
-### Endpoints Principais
-
-#### Autenticação (`/auth`)
-- `POST /auth/login` - Login do usuário
-- `POST /auth/refresh` - Renovar token de acesso
-- `POST /auth/logout` - Logout do usuário
-- `POST /auth/recuperar-senha` - Solicitar recuperação de senha
-- `POST /auth/recuperar-senha/validar-codigo` - Validar código de recuperação
-- `POST /auth/recuperar-senha/confirmar` - Confirmar nova senha
-
-#### Usuários (`/usuarios`)
-- `GET /usuarios` - Listar usuários (paginado) - *Apenas ADMIN*
-- `GET /usuarios/{id}` - Consultar usuário por ID - *Apenas ADMIN*
-- `GET /usuarios/me` - Consultar próprios dados
-- `PUT /usuarios/{id}` - Atualização completa de usuário - *Apenas ADMIN*
-- `PATCH /usuarios/{id}` - Atualização parcial de usuário - *Apenas ADMIN*
-- `PUT /usuarios/me` - Atualização completa dos próprios dados
-- `PATCH /usuarios/me` - Atualização parcial dos próprios dados
-- `PATCH /usuarios/{id}/role` - Atualizar role do usuário - *Apenas ADMIN*
-- `PATCH /usuarios/{id}/status` - Atualizar status do usuário - *Apenas ADMIN*
-- `PATCH /usuarios/me/password` - Alterar própria senha
-
-#### Alunos (`/alunos`)
-- `GET /alunos` - Listar alunos (paginado) - *ADMIN, COORDENADOR, PROFESSOR*
-- `GET /alunos/{id}` - Consultar aluno por ID - *ADMIN, COORDENADOR, PROFESSOR*
-- `POST /alunos` - Criar novo aluno - *ADMIN, COORDENADOR, PROFESSOR*
-- `PATCH /alunos/{id}/matricula` - Atualizar status de matrícula
-- `PATCH /alunos/{id}/data-matricula` - Atualizar data de matrícula
-- `PATCH /alunos/{id}/data-nascimento` - Atualizar data de nascimento
-
-#### Ativação (`/ativar`)
-- `POST /ativar` - Ativar conta do usuário
-
-#### Aulas (`/aulas`)
-- `POST /aulas` - Criar nova aula - *ADMIN, PROFESSOR*
-- `GET /aulas` - Listar todas as aulas (paginado) - *ADMIN, COORDENADOR, PROFESSOR*
-- `GET /aulas/alunos` - Listar aulas disponíveis para o aluno autenticado - *ALUNO*
-- `GET /aulas/professores` - Listar aulas ministradas pelo professor autenticado - *PROFESSOR*
-- `GET /aulas/{id}` - Obter detalhes da aula por ID - *ADMIN, COORDENADOR, PROFESSOR*
-- `PATCH /aulas/{id}/status` - Atualizar status (ativar/inativar) - *ADMIN, PROFESSOR*
-- `PUT /aulas/{id}` - Atualização completa da aula - *ADMIN, PROFESSOR*
-- `PATCH /aulas/{idAula}/turmas/{idTurma}` - Vincular aula a turma - *ADMIN, PROFESSOR*
-- `DELETE /aulas/{idAula}/turmas/{idTurma}` - Desvincular aula de turma - *ADMIN, PROFESSOR*
-- `DELETE /aulas/{id}` - Excluir aula - *ADMIN, PROFESSOR*
-
-#### Inscrições
-- `POST /aulas/{idAula}/inscricoes` - Inscrever aluno autenticado em uma aula - *ALUNO*
-- `DELETE /aulas/{idAula}/inscricoes` - Cancelar inscrição do aluno autenticado - *ALUNO*
-- `GET /aulas/{idAula}/inscricoes` - Listar inscrições de uma aula (paginado) - *ADMIN, COORDENADOR, PROFESSOR*
-- `GET /aulas/inscricoes/minhas` - Minhas inscrições (paginado) - *ALUNO*
-
-#### Presenças
-- `PATCH /aulas/{idAula}/presencas/inscricao/{idInscricao}` - Atualizar presença (presente/ausente) por inscrição - *ADMIN, PROFESSOR*
-- `GET /aulas/{idAula}/presencas` - Listar presenças de uma aula (paginado) - *ADMIN, PROFESSOR*
-- `GET /aulas/me/presencas` - Listar minhas presenças (paginado) - *ALUNO*
-
-#### Turmas (`/turmas`)
-- `POST /turmas` - Criar nova turma - *ADMIN, COORDENADOR*
-- `GET /turmas` - Listar turmas (paginado) - *ADMIN, COORDENADOR, PROFESSOR*
-- `GET /turmas/{id}` - Buscar turma por ID - *ADMIN, COORDENADOR, PROFESSOR*
-- `PUT /turmas/{id}` - Atualização completa de turma - *ADMIN, COORDENADOR*
-- `PATCH /turmas/{id}/status` - Atualizar status da turma - *ADMIN, COORDENADOR*
-- `DELETE /turmas/{id}` - Excluir turma (soft delete) - *ADMIN, COORDENADOR*
-- `PATCH /turmas/{idTurma}/professores/{idProfessor}` - Vincular professor à turma - *ADMIN, COORDENADOR*
-- `DELETE /turmas/{idTurma}/professores/{idProfessor}` - Desvincular professor - *ADMIN, COORDENADOR*
-- `PATCH /turmas/{idTurma}/alunos/{idAluno}` - Vincular aluno à turma - *ADMIN, COORDENADOR*
-- `DELETE /turmas/{idTurma}/alunos/{idAluno}` - Desvincular aluno - *ADMIN, COORDENADOR*
-
-#### Professores (`/professores`)
-- `POST /professores` - Criar professor - *ADMIN, COORDENADOR*
-- `GET /professores` - Listar professores (paginado) - *ADMIN, COORDENADOR*
-- `GET /professores/{id}` - Buscar professor por ID - *ADMIN, COORDENADOR*
-
-#### Responsáveis (`/responsaveis`)
-- `POST /responsaveis` - Criar responsável - *ADMIN, COORDENADOR*
-- `GET /responsaveis` - Listar responsáveis (paginado) - *ADMIN, COORDENADOR*
-- `GET /responsaveis/{id}` - Buscar responsável por ID - *ADMIN, COORDENADOR*
-- `PATCH /responsaveis/{idResponsavel}/alunos/{idAluno}` - Vincular aluno ao responsável - *ADMIN, COORDENADOR*
-- `DELETE /responsaveis/{idResponsavel}/alunos/{idAluno}` - Remover vínculo - *ADMIN, COORDENADOR*
-
-#### Dashboard (`/admin/dashboard`)
-- `GET /admin/dashboard` - Retorna dados agregados para a visão administrativa do sistema. Campos principais retornados no JSON:
-  - `dadosAlunos`: totais e média de idade
-  - `dadosTurmas`: total de turmas, ocupação média, % de aulas lotadas (>90%), média de alunos por aula
-  - `dadosEngajamento`: aulas previstas/realizadas/canceladas no mês, presença média geral e por turma, top5 alunos com mais faltas
-  - Requer role: `ADMIN` ou `COORDENADOR`
-
-### DTOs do Dashboard (resumo)
-- `DashboardResponse`
-  - `dadosAlunos`: `AlunosDashboardResponse`
-  - `dadosTurmas`: `TurmasDashboardResponse`
-  - `dadosEngajamento`: `EngajamentoDashboardResponse`
-
-- `AlunosDashboardResponse` (exemplo)
-  - `totalAlunosAtivos` (long)
-  - `totalAlunosInativos` (long)
-  - `novosAlunosUltimos30Dias` (long)
-  - `idadeMediaAlunos` (int)
-
-- `TurmasDashboardResponse` (exemplo)
-  - `totalTurmasAtivas` (long)
-  - `totalTurmasInativas` (long)
-  - `ocupacaoMediaTurmas` (double) — média de ocupação (0.0 - 1.0)
-  - `percentualAulasLotadas` (double) — porcentagem de aulas com ocupação > 90 (0.0 - 100.0)
-  - `mediaAlunosPorAula` (double)
-
-- `EngajamentoDashboardResponse` (exemplo)
-  - `aulasPrevistasNoMes` (long)
-  - `aulasRealizadasNoMes` (long)
-  - `aulasCanceladasNoMes` (long)
-  - `presencaMediaGeralNoMes` (double) — presença média considerando todas as turmas (0.0 - 100.0)
-  - `presencaMediaPorTurmaNoMes` (double) — média de presença por turma (0.0 - 100.0)
-  - `top5AlunosComMaisFaltasNoMes` (List<AlunoFaltas>) — lista com os 5 alunos e número de faltas
-
-> Observação: valores nulos retornados pelos repositórios são tratados no serviço e substituídos por 0.0 quando aplicável.
-
-#### Exemplo de Login
-
-```bash
-curl -X POST http://localhost:8080/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{
-    "email": "admin@fighthub.com",
-    "senha": "123456"
-  }'
-```
-
-### Usuário Padrão
-
-Após a primeira execução, um usuário administrador é criado automaticamente:
-
-- **Email**: `admin@fighthub.com`
-- **Senha**: `123456`
-- **Role**: `ADMIN`
-
-## Documentação da API
-
-A documentação completa da API está disponível através do Swagger UI:
-
-- **Swagger UI**: `http://localhost:8080/swagger-ui.html`
-- **OpenAPI JSON**: `http://localhost:8080/v3/api-docs`
-
-### Autenticação na API
-
-Para acessar endpoints protegidos, inclua o token JWT no header:
-
-```bash
-curl -X GET http://localhost:8080/api/usuarios \
-  -H "Authorization: Bearer SEU_JWT_TOKEN"
-```
-
-## Arquitetura
+<div align="center">
+
+# ⚔️ FightHub — Backend API
+
+**Plataforma empresarial para gerenciamento de academias de Jiu-Jitsu**
+
+[![Java](https://img.shields.io/badge/Java-21-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)](https://openjdk.java.net/)
+[![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.2.5-6DB33F?style=for-the-badge&logo=spring-boot&logoColor=white)](https://spring.io/projects/spring-boot)
+[![Spring Security](https://img.shields.io/badge/Spring_Security-JWT-6DB33F?style=for-the-badge&logo=spring-security&logoColor=white)](https://spring.io/projects/spring-security)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-316192?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
+[![Maven](https://img.shields.io/badge/Maven-3.6+-C71A36?style=for-the-badge&logo=apachemaven&logoColor=white)](https://maven.apache.org/)
+[![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](LICENSE)
+
+[📖 Documentação da API](#-documentação-da-api) •
+[🚀 Instalação](#-instalação) •
+[⚙️ Configuração](#️-configuração) •
+[🏗️ Arquitetura](#️-arquitetura) •
+[🧪 Testes](#-testes) •
+[🖥️ Frontend](#️-frontend)
+
+</div>
+
+---
+
+## 📋 Índice
+
+- [Sobre o Projeto](#-sobre-o-projeto)
+- [Frontend](#-frontend)
+- [Funcionalidades](#-funcionalidades)
+- [Stack Tecnológica](#-stack-tecnológica)
+- [Arquitetura](#-arquitetura)
+- [Modelo de Domínio](#-modelo-de-domínio)
+- [Pré-requisitos](#-pré-requisitos)
+- [Instalação](#-instalação)
+- [Configuração](#-configuração)
+- [Documentação da API](#-documentação-da-api)
+- [Segurança](#-segurança)
+- [Testes](#-testes)
+- [Deploy](#-deploy)
+- [Contribuição](#-contribuição)
+
+---
+
+## 💡 Sobre o Projeto
+
+O **FightHub** é uma API REST robusta e escalável projetada para o gerenciamento completo de academias de Jiu-Jitsu. A plataforma cobre desde o controle de alunos e turmas até métricas avançadas de desempenho e engajamento, com segurança de nível empresarial baseada em JWT e controle de acesso granular por perfis.
+
+### Por que FightHub?
+
+- 🔐 **Segurança avançada** — Autenticação stateless com JWT e Refresh Tokens, BCrypt e proteção contra acessos não autorizados
+- 📊 **Dashboard analítico** — Métricas operacionais em tempo real sobre alunos, turmas e presença
+- 📧 **Comunicação integrada** — Envio automático de e-mails transacionais via Thymeleaf (ativação, boas-vindas, recuperação de senha)
+- 🥋 **Domínio rico** — Gestão completa de graduações (faixas e graus do Jiu-Jitsu), presenças, inscrições e turmas
+- 🔍 **CEP automático** — Integração com a API ViaCEP para preenchimento automático de endereços
+- 📁 **Upload de arquivos** — Gerenciamento de fotos de perfil com armazenamento local
+- 🗄️ **Migrações versionadas** — Controle de schema com Flyway (15+ migrações)
+
+---
+
+## 🖥️ Frontend
+
+O frontend desta plataforma é desenvolvido em um repositório separado:
+
+> 🔗 **[FightHub — Frontend](https://github.com/eduardo-toste/FightHubUI)**
+
+---
+
+## ✨ Funcionalidades
+
+### 🔑 Autenticação e Autorização
+- Login com JWT e Refresh Token (renovação automática de sessão)
+- Logout com revogação de tokens
+- Ativação de conta por link enviado por e-mail
+- Fluxo completo de recuperação de senha (solicitação → validação de código → nova senha)
+- Controle de acesso por roles via `@PreAuthorize` (Spring Security)
+
+### 👥 Gestão de Usuários
+- CRUD completo com atualização total e parcial (`PUT` / `PATCH`)
+- Gerenciamento dos próprios dados (`/usuarios/me`)
+- Upload e remoção de foto de perfil
+- Alteração de role e status por administradores
+- Busca de endereço por CEP (integração ViaCEP)
+
+### 🎓 Alunos
+- Cadastro com validação de CPF único e e-mail único
+- Controle automático de menoridade com vinculação obrigatória de responsáveis
+- Graduação por faixas: **Branca → Cinza → Amarela → Laranja → Verde → Azul → Roxa → Marrom → Preta**
+- Graduação por graus: **0 → I → II → III → IV**
+- Promoção e rebaixamento de faixa/grau
+- Gestão de matrícula (ativação, desativação, data de matrícula e nascimento)
+- Listagem paginada com todos os dados do aluno
+
+### 🧑‍🏫 Professores e Responsáveis
+- Cadastro e listagem paginada de professores
+- Cadastro de responsáveis com vínculo a múltiplos alunos menores de idade
+
+### 🏫 Turmas
+- CRUD completo com soft delete
+- Vinculação de professor à turma
+- Inscrição e remoção de alunos
+- Controle de status (ativo/inativo)
+
+### 📅 Aulas e Inscrições
+- Criação de aulas com limite de vagas, data/hora e status
+- Status de aula: `DISPONIVEL`, `AGENDADA`, `PENDENTE`, `EM_PROGRESSO`, `CANCELADA`, `FINALIZADA`
+- Vinculação de aulas a turmas
+- Inscrição e cancelamento de inscrição pelo próprio aluno
+- Controle de status da inscrição: `INSCRITO`, `CANCELADO`, `DESMARCADO`
+- Listagem de aulas disponíveis filtradas por aluno ou professor autenticado
+
+### ✅ Presenças
+- Registro de presença por inscrição (`presente` / `ausente`)
+- Listagem de presenças por aula ou pelo próprio aluno
+- Dados de presença alimentam o Dashboard analítico
+
+### 📊 Dashboard Administrativo
+Endpoint `/admin/dashboard` retorna métricas agregadas em tempo real:
+
+| Categoria | Métricas |
+|-----------|----------|
+| **Alunos** | Total ativos/inativos, novos nos últimos 30 dias, idade média |
+| **Turmas** | Total ativas/inativas, ocupação média, % de aulas lotadas (>90%), média alunos/aula |
+| **Engajamento** | Aulas previstas/realizadas/canceladas no mês, presença média geral e por turma, Top 5 faltas |
+
+---
+
+## 🛠️ Stack Tecnológica
+
+| Camada | Tecnologia | Versão |
+|--------|-----------|--------|
+| Linguagem | Java | 21 |
+| Framework | Spring Boot | 3.2.5 |
+| Segurança | Spring Security + JJWT | 0.11.5 |
+| Persistência | Spring Data JPA + Hibernate | — |
+| Banco de Dados | PostgreSQL | 16 |
+| Banco (testes) | H2 In-Memory | — |
+| Migrações | Flyway | 10.14.0 |
+| Templates de E-mail | Thymeleaf | — |
+| Documentação | SpringDoc OpenAPI (Swagger UI) | 2.6.0 |
+| Boilerplate | Lombok | 1.18.36 |
+| Build | Maven | 3.6+ |
+| Testes Unitários | JUnit 5 + Mockito | 5.12.0 |
+| Cobertura | JaCoCo | 0.8.13 |
+| Containerização | Docker + Docker Compose | — |
+| CEP | Integração ViaCEP | — |
+| Reativos | Spring WebFlux (WebClient) | — |
+
+---
+
+## 🏗️ Arquitetura
+
+O projeto segue uma arquitetura em camadas bem definida, com separação clara de responsabilidades:
 
 ```
 src/
 ├── main/
 │   ├── java/com/fighthub/
-│   │   ├── config/          # Configurações (Security, OpenAPI)
-│   │   ├── controller/      # Controllers REST
-│   │   ├── dto/            # Data Transfer Objects
-│   │   ├── exception/      # Tratamento de exceções
-│   │   ├── mapper/         # Mappers para conversão de objetos
-│   │   ├── model/          # Entidades JPA
-│   │   ├── repository/     # Repositórios de dados
-│   │   ├── security/       # Configurações de segurança
-│   │   ├── service/        # Lógica de negócio
-│   │   └── utils/          # Utilitários
+│   │   ├── config/           # Configurações (Security, OpenAPI, CORS)
+│   │   ├── controller/       # Controllers REST (entrada HTTP)
+│   │   │   ├── AlunoController.java
+│   │   │   ├── AulaController.java
+│   │   │   ├── AuthController.java
+│   │   │   ├── DashboardController.java
+│   │   │   ├── EnderecoController.java
+│   │   │   ├── InscricaoController.java
+│   │   │   ├── PresencaController.java
+│   │   │   ├── ProfessorController.java
+│   │   │   ├── ResponsavelController.java
+│   │   │   ├── TurmaController.java
+│   │   │   └── UsuarioController.java
+│   │   ├── docs/             # Configurações do Swagger/OpenAPI
+│   │   ├── dto/              # Data Transfer Objects (Request/Response)
+│   │   ├── exception/        # Exceções customizadas e handlers globais
+│   │   ├── integration/      # Integrações externas (ViaCEP)
+│   │   ├── mapper/           # Conversão Entity ↔ DTO
+│   │   ├── model/            # Entidades JPA
+│   │   │   └── enums/        # Enumerações de domínio
+│   │   ├── repository/       # Repositórios Spring Data JPA
+│   │   ├── security/         # Filtros e handlers de segurança
+│   │   ├── service/          # Lógica de negócio
+│   │   └── utils/            # Utilitários
 │   └── resources/
-│       ├── db/migration/   # Scripts de migração Flyway
-│       ├── static/         # Arquivos estáticos
-│       └── templates/      # Templates (se houver)
-└── test/                   # Testes unitários e de integração
+│       ├── db/migration/     # Scripts Flyway (V1 → V15)
+│       └── templates/        # Templates Thymeleaf para e-mails
+└── test/
+    ├── java/com/fighthub/
+    │   ├── service/          # 15 classes de testes unitários
+    │   ├── integration/      # 10 classes de testes de integração
+    │   └── config/           # Configurações de teste
+    └── resources/
+        └── application-test.properties
 ```
 
-## Testes
+### Fluxo de uma Requisição
 
-### Executar Todos os Testes
+```
+HTTP Request
+    │
+    ▼
+SecurityFilter (JWT Validation)
+    │
+    ▼
+Controller (Validação de input, @PreAuthorize)
+    │
+    ▼
+Service (Regras de negócio, @Transactional)
+    │
+    ▼
+Repository (Spring Data JPA → PostgreSQL)
+    │
+    ▼
+Response DTO (Mapeamento via Mapper)
+    │
+    ▼
+HTTP Response
+```
+
+---
+
+## 🗄️ Modelo de Domínio
+
+```
+Usuario (1) ──────── (1) Aluno
+                          │
+                    ┌─────┴──────┐
+                    │            │
+             GraduacaoAluno  List<Turma>
+              (faixa + grau)
+                    │
+               List<Responsavel>
+                    │
+              List<Inscricao>
+                    │
+                 Presenca
+
+Turma ──── Professor
+  │
+  └──── List<Aula>
+              │
+         List<Inscricao> ──── Presenca
+```
+
+**Enumerações de domínio:**
+- `Role`: `ADMIN` | `COORDENADOR` | `PROFESSOR` | `ALUNO` | `RESPONSAVEL`
+- `BeltGraduation`: `BRANCA` → `CINZA` → `AMARELA` → `LARANJA` → `VERDE` → `AZUL` → `ROXA` → `MARROM` → `PRETA`
+- `GraduationLevel`: `ZERO` | `I` | `II` | `III` | `IV`
+- `ClassStatus`: `DISPONIVEL` | `AGENDADA` | `PENDENTE` | `EM_PROGRESSO` | `CANCELADA` | `FINALIZADA`
+- `SubscriptionStatus`: `INSCRITO` | `CANCELADO` | `DESMARCADO`
+- `TokenType`: `ACCESS` | `REFRESH`
+
+---
+
+## 📋 Pré-requisitos
+
+Antes de começar, certifique-se de ter instalado:
+
+| Ferramenta | Versão mínima | Download |
+|-----------|--------------|---------|
+| Java (JDK) | 21 | [Adoptium](https://adoptium.net/) |
+| Maven | 3.6+ | [maven.apache.org](https://maven.apache.org/) |
+| Docker + Compose | Qualquer | [docker.com](https://www.docker.com/) |
+| PostgreSQL | 16 (ou via Docker) | [postgresql.org](https://www.postgresql.org/) |
+
+---
+
+## 🚀 Instalação
+
+### 1. Clone o repositório
 
 ```bash
+git clone https://github.com/eduardo-toste/FightHub.git
+cd FightHub
+```
+
+### 2. Configure o banco de dados
+
+#### Opção A — Docker Compose (Recomendado)
+
+```bash
+# Suba o PostgreSQL em container
+docker-compose up -d
+```
+
+#### Opção B — PostgreSQL local
+
+Crie um banco de dados chamado `fighthub` e configure as credenciais no `application.properties`.
+
+### 3. Configure a aplicação
+
+```bash
+# Copie o arquivo de exemplo
+cp src/main/resources/application.properties.example src/main/resources/application.properties
+
+# Edite com suas configurações reais
+nano src/main/resources/application.properties
+```
+
+### 4. Execute a aplicação
+
+```bash
+mvn spring-boot:run
+```
+
+A API estará disponível em: **`http://localhost:8080`**
+
+A documentação Swagger em: **`http://localhost:8080/swagger-ui.html`**
+
+---
+
+## ⚙️ Configuração
+
+### Variáveis do `application.properties`
+
+```properties
+# ==================== DATABASE ====================
+spring.datasource.url=jdbc:postgresql://localhost:5432/fighthub
+spring.datasource.username=seu_usuario
+spring.datasource.password=sua_senha
+
+# ==================== JWT ====================
+# Chave secreta para assinar tokens (use uma chave forte em produção)
+security.jwt.secret=sua_chave_secreta_256bits
+# Access token: 15 minutos (ms)
+security.jwt.expiration=900000
+# Refresh token: 7 dias (ms)
+security.jwt.refresh-expiration=604800000
+
+# ==================== MAIL ====================
+mail.host=smtp.gmail.com
+mail.port=587
+mail.username=seu_email@gmail.com
+mail.password=sua_senha_de_app
+mail.tls-enabled=true
+
+# ==================== UPLOADS ====================
+uploads.profile-dir=uploads/profiles
+
+# ==================== LOGS ====================
+logging.file.path=logs
+logging.level.org.hibernate.SQL=DEBUG
+```
+
+### Usuário padrão (criado automaticamente)
+
+Após a primeira execução, um administrador é criado:
+
+```
+E-mail:  admin@fighthub.com
+Senha:   123456
+Role:    ADMIN
+```
+
+> ⚠️ **Altere as credenciais padrão imediatamente em ambientes de produção.**
+
+---
+
+## 📖 Documentação da API
+
+A documentação interativa completa está disponível via **Swagger UI**:
+
+> 🔗 **`http://localhost:8080/swagger-ui.html`**
+
+### Endpoints Resumidos
+
+<details>
+<summary><b>🔑 Autenticação</b> — <code>/auth</code></summary>
+
+| Método | Endpoint | Descrição | Auth |
+|--------|----------|-----------|------|
+| `POST` | `/auth/login` | Login do usuário | ❌ |
+| `POST` | `/auth/refresh` | Renovar access token | ❌ |
+| `POST` | `/auth/logout` | Logout e revogação do token | ✅ |
+| `POST` | `/auth/recuperar-senha` | Solicitar código de recuperação | ❌ |
+| `POST` | `/auth/recuperar-senha/validar-codigo` | Validar código recebido por e-mail | ❌ |
+| `POST` | `/auth/recuperar-senha/confirmar` | Confirmar nova senha | ❌ |
+| `POST` | `/ativar` | Ativar conta via token de e-mail | ❌ |
+
+</details>
+
+<details>
+<summary><b>👤 Usuários</b> — <code>/usuarios</code></summary>
+
+| Método | Endpoint | Descrição | Roles |
+|--------|----------|-----------|-------|
+| `GET` | `/usuarios` | Listar usuários (paginado) | ADMIN |
+| `GET` | `/usuarios/{id}` | Buscar usuário por ID | ADMIN |
+| `GET` | `/usuarios/me` | Dados do usuário autenticado | Todos |
+| `PUT` | `/usuarios/{id}` | Atualizar usuário (completo) | ADMIN |
+| `PATCH` | `/usuarios/{id}` | Atualizar usuário (parcial) | ADMIN |
+| `PUT` | `/usuarios/me` | Atualizar próprios dados (completo) | Todos |
+| `PATCH` | `/usuarios/me` | Atualizar próprios dados (parcial) | Todos |
+| `PATCH` | `/usuarios/{id}/role` | Alterar role | ADMIN |
+| `PATCH` | `/usuarios/{id}/status` | Alterar status | ADMIN |
+| `PATCH` | `/usuarios/me/password` | Alterar própria senha | Todos |
+| `POST` | `/usuarios/me/foto` | Upload de foto de perfil | Todos |
+| `DELETE` | `/usuarios/me/foto` | Remover foto de perfil | Todos |
+
+</details>
+
+<details>
+<summary><b>🎓 Alunos</b> — <code>/alunos</code></summary>
+
+| Método | Endpoint | Descrição | Roles |
+|--------|----------|-----------|-------|
+| `POST` | `/alunos` | Criar aluno | ADMIN, COORDENADOR, PROFESSOR |
+| `GET` | `/alunos` | Listar alunos (paginado) | ADMIN, COORDENADOR, PROFESSOR |
+| `GET` | `/alunos/{id}` | Buscar aluno por ID | ADMIN, COORDENADOR, PROFESSOR |
+| `PATCH` | `/alunos/{id}/matricula` | Ativar/desativar matrícula | ADMIN, COORDENADOR |
+| `PATCH` | `/alunos/{id}/data-matricula` | Atualizar data de matrícula | ADMIN, COORDENADOR |
+| `PATCH` | `/alunos/{id}/data-nascimento` | Atualizar data de nascimento | ADMIN, COORDENADOR |
+| `PATCH` | `/alunos/{id}/promover/faixa` | Promover faixa | ADMIN, PROFESSOR |
+| `PATCH` | `/alunos/{id}/rebaixar/faixa` | Rebaixar faixa | ADMIN, PROFESSOR |
+| `PATCH` | `/alunos/{id}/promover/grau` | Promover grau | ADMIN, PROFESSOR |
+| `PATCH` | `/alunos/{id}/rebaixar/grau` | Rebaixar grau | ADMIN, PROFESSOR |
+
+</details>
+
+<details>
+<summary><b>🏫 Turmas</b> — <code>/turmas</code></summary>
+
+| Método | Endpoint | Descrição | Roles |
+|--------|----------|-----------|-------|
+| `POST` | `/turmas` | Criar turma | ADMIN, COORDENADOR |
+| `GET` | `/turmas` | Listar turmas (paginado) | ADMIN, COORDENADOR, PROFESSOR |
+| `GET` | `/turmas/{id}` | Buscar turma por ID | ADMIN, COORDENADOR, PROFESSOR |
+| `PUT` | `/turmas/{id}` | Atualizar turma (completo) | ADMIN, COORDENADOR |
+| `PATCH` | `/turmas/{id}/status` | Atualizar status | ADMIN, COORDENADOR |
+| `DELETE` | `/turmas/{id}` | Excluir turma (soft delete) | ADMIN, COORDENADOR |
+| `PATCH` | `/turmas/{idTurma}/professores/{idProfessor}` | Vincular professor | ADMIN, COORDENADOR |
+| `DELETE` | `/turmas/{idTurma}/professores/{idProfessor}` | Desvincular professor | ADMIN, COORDENADOR |
+| `PATCH` | `/turmas/{idTurma}/alunos/{idAluno}` | Vincular aluno | ADMIN, COORDENADOR |
+| `DELETE` | `/turmas/{idTurma}/alunos/{idAluno}` | Desvincular aluno | ADMIN, COORDENADOR |
+
+</details>
+
+<details>
+<summary><b>📅 Aulas, Inscrições e Presenças</b></summary>
+
+| Método | Endpoint | Descrição | Roles |
+|--------|----------|-----------|-------|
+| `POST` | `/aulas` | Criar aula | ADMIN, PROFESSOR |
+| `GET` | `/aulas` | Listar aulas (paginado) | ADMIN, COORDENADOR, PROFESSOR |
+| `GET` | `/aulas/{id}` | Buscar aula por ID | ADMIN, COORDENADOR, PROFESSOR |
+| `GET` | `/aulas/alunos` | Aulas disponíveis para aluno | ALUNO |
+| `GET` | `/aulas/professores` | Aulas do professor autenticado | PROFESSOR |
+| `PUT` | `/aulas/{id}` | Atualizar aula (completo) | ADMIN, PROFESSOR |
+| `PATCH` | `/aulas/{id}/status` | Atualizar status da aula | ADMIN, PROFESSOR |
+| `PATCH` | `/aulas/{idAula}/turmas/{idTurma}` | Vincular aula a turma | ADMIN, PROFESSOR |
+| `DELETE` | `/aulas/{idAula}/turmas/{idTurma}` | Desvincular aula de turma | ADMIN, PROFESSOR |
+| `DELETE` | `/aulas/{id}` | Excluir aula | ADMIN, PROFESSOR |
+| `POST` | `/aulas/{idAula}/inscricoes` | Inscrever aluno em aula | ALUNO |
+| `DELETE` | `/aulas/{idAula}/inscricoes` | Cancelar inscrição | ALUNO |
+| `GET` | `/aulas/{idAula}/inscricoes` | Listar inscrições da aula | ADMIN, COORDENADOR, PROFESSOR |
+| `GET` | `/aulas/inscricoes/minhas` | Minhas inscrições | ALUNO |
+| `PATCH` | `/aulas/{idAula}/presencas/inscricao/{idInscricao}` | Registrar presença | ADMIN, PROFESSOR |
+| `GET` | `/aulas/{idAula}/presencas` | Listar presenças da aula | ADMIN, PROFESSOR |
+| `GET` | `/aulas/me/presencas` | Minhas presenças | ALUNO |
+
+</details>
+
+<details>
+<summary><b>🏫 Professores e Responsáveis</b></summary>
+
+| Método | Endpoint | Descrição | Roles |
+|--------|----------|-----------|-------|
+| `POST` | `/professores` | Criar professor | ADMIN, COORDENADOR |
+| `GET` | `/professores` | Listar professores | ADMIN, COORDENADOR |
+| `GET` | `/professores/{id}` | Buscar professor por ID | ADMIN, COORDENADOR |
+| `POST` | `/responsaveis` | Criar responsável | ADMIN, COORDENADOR |
+| `GET` | `/responsaveis` | Listar responsáveis | ADMIN, COORDENADOR |
+| `GET` | `/responsaveis/{id}` | Buscar responsável por ID | ADMIN, COORDENADOR |
+| `PATCH` | `/responsaveis/{idResponsavel}/alunos/{idAluno}` | Vincular aluno | ADMIN, COORDENADOR |
+| `DELETE` | `/responsaveis/{idResponsavel}/alunos/{idAluno}` | Remover vínculo | ADMIN, COORDENADOR |
+
+</details>
+
+<details>
+<summary><b>📊 Dashboard e Endereço</b></summary>
+
+| Método | Endpoint | Descrição | Roles |
+|--------|----------|-----------|-------|
+| `GET` | `/admin/dashboard` | Métricas operacionais agregadas | ADMIN, COORDENADOR |
+| `GET` | `/enderecos/cep/{cep}` | Buscar endereço por CEP (ViaCEP) | ❌ |
+
+</details>
+
+### Exemplo de Uso
+
+```bash
+# 1. Login
+curl -X POST http://localhost:8080/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email": "admin@fighthub.com", "senha": "123456"}'
+
+# 2. Use o token retornado nas próximas requisições
+curl -X GET http://localhost:8080/alunos \
+  -H "Authorization: Bearer SEU_ACCESS_TOKEN"
+```
+
+---
+
+## 🔐 Segurança
+
+### Fluxo de Autenticação
+
+```
+1. POST /auth/login  →  { accessToken, refreshToken }
+2. Requisições:       →  Header: Authorization: Bearer <accessToken>
+3. Token expirado:    →  POST /auth/refresh  →  { accessToken }
+4. POST /auth/logout  →  Tokens revogados no banco
+```
+
+### Mecanismos implementados
+
+- **BCrypt** para hash de senhas
+- **JWT stateless** com segredo configurável
+- **Access Token**: expiração em 15 minutos
+- **Refresh Token**: expiração em 7 dias, persistido no banco
+- **Revogação explícita** de tokens no logout
+- **`SecurityFilter`** customizado executado antes de cada requisição
+- **`CustomAuthenticationEntryPoint`** — resposta padronizada para `401 Unauthorized`
+- **`CustomAccessDeniedHandler`** — resposta padronizada para `403 Forbidden`
+- **CORS** configurado via `CorsConfigurationSource`
+- Sessão **STATELESS** (sem HttpSession)
+
+---
+
+## 🧪 Testes
+
+### Executar testes
+
+```bash
+# Todos os testes
 mvn test
+
+# Testes com relatório de cobertura (JaCoCo)
+mvn clean verify
+
+# Relatório disponível em:
+# target/site/jacoco/index.html
 ```
 
-### Executar Testes com Cobertura
+### Cobertura de testes
+
+| Tipo | Classes | Descrição |
+|------|---------|-----------|
+| **Unitários** | 15 | Um arquivo por service (`AlunoServiceTest`, `AuthServiceTest`, `DashboardServiceTest`, etc.) |
+| **Integração** | 10 | Testes end-to-end com MockMvc + H2 (`AlunoIntegrationTest`, `AulaIntegrationTest`, etc.) |
+
+### Tecnologias de teste
+
+- **JUnit 5** — Framework de testes
+- **Mockito 5.12** — Mocking de dependências
+- **Spring Security Test** — Testes de endpoints protegidos
+- **H2 In-Memory** — Banco de dados isolado para testes de integração
+- **JaCoCo 0.8.13** — Relatório de cobertura de código
+
+---
+
+## 🐳 Deploy
+
+### Desenvolvimento local com Docker
 
 ```bash
-mvn clean test jacoco:report
+# Suba somente o banco de dados
+docker-compose up -d
+
+# Execute a aplicação via Maven
+mvn spring-boot:run
 ```
 
-O relatório de cobertura será gerado em: `target/site/jacoco/index.html`
-
-### Tipos de Testes
-
-- **Testes Unitários**: Testam componentes isolados (18 classes de teste)
-- **Testes de Integração**: Testam fluxos completos
-- **Testes de Repositório**: Testam acesso aos dados
-- **Testes de Segurança**: Testam autenticação e autorização
-
-## Deploy
-
-### Ambiente de Produção
-
-Para deploy em ambiente de produção, siga estas diretrizes:
-
-1. **Configuração do Banco de Dados**
-   - Configure um PostgreSQL dedicado
-   - Execute as migrações do Flyway
-   - Configure backup automático
-
-2. **Variáveis de Ambiente**
-   - Configure todas as variáveis de ambiente necessárias
-   - Use secrets management para dados sensíveis
-   - Configure logs centralizados
-
-3. **Segurança**
-   - Configure HTTPS/TLS
-   - Use certificados SSL válidos
-   - Configure firewall e rate limiting
-   - Altere as chaves JWT padrão
-
-4. **Monitoramento**
-   - Configure health checks
-   - Implemente métricas de aplicação
-   - Configure alertas de sistema
-
-### Docker
+### Produção
 
 ```bash
-# Build da aplicação
-mvn clean package
+# 1. Gere o artefato
+mvn clean package -DskipTests
 
-# Build da imagem Docker
-docker build -t fighthub:latest .
-
-# Executar com Docker Compose
-docker-compose -f docker-compose.prod.yml up -d
+# 2. Execute o JAR
+java -jar target/fighthub-0.0.1-SNAPSHOT.jar \
+  --spring.profiles.active=prod
 ```
 
-## Contribuição
+### Checklist para produção
 
-Contribuições são sempre bem-vindas! Para contribuir:
+- [ ] Altere o `security.jwt.secret` para uma chave forte de 256 bits
+- [ ] Configure as variáveis de e-mail SMTP
+- [ ] Remova ou restrinja o acesso ao Swagger UI
+- [ ] Configure HTTPS/TLS com certificado válido
+- [ ] Ajuste o nível de log para `INFO` (não `DEBUG`)
+- [ ] Configure backup automático do PostgreSQL
+- [ ] Altere as credenciais do usuário `admin@fighthub.com`
 
-1. **Fork** o projeto
-2. Crie uma **branch** para sua feature (`git checkout -b feature/AmazingFeature`)
-3. **Commit** suas mudanças (`git commit -m 'Add some AmazingFeature'`)
-4. **Push** para a branch (`git push origin feature/AmazingFeature`)
+---
+
+## 🤝 Contribuição
+
+Contribuições são bem-vindas! Siga os passos abaixo:
+
+1. **Fork** o repositório
+2. Crie uma branch para sua feature
+   ```bash
+   git checkout -b feature/minha-feature
+   ```
+3. Faça o commit das suas alterações
+   ```bash
+   git commit -m "feat: adiciona minha nova feature"
+   ```
+4. Envie para o repositório remoto
+   ```bash
+   git push origin feature/minha-feature
+   ```
 5. Abra um **Pull Request**
 
-### Padrões de Código
+### Padrões do projeto
 
-- Siga as convenções do Java
-- Use Lombok para reduzir boilerplate
-- Escreva testes para novas funcionalidades
-- Mantenha a cobertura de testes acima de 80%
-- Documente APIs com Swagger/OpenAPI
-- Use commits semânticos
+- Commits semânticos (`feat:`, `fix:`, `docs:`, `refactor:`, `test:`)
+- Cobertura de testes para novas funcionalidades
+- Documentação Swagger para novos endpoints
+- Código em português (domínio) com inglês técnico (infraestrutura)
 
-**FightHub** - Solução empresarial para gerenciamento de academias de artes marciais.
+---
