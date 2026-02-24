@@ -17,6 +17,7 @@ public interface InscricaoRepository extends JpaRepository<Inscricao, UUID> {
 
     Optional<Inscricao> findByAulaAndAluno(Aula aula, Aluno aluno);
 
+    @EntityGraph(attributePaths = {"aula", "aula.turma"})
     Page<Inscricao> findAllByAula(Aula aula, Pageable pageable);
 
     List<Inscricao> findAllByAluno(Aluno aluno);
