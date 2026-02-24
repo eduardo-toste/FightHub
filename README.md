@@ -9,14 +9,6 @@
 [![Spring Security](https://img.shields.io/badge/Spring_Security-JWT-6DB33F?style=for-the-badge&logo=spring-security&logoColor=white)](https://spring.io/projects/spring-security)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-316192?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
 [![Maven](https://img.shields.io/badge/Maven-3.6+-C71A36?style=for-the-badge&logo=apachemaven&logoColor=white)](https://maven.apache.org/)
-[![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](LICENSE)
-
-[📖 Documentação da API](#-documentação-da-api) •
-[🚀 Instalação](#-instalação) •
-[⚙️ Configuração](#️-configuração) •
-[🏗️ Arquitetura](#️-arquitetura) •
-[🧪 Testes](#-testes) •
-[🖥️ Frontend](#️-frontend)
 
 </div>
 
